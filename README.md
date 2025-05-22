@@ -1,1 +1,4 @@
-# 77PlaySystem
+# 77PlaySystem API
+
+### Apiary
+#### https://77playsystem.docs.apiary.io/
