@@ -1,0 +1,73 @@
+import "dotenv/config";
+
+import cors, { CorsOptions } from "cors";
+import express, { Express, NextFunction, Request, Response } from "express";
+import morgan from "morgan";
+
+import { responseHandler } from "./common/response";
+import { isJestTest, isNullOrEmpty } from "./common/utils";
+import { LOG_LEVEL } from "./common/constants";
+import { setLog } from "./core/logger";
+import { connectDB } from "./core/db";
+import { router } from "./routes/router";
+
+const app: Express = express();
+const whiteList: string[] = process.env.WHITELIST?.split(",") || [];
+
+morgan.token("apiPath", (req: Request) => `${req.method} ${req.originalUrl}`);
+app.use(morgan(":apiPath", {
+  immediate: true,
+  stream: {
+    write: (message: string) => {
+      setLog(LOG_LEVEL.HTTP, message.trim());
+    }
+  }
+}));
+
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+const corsOptions: CorsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    if (isJestTest) {
+      callback(null, true);
+    } else if (!isNullOrEmpty(origin)) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      const hostName: string = new URL(origin!).hostname;
+      if (whiteList.includes(hostName)) {
+        setLog(LOG_LEVEL.INFO, `origin: ${origin}`);
+        callback(null, true);
+      }
+    } else {
+      const msg = "not allowed by CORS";
+      setLog(LOG_LEVEL.ERROR, `origin: ${origin} ${msg}`);
+      callback(new Error(msg));
+    }
+  },
+  credentials: true
+};
+
+app.use(cors(corsOptions));
+
+app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
+  if (!isNullOrEmpty(error.message)) {
+    setLog(LOG_LEVEL.ERROR, "CORS policy does not allow access from this origin.");
+    responseHandler.forbidden(res);
+    return;
+  }
+  setLog(LOG_LEVEL.INFO, `origin: ${req.originalUrl}`);
+  next();
+});
+
+router.forEach(route => {
+  app.use(route.prefix, route.router);
+});
+
+if (!isJestTest) connectDB();
+
+app.listen(process.env.PORT, () => {
+  // eslint-disable-next-line no-console
+  console.log(`http://localhost:${process.env.PORT}`);
+});
+
+export default app;
