@@ -74,6 +74,20 @@ export const responseHandler = {
       HTTP_STATUS.FORBIDDEN, 
       RESPONSE_MESSAGE.FORBIDDEN_CORS
     );
-  }
+  },
+
+  unauthorized(res: Response, type: "AUTHENTICATION" | "TOKEN" | "OTHER", message: string = ""): void {
+    const messageMap = {
+      AUTHENTICATION: RESPONSE_MESSAGE.AUTHENTICATION_REQUIRED,
+      TOKEN: RESPONSE_MESSAGE.TOKEN_EXPIRED,
+      OTHER: message
+    };
+
+    sendResponse(
+      res,
+      HTTP_STATUS.UNAUTHORIZED,
+      messageMap[type]
+    );
+  },
 };
   

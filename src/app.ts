@@ -1,4 +1,11 @@
 import "dotenv/config";
+import "./middleware/passport";
+
+if (!process.env.JWT_SECRET) {
+  // eslint-disable-next-line no-console
+  console.error("FATAL ERROR: JWT_SECRET is not defined.");
+  process.exit(1);
+}
 
 import cors, { CorsOptions } from "cors";
 import express, { Express, NextFunction, Request, Response } from "express";
