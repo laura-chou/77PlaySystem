@@ -1,7 +1,9 @@
 import request from "supertest";
 import users from "../src/models/user.model";
 import app from "../src/app";
-import { ROUTE, MOCK_DATA } from "./fixtures/user";
+import { HTTP_STATUS, RESPONSE_MESSAGE } from "../src/common/constants";
+import { ROUTE, MOCK_DATA, MOCK_INCORRECT_PASSWORD_DATA } from "./fixtures/user";
+import { createRequest, expectResponse } from "./fixtures/testUtils";
 
 jest.mock("../src/models/user.model", () => ({
   findOne: jest.fn(),
@@ -29,61 +31,45 @@ describe("User API", () => {
       });
     });
 
-    // describe("Server Error Cases", () => {
-    //   it("should fail if user does not exist", async () => {
-    //     (users.findOne as jest.Mock).mockResolvedValue(null);
+    describe("Authentication Error Cases", () => {
+      test("should fail if user does not exist", async () => {
+        (users.findOne as jest.Mock).mockResolvedValue(null);
     
-    //     const res = await request(app)
-    //       .post("/user/login")
-    //       .send({
-    //         userCode: "notexist",
-    //         password: "any",
-    //       });
+        const res = await request(app)
+          .post(ROUTE.LOGIN)
+          .send({
+            password: "userCode",
+          });
     
-    //     expect(res.statusCode).toBe(401);
-    //     expect(res.body).not.toHaveProperty("token");
-    //   });
+        expect(res.statusCode).toBe(401);
+        expect(res.body).not.toHaveProperty("token");
+      });
     
-    //   it("should fail if password is incorrect", async () => {
-    //     // 模擬 user 存在但密碼比對失敗
-    //     (users.findOne as jest.Mock).mockResolvedValue({
-    //       ...testUser,
-    //       password: bcrypt.hashSync("otherpassword", 10),
-    //     });
-    
-    //     const res = await request(app)
-    //       .post("/user/login")
-    //       .send({
-    //         userCode: testUser.userCode,
-    //         password: "wrongpassword",
-    //       });
-    
-    //     expect(res.statusCode).toBe(401);
-    //     expect(res.body).not.toHaveProperty("token");
-    //   });
-    // })
+      it("should fail if password is incorrect", async () => {
+        (users.findOne as jest.Mock).mockResolvedValue(MOCK_INCORRECT_PASSWORD_DATA);
 
-    // describe("Validation Error Cases", () => {  
-    //   test("should fail if missing fields", async () => {
-    //     const res = await request(app)
-    //       .post("/user/login")
-    //       .send({
-    //         userCode: MOCK_DATA.userCode
-    //       });
+        const res = await request(app)
+          .post(ROUTE.LOGIN)
+          .send({
+            password: MOCK_INCORRECT_PASSWORD_DATA.userCode,
+          });
+    
+        expect(res.statusCode).toBe(401);
+        expect(res.body).not.toHaveProperty("token");
+      });
+    });
 
-    //     expect(res.statusCode).toBe(400);
-    //     expect(res.body).not.toHaveProperty("token");
-    //   });
+    describe("Validation Error Cases", () => {
+      test.each([
+        ["invalid Content-Type", { password: MOCK_DATA.userCode }, false, RESPONSE_MESSAGE.INVALID_CONTENT_TYPE],
+        ["missing key in JSON body", { userCode: "userCode" }, true, RESPONSE_MESSAGE.INVALID_JSON_KEY],
+        ["invalid data type", { password: 123456 }, true, RESPONSE_MESSAGE.INVALID_JSON_FORMAT]
+      ])("should bad request for %s", async (_, requestBody, isSetJson, expectedMessage) => {
+        const response = await createRequest.post(ROUTE.LOGIN, requestBody, HTTP_STATUS.BAD_REQUEST, isSetJson);
 
-    //   test("should fail if Content-Type is not application/json", async () => {
-    //     const res = await request(app)
-    //       .post("/user/login")
-    //       .set("Content-Type", "text/plain")
-    //       .send("userCode=testuser&password=testpassword");
-
-    //     expect(res.statusCode).toBe(415);
-    //   });
-    // })
+        expectResponse.badRequest(response, expectedMessage);
+      });
+    });
   });
 
   

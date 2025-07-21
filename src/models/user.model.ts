@@ -45,14 +45,15 @@ const userSchema = new Schema<IUser>({
     required: true
   }
 }, {
-  versionKey: false
+  versionKey: false,
+  collection: "user"
 });
 
-if (isNullOrEmpty(process.env.COLLECTION_USERS)) {
+if (isNullOrEmpty(process.env.COLLECTION_USER)) {
   throw new Error(RESPONSE_MESSAGE.ENV_ERROR);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const users: Model<IUser> = model(process.env.COLLECTION_USERS!, userSchema);
+const users: Model<IUser> = model(process.env.COLLECTION_USER!, userSchema);
 
 export default users;

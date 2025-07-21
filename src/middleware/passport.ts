@@ -47,6 +47,7 @@ passport.use(
     },
     async (_, password: string, done) => {
       try {
+
         const user = await users.findOne({ userCode: password });
 
         if (!user) {

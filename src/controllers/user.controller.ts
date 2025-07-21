@@ -10,9 +10,6 @@ import jwt from "jsonwebtoken";
 export const userLogin = setFunctionName(
   async (request: Request, response: Response): Promise<void> => {
     try {
-      if (!baseController.validateContentType(request, response, userLogin.name)) {
-        return;
-      }
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const user = request.user!;
       const token = jwt.sign(
