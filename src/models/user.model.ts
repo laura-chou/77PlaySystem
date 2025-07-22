@@ -9,32 +9,21 @@ interface IUser extends Document {
   userCode: string;
   password: string;
   userType: string;
-  gameType: Array<number>;
   token: string;
   createDate: Date;
 }
 
-// export interface IUserTest {
-//   userCode: number;
-//   userType: string;
-//   gameType: string;
-//   createDate: Date;
-// }
-
 const userSchema = new Schema<IUser>({
   userCode: {
     type: String,
-    required: true
+    required: true,
+    unique: true
   },
   password: {
     type: String
   },
   userType: {
     type: String,
-    required: true
-  },
-  gameType: {
-    type: [Number],
     required: true
   },
   token: {

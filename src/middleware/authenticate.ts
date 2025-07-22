@@ -45,7 +45,7 @@ export default (strategy: string) => {
         const token = authHeader.replace("Bearer ", "");
         const validateToken = await users.findOne({ 
           "token": token 
-        }).select("-_id -username -password -tokens");
+        }).select("-_id -username -password -token").lean();
         
         if (!validateToken) {
           return responseHandler.unauthorized(res, "TOKEN");

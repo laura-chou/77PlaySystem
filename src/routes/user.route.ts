@@ -5,7 +5,7 @@ import validateLoginRequest from "../middleware/validateLoginRequest";
 
 export const userRoutes = (): RouteConfig => {
   return createRoute("/user", (router) => {
-    router.get("/", authMiddleware("jwt"), userController.userLogin);
     router.post("/action", validateLoginRequest,authMiddleware("login"), userController.userLogin);
+    router.get("/", authMiddleware("jwt"), userController.getUserList);
   });
 };

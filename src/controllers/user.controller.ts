@@ -32,3 +32,17 @@ export const userLogin = setFunctionName(
   },
   "userLogin"
 );
+
+export const getUserList = setFunctionName(
+  async (request: Request, response: Response): Promise<void> => {
+    try {
+      const userList = await users.find({
+        password: { $in: ["", null] }
+      });
+      responseHandler.success(response, userList);
+    } catch (error) {
+      baseController.errorHandler(response, error, getUserList.name);
+    }
+  },
+  "getUserList"
+);
