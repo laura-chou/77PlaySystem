@@ -1,11 +1,13 @@
 import { Request, Response } from "express";
-import { setFunctionName } from "../common/utils";
-import { responseHandler } from "../common/response";
+import jwt from "jsonwebtoken";
+
 import { LOG_LEVEL, LOG_MESSAGE } from "../common/constants";
+import { responseHandler } from "../common/response";
+import { setFunctionName } from "../common/utils";
 import { setLog } from "../core/logger";
 import users from "../models/user.model";
+
 import * as baseController from "./base.controller";
-import jwt from "jsonwebtoken";
 
 export const userLogin = setFunctionName(
   async (request: Request, response: Response): Promise<void> => {

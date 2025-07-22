@@ -1,10 +1,12 @@
-import request from "supertest";
-import users from "../src/models/user.model";
-import app from "../src/app";
 import jwt from "jsonwebtoken";
+import request from "supertest";
+
+import app from "../src/app";
 import { HTTP_STATUS, RESPONSE_MESSAGE } from "../src/common/constants";
-import { ROUTE, MOCK_ADMIN_DATA, MOCK_USER_DATA,MOCK_INCORRECT_PASSWORD_DATA } from "./fixtures/user";
+import users from "../src/models/user.model";
+
 import { createRequest, expectResponse } from "./fixtures/testUtils";
+import { ROUTE, MOCK_ADMIN_DATA, MOCK_USER_DATA,MOCK_INCORRECT_PASSWORD_DATA } from "./fixtures/user";
 
 jest.mock("../src/models/user.model", () => ({
   find: jest.fn(),

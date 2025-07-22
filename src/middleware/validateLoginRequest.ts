@@ -1,8 +1,9 @@
 import { Request, Response, NextFunction } from "express";
+
 import { LOG_LEVEL, RESPONSE_MESSAGE } from "../common/constants";
 import { responseHandler } from "../common/response";
-import { setLog } from "../core/logger";
 import { isNullOrEmpty, isTypeString } from "../common/utils";
+import { setLog } from "../core/logger";
 
 export default function validateLoginRequest(
   request: Request,

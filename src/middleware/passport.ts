@@ -1,7 +1,8 @@
+import bcrypt from "bcrypt";
 import passport from "passport";
 import passportJWT from "passport-jwt";
-import bcrypt from "bcrypt";
 import { Strategy as LocalStrategy } from "passport-local";
+
 import { RESPONSE_MESSAGE } from "../common/constants";
 import users from "../models/user.model";
 

@@ -1,7 +1,8 @@
-import passport from "passport";
-import users from "../models/user.model";
 import { Request, Response, NextFunction } from "express";
+import passport from "passport";
+
 import { responseHandler } from "../common/response";
+import users from "../models/user.model";
 
 interface AuthenticatedUser extends Document {
   userCode: string;

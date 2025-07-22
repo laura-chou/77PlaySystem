@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 
 import { LOG_LEVEL, LOG_MESSAGE, RESPONSE_MESSAGE } from "../common/constants";
 import { isNullOrEmpty } from "../common/utils";
+
 import { setLog } from "./logger";
 
 if (isNullOrEmpty(process.env.DBURL)) {

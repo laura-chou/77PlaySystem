@@ -1,4 +1,5 @@
 import * as indexController from "../controllers/index.controller";
+
 import { createRoute, RouteConfig } from "./route";
 
 export const indexRoute = (): RouteConfig => {
