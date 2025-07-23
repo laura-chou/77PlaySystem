@@ -76,17 +76,11 @@ export const responseHandler = {
     );
   },
 
-  unauthorized(res: Response, type: "AUTHENTICATION" | "TOKEN" | "OTHER", message: string = ""): void {
-    const messageMap = {
-      AUTHENTICATION: RESPONSE_MESSAGE.AUTHENTICATION_REQUIRED,
-      TOKEN: RESPONSE_MESSAGE.TOKEN_EXPIRED,
-      OTHER: message
-    };
-
+  unauthorized(res: Response, message: string = RESPONSE_MESSAGE.UNKNOWN): void {
     sendResponse(
       res,
       HTTP_STATUS.UNAUTHORIZED,
-      messageMap[type]
+      message
     );
   },
 };

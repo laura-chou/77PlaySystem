@@ -39,6 +39,6 @@ export const RESPONSE_MESSAGE = {
   INVALID_JSON_FORMAT: "Invalid JSON format.",
   ENV_ERROR: "Environment variable is not setting.",
   FORBIDDEN_CORS: "Forbidden: CORS policy does not allow access from this origin.",
-  AUTHENTICATION_REQUIRED: "Authentication required.",
-  TOKEN_EXPIRED: "Token expired."
+  USER_NOT_EXIST: "User does not exist.",
+  UNKNOWN: "Unknown message"
 } as const;

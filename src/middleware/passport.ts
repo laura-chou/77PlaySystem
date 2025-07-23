@@ -26,11 +26,11 @@ passport.use(
     async (jwtPayload: JWTPayload, done: passportJWT.VerifiedCallback) => {
       try {
         const user = await users.findOne({ userCode: jwtPayload.user });
-        
-        if (user) {
+
+        if (user && user.token) {
           return done(null, user);
         } else {
-          return done(null, false);
+          return done(null, false, { message: RESPONSE_MESSAGE.USER_NOT_EXIST });
         }
       } catch (error) {
         return done(error, false);

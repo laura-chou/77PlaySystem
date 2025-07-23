@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from "express";
+import jwt from "jsonwebtoken";
 import passport from "passport";
 
 import { responseHandler } from "../common/response";
@@ -34,27 +35,23 @@ export default (strategy: string) => {
         user: AuthenticatedUser | false | null,
         info: AuthInfo | undefined) => {
       if (error || !user) {
-        return responseHandler.unauthorized(res, "OTHER", info?.message);
-      }
+        if (info?.message === "jwt expired") {
+          const authHeader = req.header("Authorization");
+          if (authHeader) {
+            const token = authHeader.replace("Bearer ", "");
+            const decoded = jwt.decode(token) as { user?: string };
+            const userCode = decoded?.user;
 
-      if (strategy !== "login") {
-        const authHeader = req.header("Authorization");
-        if (!authHeader) {
-          return responseHandler.unauthorized(res, "AUTHENTICATION");
+            if (userCode) {
+              await users.updateOne(
+                { userCode },
+                { $set: { token: "" } }
+              );
+            }
+          }
         }
-        
-        const token = authHeader.replace("Bearer ", "");
-        const validateToken = await users.findOne({ 
-          "token": token 
-        }).select("-_id -username -password -token").lean();
-        
-        if (!validateToken) {
-          return responseHandler.unauthorized(res, "TOKEN");
-        }
-        
-        req.token = token;
+        return responseHandler.unauthorized(res, info?.message);
       }
-      
       req.user = user;
       next();
     })(req, res, next);
