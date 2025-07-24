@@ -1,6 +1,6 @@
 import { Response } from "express";
 
-import { HTTP_STATUS, RESPONSE_MESSAGE } from "./constants";
+import { HTTP_STATUS, LOG_MESSAGE, RESPONSE_MESSAGE } from "./constants";
 
 interface ApiResponse<T> {
   status: number
@@ -76,7 +76,7 @@ export const responseHandler = {
     );
   },
 
-  unauthorized(res: Response, message: string = RESPONSE_MESSAGE.UNKNOWN): void {
+  unauthorized(res: Response, message: string = LOG_MESSAGE.ERROR.UNKNOWN): void {
     sendResponse(
       res,
       HTTP_STATUS.UNAUTHORIZED,

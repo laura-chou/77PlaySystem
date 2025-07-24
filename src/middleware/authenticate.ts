@@ -2,7 +2,9 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import passport from "passport";
 
+import { LOG_LEVEL, LOG_MESSAGE } from "../common/constants";
 import { responseHandler } from "../common/response";
+import { setLog } from "../core/logger";
 import User from "../models/user.model";
 
 interface AuthenticatedUser extends Document {
@@ -34,7 +36,11 @@ export default (strategy: string) => {
         error: Error | null,
         user: AuthenticatedUser | false | null,
         info: AuthInfo | undefined) => {
-      if (error || !user) {
+      if (error) {
+        setLog(LOG_LEVEL.ERROR, `authenticate: ${error.message}`);
+        return responseHandler.serverError(res);
+      }
+      if (!user) {
         if (info?.message === "jwt expired") {
           const authHeader = req.header("Authorization");
           if (authHeader) {
@@ -50,8 +56,10 @@ export default (strategy: string) => {
             }
           }
         }
+        setLog(LOG_LEVEL.ERROR, `authenticate: ${info?.message}`);
         return responseHandler.unauthorized(res, info?.message);
       }
+      setLog(LOG_LEVEL.INFO, `authenticate: ${LOG_MESSAGE.SUCCESS}`);
       req.user = user;
       next();
     })(req, res, next);

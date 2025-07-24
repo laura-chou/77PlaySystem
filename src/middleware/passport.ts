@@ -37,7 +37,7 @@ passport.use(
           return done(null, false, { message: RESPONSE_MESSAGE.USER_NOT_EXIST });
         }
       } catch (error) {
-        return done(error, false);
+        return done(error, false, { message: RESPONSE_MESSAGE.SERVER_ERROR });
       }
     }
   )
@@ -52,7 +52,6 @@ passport.use(
     },
     async (_, password: string, done) => {
       try {
-
         const user = await User.findOne({ userCode: password });
 
         if (!user) {
@@ -65,7 +64,7 @@ passport.use(
         }
         return done(null, user, { message: RESPONSE_MESSAGE.SUCCESS });
       } catch (error) {
-        return done(error as Error, false);
+        return done(error, false, { message: RESPONSE_MESSAGE.SERVER_ERROR });
       }
     }
   )

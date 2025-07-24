@@ -80,8 +80,8 @@ describe("User API", () => {
   describe(`GET ${ROUTE.BASE}`, () => {
     describe("Success Cases", () => {
       test("should return user list with valid JWT", async () => {
-        (User.find as jest.Mock).mockResolvedValue(MOCK_USER_DATA);
         (User.findOne as jest.Mock).mockReturnValue(MOCK_ADMIN_DATA);
+        (User.find as jest.Mock).mockResolvedValue(MOCK_USER_DATA);
 
         const token = jwt.sign(
           { user: MOCK_ADMIN_DATA.userCode },
@@ -149,6 +149,45 @@ describe("User API", () => {
         
         expect(res.statusCode).toBe(401);
         expect(res.body.message).toBe(RESPONSE_MESSAGE.USER_NOT_EXIST);
+      });
+    });
+
+    describe("Server Error Cases", () => {
+      test("should return 500 if User.findOne throws error", async () => {
+        (User.findOne as jest.Mock).mockRejectedValue(new Error("DB Error"));
+
+        const token = jwt.sign(
+          { user: MOCK_ADMIN_DATA.userCode },
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          process.env.JWT_SECRET!,
+          { expiresIn: "2h" }
+        );
+    
+        const res = await request(app)
+          .get(ROUTE.BASE)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(res.statusCode).toBe(500);
+        expect(res.body.message).toBe(RESPONSE_MESSAGE.SERVER_ERROR);
+      });
+
+      test("should return 500 if User.find throws error", async () => {
+        (User.findOne as jest.Mock).mockReturnValue(MOCK_ADMIN_DATA);
+        (User.find as jest.Mock).mockRejectedValue(new Error("DB Error"));
+
+        const token = jwt.sign(
+          { user: MOCK_ADMIN_DATA.userCode },
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+          process.env.JWT_SECRET!,
+          { expiresIn: "2h" }
+        );
+    
+        const res = await request(app)
+          .get(ROUTE.BASE)
+          .set("Authorization", `Bearer ${token}`);
+
+        expect(res.statusCode).toBe(500);
+        expect(res.body.message).toBe(RESPONSE_MESSAGE.SERVER_ERROR);
       });
     });
   });
