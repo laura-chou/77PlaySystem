@@ -3,7 +3,7 @@ import request from "supertest";
 
 import app from "../src/app";
 import { HTTP_STATUS, RESPONSE_MESSAGE } from "../src/common/constants";
-import users from "../src/models/user.model";
+import User from "../src/models/user.model";
 
 import { createRequest, expectResponse } from "./fixtures/testUtils";
 import { ROUTE, MOCK_ADMIN_DATA, MOCK_USER_DATA,MOCK_INCORRECT_PASSWORD_DATA } from "./fixtures/user";
@@ -23,7 +23,7 @@ describe("User API", () => {
   describe(`POST ${ROUTE.LOGIN}`, () => {
     describe("Success Cases", () => {
       test("should login successfully and return a token", async () => {
-        (users.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN_DATA);
+        (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN_DATA);
     
         const res = await request(app)
           .post(ROUTE.LOGIN)
@@ -38,7 +38,7 @@ describe("User API", () => {
 
     describe("Authentication Error Cases", () => {
       test("should fail if user does not exist", async () => {
-        (users.findOne as jest.Mock).mockResolvedValue(null);
+        (User.findOne as jest.Mock).mockResolvedValue(null);
     
         const res = await request(app)
           .post(ROUTE.LOGIN)
@@ -51,7 +51,7 @@ describe("User API", () => {
       });
     
       it("should fail if password is incorrect", async () => {
-        (users.findOne as jest.Mock).mockResolvedValue(MOCK_INCORRECT_PASSWORD_DATA);
+        (User.findOne as jest.Mock).mockResolvedValue(MOCK_INCORRECT_PASSWORD_DATA);
 
         const res = await request(app)
           .post(ROUTE.LOGIN)
@@ -80,8 +80,8 @@ describe("User API", () => {
   describe(`GET ${ROUTE.BASE}`, () => {
     describe("Success Cases", () => {
       test("should return user list with valid JWT", async () => {
-        (users.find as jest.Mock).mockResolvedValue(MOCK_USER_DATA);
-        (users.findOne as jest.Mock).mockReturnValue(MOCK_ADMIN_DATA);
+        (User.find as jest.Mock).mockResolvedValue(MOCK_USER_DATA);
+        (User.findOne as jest.Mock).mockReturnValue(MOCK_ADMIN_DATA);
 
         const token = jwt.sign(
           { user: MOCK_ADMIN_DATA.userCode },
@@ -134,7 +134,7 @@ describe("User API", () => {
       });
 
       test("should fail if user in JWT does not exist", async () => {
-        (users.findOne as jest.Mock).mockResolvedValue(null);
+        (User.findOne as jest.Mock).mockResolvedValue(null);
       
         const token = jwt.sign(
           { user: "notExistUser" },

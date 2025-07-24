@@ -40,5 +40,6 @@ export const RESPONSE_MESSAGE = {
   ENV_ERROR: "Environment variable is not setting.",
   FORBIDDEN_CORS: "Forbidden: CORS policy does not allow access from this origin.",
   USER_NOT_EXIST: "User does not exist.",
+  TOKEN_EXPIRED: "Token expired.",
   UNKNOWN: "Unknown message"
 } as const;

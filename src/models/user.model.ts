@@ -43,6 +43,6 @@ if (isNullOrEmpty(process.env.COLLECTION_USER)) {
 }
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const users: Model<IUser> = model(process.env.COLLECTION_USER!, userSchema);
+const User: Model<IUser> = model(process.env.COLLECTION_USER!, userSchema);
 
-export default users;
+export default User;

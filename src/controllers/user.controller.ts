@@ -5,7 +5,7 @@ import { LOG_LEVEL, LOG_MESSAGE } from "../common/constants";
 import { responseHandler } from "../common/response";
 import { setFunctionName } from "../common/utils";
 import { setLog } from "../core/logger";
-import users from "../models/user.model";
+import User from "../models/user.model";
 
 import * as baseController from "./base.controller";
 
@@ -21,7 +21,7 @@ export const userLogin = setFunctionName(
         { expiresIn: "2h" }
       );
 
-      await users.findByIdAndUpdate(
+      await User.findByIdAndUpdate(
         user._id,
         { token },
         { new: true }
@@ -38,7 +38,7 @@ export const userLogin = setFunctionName(
 export const getUserList = setFunctionName(
   async (request: Request, response: Response): Promise<void> => {
     try {
-      const userList = await users.find({
+      const userList = await User.find({
         password: { $in: ["", null] }
       });
       responseHandler.success(response, userList);

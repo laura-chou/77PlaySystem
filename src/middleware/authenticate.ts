@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import passport from "passport";
 
 import { responseHandler } from "../common/response";
-import users from "../models/user.model";
+import User from "../models/user.model";
 
 interface AuthenticatedUser extends Document {
   userCode: string;
@@ -43,7 +43,7 @@ export default (strategy: string) => {
             const userCode = decoded?.user;
 
             if (userCode) {
-              await users.updateOne(
+              await User.updateOne(
                 { userCode },
                 { $set: { token: "" } }
               );
