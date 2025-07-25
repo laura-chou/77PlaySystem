@@ -1,18 +1,47 @@
+import jwt from "jsonwebtoken";
 import request, { Response } from "supertest";
 
 import app from "../../src/app";
 import { CONTENT_TYPE, HTTP_STATUS, RESPONSE_MESSAGE } from "../../src/common/constants";
 import { isTypeString } from "../../src/common/utils";
 
+interface tokenInfoModel {
+  showToken: boolean;
+  isExpired: boolean;
+  isInvalid: boolean;
+  existUser: boolean;
+}
+
+const defaultTokenInfo: tokenInfoModel = {
+  showToken: true,
+  existUser: true,
+  isExpired: false,
+  isInvalid: false
+};
+
 export const createRequest = {
   get: (
     route: string,
     status: number,
+    tokenInfo?: Partial<tokenInfoModel>,    
     isExpectJson: boolean = true
   ): request.Test => {
+    const mergedTokenInfo = { ...defaultTokenInfo, ...tokenInfo };
     const contentType = isExpectJson ? CONTENT_TYPE.JSON_WITH_CHARSET : CONTENT_TYPE.TEXT_WITH_CHARSET;
-    return request(app)
-      .get(route)
+    const req = request(app).get(route);
+
+    if (mergedTokenInfo.showToken) {
+      const validToken = jwt.sign(
+        { user: mergedTokenInfo.existUser ? "testuser" : "notExistUser"},
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        process.env.JWT_SECRET!,
+        { expiresIn: mergedTokenInfo.isExpired ? -1 : "2h" }
+      );
+      const token = mergedTokenInfo.isInvalid ? "invalidtoken" : validToken;
+      req.set("Authorization", `Bearer ${token}`);
+    }
+
+    return req
       .expect("Content-Type", contentType)
       .expect(status);
   },
@@ -83,6 +112,15 @@ export const expectResponse = {
     expect(response.body).toEqual({
       status: HTTP_STATUS.SERVER_ERROR,
       message: RESPONSE_MESSAGE.SERVER_ERROR
+    });
+  },
+
+  unauthorized: (
+    response: Response,
+    message: string = RESPONSE_MESSAGE.WRONG_PASSWORD): void => {
+    expect(response.body).toEqual({
+      status: HTTP_STATUS.UNAUTHORIZED,
+      message: message
     });
   }
 };

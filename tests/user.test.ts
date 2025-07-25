@@ -1,7 +1,3 @@
-import jwt from "jsonwebtoken";
-import request from "supertest";
-
-import app from "../src/app";
 import { HTTP_STATUS, RESPONSE_MESSAGE } from "../src/common/constants";
 import User from "../src/models/user.model";
 
@@ -24,43 +20,46 @@ describe("User API", () => {
     describe("Success Cases", () => {
       test("should login successfully and return a token", async () => {
         (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN_DATA);
-    
-        const res = await request(app)
-          .post(ROUTE.LOGIN)
-          .send({
+        
+        const response = await createRequest.post(
+          ROUTE.LOGIN,
+          {
             password: MOCK_ADMIN_DATA.userCode
-          });
-    
-        expect(res.statusCode).toBe(200);
-        expect(res.body.data).toHaveProperty("token");
+          },
+          HTTP_STATUS.OK
+        );
+        expect(response.statusCode).toBe(200);
+        expect(response.body.data).toHaveProperty("token");
       });
     });
 
     describe("Authentication Error Cases", () => {
       test("should fail if user does not exist", async () => {
         (User.findOne as jest.Mock).mockResolvedValue(null);
-    
-        const res = await request(app)
-          .post(ROUTE.LOGIN)
-          .send({
+        
+        const response = await createRequest.post(
+          ROUTE.LOGIN,
+          {
             password: "userCode",
-          });
+          },
+          HTTP_STATUS.UNAUTHORIZED
+        );
     
-        expect(res.statusCode).toBe(401);
-        expect(res.body).not.toHaveProperty("token");
+        expectResponse.unauthorized(response);
       });
     
       it("should fail if password is incorrect", async () => {
         (User.findOne as jest.Mock).mockResolvedValue(MOCK_INCORRECT_PASSWORD_DATA);
 
-        const res = await request(app)
-          .post(ROUTE.LOGIN)
-          .send({
+        const response = await createRequest.post(
+          ROUTE.LOGIN,
+          {
             password: MOCK_INCORRECT_PASSWORD_DATA.userCode,
-          });
-    
-        expect(res.statusCode).toBe(401);
-        expect(res.body).not.toHaveProperty("token");
+          },
+          HTTP_STATUS.UNAUTHORIZED
+        );
+
+        expectResponse.unauthorized(response);
       });
     });
 
@@ -71,7 +70,6 @@ describe("User API", () => {
         ["invalid data type", { password: 123456 }, true, RESPONSE_MESSAGE.INVALID_JSON_FORMAT]
       ])("should bad request for %s", async (_, requestBody, isSetJson, expectedMessage) => {
         const response = await createRequest.post(ROUTE.LOGIN, requestBody, HTTP_STATUS.BAD_REQUEST, isSetJson);
-
         expectResponse.badRequest(response, expectedMessage);
       });
     });
@@ -83,111 +81,53 @@ describe("User API", () => {
         (User.findOne as jest.Mock).mockReturnValue(MOCK_ADMIN_DATA);
         (User.find as jest.Mock).mockResolvedValue(MOCK_USER_DATA);
 
-        const token = jwt.sign(
-          { user: MOCK_ADMIN_DATA.userCode },
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          process.env.JWT_SECRET!,
-          { expiresIn: "2h" }
-        );
-  
-        const res = await request(app)
-          .get(ROUTE.BASE)
-          .set("Authorization", `Bearer ${token}`);
-  
-        expect(res.statusCode).toBe(200);
-        expect(res.body.data).toEqual(MOCK_USER_DATA);
+        const response = await createRequest.get(ROUTE.BASE, HTTP_STATUS.OK);
+        expectResponse.success(response, MOCK_USER_DATA);
       });
     });
 
     describe("Authentication Error Cases", () => {
       test("should fail if no JWT is provided", async () => {
-        const res = await request(app)
-          .get(ROUTE.BASE);
-
-        expect(res.statusCode).toBe(401);
-        expect(res.body.message).toBe("No auth token");
+        const tokenInfo = { showToken: false };
+        const response = await createRequest.get(ROUTE.BASE, HTTP_STATUS.UNAUTHORIZED, tokenInfo);
+        expectResponse.unauthorized(response, "No auth token");
       });
 
       test("should fail if JWT is invalid", async () => {
-        const res = await request(app)
-          .get(ROUTE.BASE)
-          .set("Authorization", "Bearer invalidtoken");
-
-        expect(res.statusCode).toBe(401);
-        expect(res.body.message).toBe("jwt malformed");
+        const tokenInfo = { isInvalid: true };
+        const response = await createRequest.get(ROUTE.BASE, HTTP_STATUS.UNAUTHORIZED, tokenInfo);
+        expectResponse.unauthorized(response, "jwt malformed");
       });
 
       test("should fail if JWT is expired", async () => {
-        const expiredToken = jwt.sign(
-          { user: MOCK_ADMIN_DATA.userCode },
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          process.env.JWT_SECRET!,
-          { expiresIn: -1 }
-        );
-
-        const res = await request(app)
-          .get(ROUTE.BASE)
-          .set("Authorization", `Bearer ${expiredToken}`);
-
-        expect(res.statusCode).toBe(401);
-        expect(res.body.message).toBe("jwt expired");
+        const tokenInfo = { isExpired: true };
+        const response = await createRequest.get(ROUTE.BASE, HTTP_STATUS.UNAUTHORIZED, tokenInfo);
+        expectResponse.unauthorized(response, "jwt expired");
       });
 
       test("should fail if user in JWT does not exist", async () => {
         (User.findOne as jest.Mock).mockResolvedValue(null);
       
-        const token = jwt.sign(
-          { user: "notExistUser" },
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          process.env.JWT_SECRET!,
-          { expiresIn: "2h" }
-        );
-      
-        const res = await request(app)
-          .get(ROUTE.BASE)
-          .set("Authorization", `Bearer ${token}`);
-        
-        expect(res.statusCode).toBe(401);
-        expect(res.body.message).toBe(RESPONSE_MESSAGE.USER_NOT_EXIST);
+        const tokenInfo = { existUser: false };
+        const response = await createRequest.get(ROUTE.BASE, HTTP_STATUS.UNAUTHORIZED, tokenInfo);
+        expectResponse.unauthorized(response, RESPONSE_MESSAGE.USER_NOT_EXIST);
       });
     });
 
     describe("Server Error Cases", () => {
       test("should return 500 if User.findOne throws error", async () => {
         (User.findOne as jest.Mock).mockRejectedValue(new Error("DB Error"));
-
-        const token = jwt.sign(
-          { user: MOCK_ADMIN_DATA.userCode },
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          process.env.JWT_SECRET!,
-          { expiresIn: "2h" }
-        );
-    
-        const res = await request(app)
-          .get(ROUTE.BASE)
-          .set("Authorization", `Bearer ${token}`);
-
-        expect(res.statusCode).toBe(500);
-        expect(res.body.message).toBe(RESPONSE_MESSAGE.SERVER_ERROR);
+        
+        const response = await createRequest.get(ROUTE.BASE, HTTP_STATUS.SERVER_ERROR);
+        expectResponse.error(response);
       });
 
       test("should return 500 if User.find throws error", async () => {
         (User.findOne as jest.Mock).mockReturnValue(MOCK_ADMIN_DATA);
         (User.find as jest.Mock).mockRejectedValue(new Error("DB Error"));
 
-        const token = jwt.sign(
-          { user: MOCK_ADMIN_DATA.userCode },
-          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-          process.env.JWT_SECRET!,
-          { expiresIn: "2h" }
-        );
-    
-        const res = await request(app)
-          .get(ROUTE.BASE)
-          .set("Authorization", `Bearer ${token}`);
-
-        expect(res.statusCode).toBe(500);
-        expect(res.body.message).toBe(RESPONSE_MESSAGE.SERVER_ERROR);
+        const response = await createRequest.get(ROUTE.BASE, HTTP_STATUS.SERVER_ERROR);
+        expectResponse.error(response);
       });
     });
   });
