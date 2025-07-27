@@ -75,13 +75,13 @@ describe("User API", () => {
     });
   });
 
-  describe(`GET ${ROUTE.BASE}`, () => {
+  describe(`GET ${ROUTE.LIST}`, () => {
     describe("Success Cases", () => {
       test("should return user list with valid JWT", async () => {
         (User.findOne as jest.Mock).mockReturnValue(MOCK_ADMIN_DATA);
         (User.find as jest.Mock).mockResolvedValue(MOCK_USER_DATA);
 
-        const response = await createRequest.get(ROUTE.BASE, HTTP_STATUS.OK);
+        const response = await createRequest.get(ROUTE.LIST, HTTP_STATUS.OK);
         expectResponse.success(response, MOCK_USER_DATA);
       });
     });
@@ -89,19 +89,19 @@ describe("User API", () => {
     describe("Authentication Error Cases", () => {
       test("should fail if no JWT is provided", async () => {
         const tokenInfo = { showToken: false };
-        const response = await createRequest.get(ROUTE.BASE, HTTP_STATUS.UNAUTHORIZED, tokenInfo);
+        const response = await createRequest.get(ROUTE.LIST, HTTP_STATUS.UNAUTHORIZED, tokenInfo);
         expectResponse.unauthorized(response, "No auth token");
       });
 
       test("should fail if JWT is invalid", async () => {
         const tokenInfo = { isInvalid: true };
-        const response = await createRequest.get(ROUTE.BASE, HTTP_STATUS.UNAUTHORIZED, tokenInfo);
+        const response = await createRequest.get(ROUTE.LIST, HTTP_STATUS.UNAUTHORIZED, tokenInfo);
         expectResponse.unauthorized(response, "jwt malformed");
       });
 
       test("should fail if JWT is expired", async () => {
         const tokenInfo = { isExpired: true };
-        const response = await createRequest.get(ROUTE.BASE, HTTP_STATUS.UNAUTHORIZED, tokenInfo);
+        const response = await createRequest.get(ROUTE.LIST, HTTP_STATUS.UNAUTHORIZED, tokenInfo);
         expectResponse.unauthorized(response, "jwt expired");
       });
 
@@ -109,7 +109,7 @@ describe("User API", () => {
         (User.findOne as jest.Mock).mockResolvedValue(null);
       
         const tokenInfo = { existUser: false };
-        const response = await createRequest.get(ROUTE.BASE, HTTP_STATUS.UNAUTHORIZED, tokenInfo);
+        const response = await createRequest.get(ROUTE.LIST, HTTP_STATUS.UNAUTHORIZED, tokenInfo);
         expectResponse.unauthorized(response, RESPONSE_MESSAGE.USER_NOT_EXIST);
       });
     });
@@ -118,7 +118,7 @@ describe("User API", () => {
       test("should return 500 if User.findOne throws error", async () => {
         (User.findOne as jest.Mock).mockRejectedValue(new Error("DB Error"));
         
-        const response = await createRequest.get(ROUTE.BASE, HTTP_STATUS.SERVER_ERROR);
+        const response = await createRequest.get(ROUTE.LIST, HTTP_STATUS.SERVER_ERROR);
         expectResponse.error(response);
       });
 
@@ -126,7 +126,7 @@ describe("User API", () => {
         (User.findOne as jest.Mock).mockReturnValue(MOCK_ADMIN_DATA);
         (User.find as jest.Mock).mockRejectedValue(new Error("DB Error"));
 
-        const response = await createRequest.get(ROUTE.BASE, HTTP_STATUS.SERVER_ERROR);
+        const response = await createRequest.get(ROUTE.LIST, HTTP_STATUS.SERVER_ERROR);
         expectResponse.error(response);
       });
     });

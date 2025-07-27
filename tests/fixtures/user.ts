@@ -1,6 +1,8 @@
+const base = "/user";
+
 export const ROUTE = {
-  BASE: "/user",
-  LOGIN: "/user/action"
+  LOGIN: `${base}/login`,
+  LIST: `${base}/list`
 } as const;
 
 export const MOCK_ADMIN_DATA =  { 
