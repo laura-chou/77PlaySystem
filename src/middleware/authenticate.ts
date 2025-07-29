@@ -8,7 +8,7 @@ import { setLog } from "../core/logger";
 import User from "../models/user.model";
 
 interface AuthenticatedUser extends Document {
-  userCode: string;
+  userName: string;
   userType: string;
   gameType: Array<number>;
   createDate: Date;
@@ -46,11 +46,11 @@ export default (strategy: string) => {
           if (authHeader) {
             const token = authHeader.replace("Bearer ", "");
             const decoded = jwt.decode(token) as { user?: string };
-            const userCode = decoded?.user;
+            const userName = decoded?.user;
 
-            if (userCode) {
+            if (userName) {
               await User.updateOne(
-                { userCode },
+                { userName },
                 { $set: { token: "" } }
               );
             }

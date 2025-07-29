@@ -38,17 +38,12 @@ const corsOptions: CorsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     if (isJestTest) {
       callback(null, true);
-    } else if (!isNullOrEmpty(origin)) {
+    }
+    if (!isNullOrEmpty(origin)) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const hostName: string = new URL(origin!).hostname;
-      if (whiteList.includes(hostName)) {
-        setLog(LOG_LEVEL.INFO, `origin: ${origin}`);
-        callback(null, true);
-      }
-    } else {
-      const msg = "not allowed by CORS";
-      setLog(LOG_LEVEL.ERROR, `origin: ${origin} ${msg}`);
-      callback(new Error(msg));
+      setLog(LOG_LEVEL.INFO, `origin: ${origin}`);
+      callback(null, whiteList.includes(hostName));
     }
   },
   credentials: true
@@ -58,12 +53,12 @@ app.use(cors(corsOptions));
 
 app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
   if (!isNullOrEmpty(error.message)) {
-    setLog(LOG_LEVEL.ERROR, "CORS policy does not allow access from this origin.");
+    setLog(LOG_LEVEL.ERROR, error.message);
     responseHandler.forbidden(res);
-    return;
+  } else {
+    setLog(LOG_LEVEL.ERROR, `Unhandled error:\n ${error}`);
+    responseHandler.serverError(res);
   }
-  setLog(LOG_LEVEL.INFO, `origin: ${req.originalUrl}`);
-  next();
 });
 
 router.forEach(route => {

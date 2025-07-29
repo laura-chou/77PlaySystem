@@ -7,6 +7,5 @@ import { createRoute, RouteConfig } from "./route";
 export const userRoutes = (): RouteConfig => {
   return createRoute("/user", (router) => {
     router.post("/login", validateLoginRequest,authMiddleware("login"), userController.userLogin);
-    router.get("/list", authMiddleware("jwt"), userController.getUserList);
   });
 };

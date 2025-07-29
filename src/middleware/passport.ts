@@ -26,7 +26,7 @@ passport.use(
     },
     async (jwtPayload: JWTPayload, done: passportJWT.VerifiedCallback) => {
       try {
-        const user = await User.findOne({ userCode: jwtPayload.user });
+        const user = await User.findOne({ userName: jwtPayload.user });
         
         if (user) {
           if (isNullOrEmpty(user.token)) {
@@ -52,7 +52,7 @@ passport.use(
     },
     async (_, password: string, done) => {
       try {
-        const user = await User.findOne({ userCode: password });
+        const user = await User.findOne({ userName: password });
 
         if (!user) {
           return done(null, false, { message: RESPONSE_MESSAGE.WRONG_PASSWORD });

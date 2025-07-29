@@ -15,10 +15,10 @@ export const userLogin = setFunctionName(
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const user = request.user!;
       const token = jwt.sign(
-        { user: user.userCode },
+        { user: user.userName },
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         process.env.JWT_SECRET!, 
-        { expiresIn: "2h" }
+        { expiresIn: "1h" }
       );
 
       await User.findByIdAndUpdate(
@@ -33,18 +33,4 @@ export const userLogin = setFunctionName(
     }
   },
   "userLogin"
-);
-
-export const getUserList = setFunctionName(
-  async (request: Request, response: Response): Promise<void> => {
-    try {
-      const userList = await User.find({
-        password: { $in: ["", null] }
-      });
-      responseHandler.success(response, userList);
-    } catch (error) {
-      baseController.errorHandler(response, error, getUserList.name);
-    }
-  },
-  "getUserList"
 );

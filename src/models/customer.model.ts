@@ -5,29 +5,21 @@ import { Document, Model, model, Schema } from "mongoose";
 import { RESPONSE_MESSAGE } from "../common/constants";
 import { isNullOrEmpty } from "../common/utils";
 
-interface IUser extends Document {
-  userName: string;
-  password: string;
-  userType: string;
-  token: string;
+interface ICustomer extends Document {
+  custName: string;
+  serviceTypes: Array<number>;
   createDate: string;
 }
 
-const userSchema = new Schema<IUser>({
-  userName: {
+const custSchema = new Schema<ICustomer>({
+  custName: {
     type: String,
     required: true,
     unique: true
   },
-  password: {
-    type: String
-  },
-  userType: {
-    type: String,
+  serviceTypes: {
+    type: [Number],
     required: true
-  },
-  token: {
-    type: String
   },
   createDate: {
     type: String,
@@ -35,14 +27,14 @@ const userSchema = new Schema<IUser>({
   }
 }, {
   versionKey: false,
-  collection: "user"
+  collection: "customer"
 });
 
-if (isNullOrEmpty(process.env.COLLECTION_USER)) {
+if (isNullOrEmpty(process.env.COLLECTION_CUSTOMER)) {
   throw new Error(RESPONSE_MESSAGE.ENV_ERROR);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-const User: Model<IUser> = model(process.env.COLLECTION_USER!, userSchema);
+const Customer: Model<ICustomer> = model(process.env.COLLECTION_CUSTOMER!, custSchema);
 
-export default User;
+export default Customer;
