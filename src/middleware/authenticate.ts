@@ -28,7 +28,7 @@ declare module "express-serve-static-core" {
 }
 
 export default (strategy: string) => {
-  return (req: Request, res: Response, next: NextFunction) : void => {
+  return (request: Request, response: Response, next: NextFunction) : void => {
     passport.authenticate(
       strategy,
       { session: false },
@@ -38,11 +38,11 @@ export default (strategy: string) => {
         info: AuthInfo | undefined) => {
       if (error) {
         setLog(LOG_LEVEL.ERROR, `authenticate: ${error.message}`);
-        return responseHandler.serverError(res);
+        return responseHandler.serverError(response);
       }
       if (!user) {
         if (info?.message === "jwt expired") {
-          const authHeader = req.header("Authorization");
+          const authHeader = request.header("Authorization");
           if (authHeader) {
             const token = authHeader.replace("Bearer ", "");
             const decoded = jwt.decode(token) as { user?: string };
@@ -57,11 +57,11 @@ export default (strategy: string) => {
           }
         }
         setLog(LOG_LEVEL.ERROR, `authenticate: ${info?.message}`);
-        return responseHandler.unauthorized(res, info?.message);
+        return responseHandler.unauthorized(response, info?.message);
       }
       setLog(LOG_LEVEL.INFO, `authenticate: ${LOG_MESSAGE.SUCCESS}`);
-      req.user = user;
+      request.user = user;
       next();
-    })(req, res, next);
+    })(request, response, next);
   };
 };

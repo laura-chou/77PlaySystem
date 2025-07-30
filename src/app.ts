@@ -51,13 +51,13 @@ const corsOptions: CorsOptions = {
 
 app.use(cors(corsOptions));
 
-app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
+app.use((error: Error, _request: Request, response: Response, _next: NextFunction) => {
   if (!isNullOrEmpty(error.message)) {
     setLog(LOG_LEVEL.ERROR, error.message);
-    responseHandler.forbidden(res);
+    responseHandler.forbidden(response);
   } else {
     setLog(LOG_LEVEL.ERROR, `Unhandled error:\n ${error}`);
-    responseHandler.serverError(res);
+    responseHandler.serverError(response);
   }
 });
 

@@ -12,7 +12,7 @@ jest.mock("../src/models/user.model", () => ({
 }));
 
 jest.mock("../src/models/customer.model", () => ({
-  find: jest.fn()
+  aggregate: jest.fn()
 }));
 
 describe("Customer API", () => {
@@ -24,7 +24,7 @@ describe("Customer API", () => {
     describe("Success Cases", () => {
       test("should return all customer with valid JWT", async () => {
         (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN_DATA);
-        (Customer.find as jest.Mock).mockResolvedValue(MOCK_CUSTOMER_DATA);
+        (Customer.aggregate as jest.Mock).mockResolvedValue(MOCK_CUSTOMER_DATA);
 
         const response = await createRequest.get(ROUTE.BASE, HTTP_STATUS.OK);
         expectResponse.success(response, MOCK_CUSTOMER_DATA);
@@ -69,7 +69,7 @@ describe("Customer API", () => {
 
       test("should return 500 if Customer.find throws error", async () => {
         (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN_DATA);
-        (Customer.find as jest.Mock).mockRejectedValue(new Error("DB Error"));
+        (Customer.aggregate as jest.Mock).mockRejectedValue(new Error("DB Error"));
 
         const response = await createRequest.get(ROUTE.BASE, HTTP_STATUS.SERVER_ERROR);
         expectResponse.error(response);

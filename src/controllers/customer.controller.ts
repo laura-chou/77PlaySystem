@@ -9,11 +9,40 @@ import Customer from "../models/customer.model";
 import * as baseController from "./base.controller";
 
 export const getCustList = setFunctionName(
-  async (request: Request, response: Response): Promise<void> => {
+  async (_request: Request, response: Response): Promise<void> => {
     try {
-      const userList = await Customer.find({}, "-serviceTypes -createDate");
+      const customers = await Customer.aggregate([
+        {
+          $lookup: {
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            from: process.env.COLLECTION_TRANSACTION!,
+            localField: "_id",
+            foreignField: "customerId",
+            as: "transactions"
+          }
+        },
+        {
+          $project: {
+            _id: 1,
+            custName: 1,
+            expiryDate: {
+              $let: {
+                vars: {
+                  sortedTx: {
+                    $sortArray: {
+                      input: "$transactions",
+                      sortBy: { createDate: -1 }
+                    }
+                  }
+                },
+                in: { $arrayElemAt: ["$$sortedTx.expiryDate", 0] }
+              }
+            }
+          }
+        }
+      ]);
       setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, getCustList.name);
-      responseHandler.success(response, userList);
+      responseHandler.success(response, customers);
     } catch (error) {
       baseController.errorHandler(response, error, getCustList.name);
     }
