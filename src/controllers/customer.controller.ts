@@ -23,7 +23,8 @@ export const getCustList = setFunctionName(
         },
         {
           $project: {
-            _id: 1,
+            custId: "$_id",
+            _id: 0, 
             custName: 1,
             expiryDate: {
               $let: {
