@@ -6,5 +6,6 @@ import { createRoute, RouteConfig } from "./route";
 export const custRoutes = (): RouteConfig => {
   return createRoute("/customer", (router) => {
     router.get("/", authMiddleware("jwt"), customerController.getCustList);
+    router.get("/:custId", authMiddleware("jwt"), customerController.getCustomer);
   });
 };

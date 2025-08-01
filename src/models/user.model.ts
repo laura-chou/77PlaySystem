@@ -10,7 +10,7 @@ interface IUser extends Document {
   password: string;
   userType: string;
   token: string;
-  createDate: string;
+  createDate: Date;
 }
 
 const userSchema = new Schema<IUser>({
@@ -30,7 +30,7 @@ const userSchema = new Schema<IUser>({
     type: String
   },
   createDate: {
-    type: String,
+    type: Date,
     required: true
   }
 }, {

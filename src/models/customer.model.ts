@@ -8,7 +8,7 @@ import { isNullOrEmpty } from "../common/utils";
 interface ICustomer extends Document {
   custName: string;
   serviceTypes: Array<number>;
-  createDate: string;
+  createDate: Date;
 }
 
 const custSchema = new Schema<ICustomer>({
@@ -22,7 +22,7 @@ const custSchema = new Schema<ICustomer>({
     required: true
   },
   createDate: {
-    type: String,
+    type: Date,
     required: true
   }
 }, {
