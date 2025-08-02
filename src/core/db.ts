@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Types, PipelineStage } from "mongoose";
 
 import { LOG_LEVEL, LOG_MESSAGE, RESPONSE_MESSAGE } from "../common/constants";
 import { isNullOrEmpty } from "../common/utils";
@@ -20,3 +20,95 @@ export const connectDB = async (): Promise<void> => {
     process.exit(1);
   }
 };
+
+const dateToString = (dateField: object | string): object => ({
+  $dateToString: {
+    format: "%Y-%m-%d",
+    date: dateField,
+    timezone: "+08:00"
+  }
+});
+
+const sortArray = (input: string, sortBy: object): object => ({
+  $sortArray: {
+    input,
+    sortBy
+  }
+});
+
+const lookupTransaction = {
+  $lookup: {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    from: process.env.COLLECTION_TRANSACTION!,
+    localField: "_id",
+    foreignField: "customerId",
+    as: "transactions"
+  }
+};
+
+const lookupServiceType = {
+  $lookup: {
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    from: process.env.COLLECTION_SERVICETYPE!,
+    localField: "transactions.serviceTypeId",
+    foreignField: "_id",
+    as: "serviceTypes"
+  }
+};
+
+export const getCustomerListPipeline = (): PipelineStage[] => [
+  lookupTransaction,
+  {
+    $project: {
+      custId: "$_id",
+      _id: 0,
+      custName: 1,
+      expiryDate: {
+        $let: {
+          vars: {
+            sortedTx: sortArray("$transactions", { spendDate: -1 })
+          },
+          in: dateToString({ $arrayElemAt: ["$$sortedTx.expiryDate", 0] }),
+        }
+      }
+    }
+  }
+];
+
+export const getCustomerDetailPipeline = (custId: string): PipelineStage[] => [
+  { $match: { _id: new Types.ObjectId(custId) } },
+  lookupTransaction,
+  { $unwind: "$transactions" },
+  lookupServiceType,
+  { $unwind: "$serviceTypes" },
+  {
+    $group: {
+      _id: "$_id",
+      custName: { $first: "$custName" },
+      createDate:  { $first: dateToString("$createDate") },
+      history: {
+        $push: {
+          serviceName: "$serviceTypes.serviceName",
+          amount: "$transactions.amount",
+          currentBalance: "$transactions.currentBalance",
+          spendDate: dateToString("$transactions.spendDate"),
+          expiryDate: dateToString("$transactions.expiryDate")
+        }
+      }
+    }
+  },
+  {
+    $addFields: {
+      history: sortArray("$history", { spendDate: -1 })
+    }
+  },
+  {
+    $project: {
+      custId: "$_id",
+      _id: 0,
+      custName: 1,
+      createDate: 1,
+      history: 1
+    }
+  }
+];

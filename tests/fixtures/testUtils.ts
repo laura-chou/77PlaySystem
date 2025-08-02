@@ -5,14 +5,14 @@ import app from "../../src/app";
 import { CONTENT_TYPE, HTTP_STATUS, RESPONSE_MESSAGE } from "../../src/common/constants";
 import { isTypeString } from "../../src/common/utils";
 
-interface tokenInfoModel {
+interface TokenInfo {
   showToken: boolean;
   isExpired: boolean;
   isInvalid: boolean;
   existUser: boolean;
 }
 
-const defaultTokenInfo: tokenInfoModel = {
+const defaultTokenInfo: Required<TokenInfo> = {
   showToken: true,
   existUser: true,
   isExpired: false,
@@ -23,7 +23,7 @@ export const createRequest = {
   get: (
     route: string,
     status: number,
-    tokenInfo?: Partial<tokenInfoModel>,    
+    tokenInfo?: Partial<TokenInfo>,    
     isExpectJson: boolean = true
   ): request.Test => {
     const mergedTokenInfo = { ...defaultTokenInfo, ...tokenInfo };
@@ -35,7 +35,7 @@ export const createRequest = {
         { user: mergedTokenInfo.existUser ? "testuser" : "notExistUser"},
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         process.env.JWT_SECRET!,
-        { expiresIn: mergedTokenInfo.isExpired ? -1 : "2h" }
+        { expiresIn: mergedTokenInfo.isExpired ? -1 : "1h" }
       );
       const token = mergedTokenInfo.isInvalid ? "invalidtoken" : validToken;
       req.set("Authorization", `Bearer ${token}`);
