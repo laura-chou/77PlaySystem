@@ -25,7 +25,7 @@ export default function CustomerPage() {
         balanceExpiryDate: ''
     });
     const [isEditing, setIsEditing] = useState(false);
-    const [balanceAction, setBalanceAction] = useState<'refill' | 'extend' | 'charge'>('refill');
+    const [balanceAction, setBalanceAction] = useState<'refill' | 'extend' | 'charge' | 'name'>('refill');
     const [balanceAmount, setBalanceAmount] = useState(0);
 
     useEffect(() => {
@@ -89,8 +89,8 @@ export default function CustomerPage() {
             const dataToSend = { ...formData };
             
             // Apply balance operations if amount is provided
-            if (balanceAmount > 0 || balanceAction === 'refill' || balanceAction === 'extend') {
-                const amountToUse = balanceAction === 'refill' ? 1500 : balanceAction === 'extend' ? 200 : balanceAmount;
+            if (balanceAmount > 0 || balanceAction === 'refill' || balanceAction === 'extend' || balanceAction === 'name') {
+                const amountToUse = balanceAction === 'refill' ? 1500 : balanceAction === 'extend' ? 200 : balanceAction === 'name' ? 0 : balanceAmount;
                 
                 switch (balanceAction) {
 
@@ -99,6 +99,9 @@ export default function CustomerPage() {
                         break;
                     case 'refill':
                         dataToSend.balance = formData.balance + amountToUse;
+                        break;
+                    case 'name':
+                        // For name action, no balance change is made
                         break;
                     case 'extend':
                         // For extend, we'll add the amount as days to the expiry date
@@ -188,7 +191,7 @@ export default function CustomerPage() {
                             </button>
                         </div>
                         <div className="card-body">
-                            <div className="row mb-3">
+                            <div className="row mb-3 noshow">
                                 <label className="col-sm-3 col-form-label">客戶 ID:</label>
                                 <div className="col-sm-9">
                                     <input 
@@ -209,7 +212,7 @@ export default function CustomerPage() {
                                         name="name"
                                         value={formData.name}
                                         onChange={handleInputChange}
-                                        disabled={!isEditing}
+                                        disabled={!isEditing || (isEditing && balanceAction !== 'name')}
                                     />
                                 </div>
                             </div>
@@ -261,13 +264,33 @@ export default function CustomerPage() {
                             {isEditing && (
                                 <>
                                     <hr className="my-4" />
-                                    <h5 className="mb-3">餘額操作</h5>
+                                    <h5 className="mb-3">操作</h5>
                                     
                                     <div className="row mb-3">
                                         <label className="col-sm-3 col-form-label">操作類型:</label>
-                                        <div className="col-sm-9">
+                                        <div className="col-sm-9">                                            
                                             
-                                                                                    <div className="form-check">
+                                            <div className="form-check noshow">
+                                                <input 
+                                                    className="form-check-input" 
+                                                    type="radio" 
+                                                    name="balanceAction" 
+                                                    id="name"
+                                                    value="name"
+                                                    checked={balanceAction === 'name'}
+                                                    onChange={(e) => {
+                                                        setBalanceAction(e.target.value as 'refill' | 'extend' | 'charge' | 'name');
+                                                        if (e.target.value === 'name') {
+                                                            setBalanceAmount(0);
+                                                        }
+                                                    }}
+                                                />
+                                                <label className="form-check-label" htmlFor="name">
+                                                    改LINE ID
+                                                </label>
+                                            </div>
+                                            
+                                            <div className="form-check">
                                                 <input 
                                                     className="form-check-input" 
                                                     type="radio" 
@@ -276,7 +299,7 @@ export default function CustomerPage() {
                                                     value="refill"
                                                     checked={balanceAction === 'refill'}
                                                     onChange={(e) => {
-                                                        setBalanceAction(e.target.value as 'refill' | 'extend' | 'charge');
+                                                        setBalanceAction(e.target.value as 'refill' | 'extend' | 'charge' | 'name');
                                                         if (e.target.value === 'refill') {
                                                             setBalanceAmount(1500);
                                                         }
@@ -296,7 +319,7 @@ export default function CustomerPage() {
                                                     value="extend"
                                                     checked={balanceAction === 'extend'}
                                                     onChange={(e) => {
-                                                        setBalanceAction(e.target.value as 'refill' | 'extend' | 'charge');
+                                                        setBalanceAction(e.target.value as 'refill' | 'extend' | 'charge' | 'name');
                                                         if (e.target.value === 'extend') {
                                                             setBalanceAmount(200);
                                                         }
@@ -316,7 +339,7 @@ export default function CustomerPage() {
                                                     value="charge"
                                                     checked={balanceAction === 'charge'}
                                                     onChange={(e) => {
-                                                        setBalanceAction(e.target.value as 'refill' | 'extend' | 'charge');
+                                                        setBalanceAction(e.target.value as 'refill' | 'extend' | 'charge' | 'name');
                                                         if (e.target.value === 'charge') {
                                                             setBalanceAmount(200);
                                                         }
@@ -335,7 +358,7 @@ export default function CustomerPage() {
                                             <input 
                                                 type="number" 
                                                 className="form-control"
-                                                value={balanceAction === 'refill' ? 1500 : balanceAction === 'extend' ? 200 : balanceAmount}
+                                                value={balanceAction === 'refill' ? 1500 : balanceAction === 'extend' ? 200 : balanceAction === 'name' ? 0 : balanceAmount}
                                                 onChange={(e) => {
                                                     const value = parseFloat(e.target.value) || 0;
                                                     // Round to nearest 100

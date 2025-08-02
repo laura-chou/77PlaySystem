@@ -2121,4 +2121,8 @@ url(/_next/static/media/bootstrap-icons.ac1a99b3.woff) format("woff");
 /*!*************************************************************************************************************************************************************************************************************************************************************!*\
   !*** css ./node_modules/next/dist/build/webpack/loaders/css-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[2]!./node_modules/next/dist/build/webpack/loaders/postcss-loader/src/index.js??ruleSet[1].rules[13].oneOf[10].use[3]!./app/globals.css ***!
   \*************************************************************************************************************************************************************************************************************************************************************/
-/* Add any custom styles below */ 
+/* Add any custom styles below */
+
+.noshow {
+    display: none !important;
+} 

@@ -1,4 +1,8 @@
 @import 'bootstrap/dist/css/bootstrap.min.css';
 @import 'bootstrap-icons/font/bootstrap-icons.css';
 
-/* Add any custom styles below */ 
+/* Add any custom styles below */
+
+.noshow {
+    display: none !important;
+} 
