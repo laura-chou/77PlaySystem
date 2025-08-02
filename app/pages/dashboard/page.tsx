@@ -93,7 +93,12 @@ export default function Dashboard() {
                                 <td>{maskPhoneNumber(user.phone)}</td>
                                 <td>{user.name}</td>
                                 <td>
-                                    <button className="btn btn-sm btn-primary">編輯</button>
+                                    <button 
+                                        className="btn btn-sm btn-primary"
+                                        onClick={() => router.push(`/pages/customer/${user.id}`)}
+                                    >
+                                        編輯
+                                    </button>
                                 </td>
                             </tr>
                         ))}
