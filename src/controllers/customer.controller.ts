@@ -32,6 +32,11 @@ export const getCustomer = setFunctionName(
   async (request: Request, response: Response): Promise<void> => {
     try {
       const custId = request.params.custId;
+
+      if (!baseController.validateCustId(custId, response, getCustomer.name)) {
+        return;
+      }
+
       if (custId) {
         const customer = await Customer.aggregate(getCustomerDetailPipeline(custId));
 

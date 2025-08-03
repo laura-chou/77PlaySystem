@@ -23,7 +23,7 @@ export const connectDB = async (): Promise<void> => {
 
 const dateToString = (dateField: object | string): object => ({
   $dateToString: {
-    format: "%Y-%m-%d",
+    format: "%Y/%m/%d",
     date: dateField,
     timezone: "+08:00"
   }

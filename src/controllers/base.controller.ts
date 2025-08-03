@@ -1,4 +1,5 @@
 import { Request, Response } from "express";
+import { Types } from "mongoose";
 
 import { LOG_LEVEL, LOG_MESSAGE, RESPONSE_MESSAGE } from "../common/constants";
 import { responseHandler } from "../common/response";
@@ -13,6 +14,16 @@ export const validateContentType = (request: Request, response: Response, functi
   }
   return true;
 };
+
+export const validateCustId = (custId: string, response: Response, functionName: string): boolean => {
+  if (Types.ObjectId.isValid(custId)) {
+    return true;
+  }
+  setLog(LOG_LEVEL.ERROR, RESPONSE_MESSAGE.INVALID_CUSTID, functionName);
+  responseHandler.badRequest(response, "CUST_ID");
+  return false;
+};
+
 
 export const errorHandler = (
   response: Response,

@@ -54,11 +54,15 @@ export const responseHandler = {
     );
   },
 
-  badRequest(res: Response, type: "CONTENT_TYPE" | "JSON_KEY" | "JSON_FORMAT"): void {
+  badRequest(
+    res: Response,
+    type: "CONTENT_TYPE" | "JSON_KEY" | "JSON_FORMAT" | "CUST_ID"
+  ): void {
     const messageMap = {
       CONTENT_TYPE: RESPONSE_MESSAGE.INVALID_CONTENT_TYPE,
       JSON_KEY: RESPONSE_MESSAGE.INVALID_JSON_KEY,
-      JSON_FORMAT: RESPONSE_MESSAGE.INVALID_JSON_FORMAT
+      JSON_FORMAT: RESPONSE_MESSAGE.INVALID_JSON_FORMAT,
+      CUST_ID: RESPONSE_MESSAGE.INVALID_CUSTID
     };
 
     sendResponse(

@@ -1,5 +1,5 @@
 import { ROUTE, MOCK_CUSTOMER_DATA, MOCK_CUSTOMERS_DATA } from "./fixtures/customer";
-import { describeSuccessTests, describeAuthErrorTests, describeServerErrorTests } from "./fixtures/testStructures";
+import { describeSuccessTests, describeAuthErrorTests, describeServerErrorTests, describeCustIdValidationTest } from "./fixtures/testStructures";
 import { createRequest, expectResponse } from "./fixtures/testUtils";
 import { MOCK_ADMIN_DATA } from "./fixtures/user";
 
@@ -55,6 +55,12 @@ describe("Customer API", () => {
     describeServerErrorTests(
       customerRoute,
       MOCK_ADMIN_DATA,
+      createRequest.get,
+      expectResponse
+    );
+
+    describeCustIdValidationTest(
+      ROUTE.CUSTOMER,
       createRequest.get,
       expectResponse
     );

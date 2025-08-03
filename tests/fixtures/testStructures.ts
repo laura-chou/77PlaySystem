@@ -27,6 +27,7 @@ interface RequestFunction {
 interface ResponseValidator {
   unauthorized: (response: Response, message: string) => void;
   success: (response: Response, data: string | object) => void;
+  badRequest: (response: Response, message: string) => void;
   noData: (response: Response) => void;
   error: (response: Response) => void;
 }
@@ -159,6 +160,22 @@ export const describeServerErrorTests = (
         const response = await createRequestFn(route, HTTP_STATUS.SERVER_ERROR);
         expectResponseFn.error(response);
       });
+    });
+  });
+};
+
+export const describeCustIdValidationTest = (
+  route: string,
+  createRequestFn: RequestFunction,
+  expectResponseFn: ResponseValidator
+): void => {
+  describe("custId Parameter Validation", () => {
+    test("should return 400 if custId format is invalid", async () => {
+      const response = await createRequestFn(
+        `${route}/invalid-id`,
+        HTTP_STATUS.BAD_REQUEST
+      );
+      expectResponseFn.badRequest(response, RESPONSE_MESSAGE.INVALID_CUSTID);
     });
   });
 };
