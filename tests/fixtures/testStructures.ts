@@ -20,9 +20,12 @@ interface AuthErrorTestCase {
   expectedMessage: string;
 }
 
-interface RequestFunction {
-  (route: string, status: number, tokenInfo?: Partial<AuthErrorTestCase["tokenInfo"]>, isExpectJson?: boolean): Promise<Response>;
-}
+type RequestFunction = (
+  route: string,
+  status: number,
+  tokenInfo?: Partial<AuthErrorTestCase["tokenInfo"]>,
+  isExpectJson?: boolean
+) => Promise<Response>;
 
 interface ResponseValidator {
   unauthorized: (response: Response, message: string) => void;
@@ -119,7 +122,7 @@ export const describeAuthErrorTests = (
         if (mockSetup && name.includes("does not exist")) {
           mockUserFindOne.mockResolvedValue(null);
         }
-        
+
         const response = await createRequestFn(route, HTTP_STATUS.UNAUTHORIZED, tokenInfo);
         expectResponseFn.unauthorized(response, expectedMessage);
       });

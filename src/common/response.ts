@@ -38,6 +38,17 @@ export const responseHandler = {
     );
   },
 
+  created<T>(res: Response, data?: T, isJson: boolean = true): void {
+    sendResponse(
+      res, 
+      HTTP_STATUS.CREATED, 
+      RESPONSE_MESSAGE.SUCCESS, 
+      isJson,
+      data
+    );
+  },
+
+
   noData(res: Response): void {
     sendResponse(
       res, 

@@ -8,7 +8,6 @@ import { isNullOrEmpty } from "../common/utils";
 interface IUser extends Document {
   userName: string;
   password: string;
-  userType: string;
   token: string;
   createDate: Date;
 }
@@ -20,9 +19,6 @@ const userSchema = new Schema<IUser>({
     unique: true
   },
   password: {
-    type: String
-  },
-  userType: {
     type: String,
     required: true
   },
