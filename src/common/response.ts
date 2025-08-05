@@ -12,42 +12,33 @@ const sendResponse = <T>(
   res: Response,
   status: number,
   message: string,
-  isJson: boolean = true,
   data?: T
 ): void => {
-  if (isJson) {
-    const response: ApiResponse<T> = {
-        status,
-        message,
-        ...(data !== undefined && { data })
-    };
-    res.status(status).json(response);
-    return;
-  }
-  res.status(status).send(data);
+  const response: ApiResponse<T> = {
+    status,
+    message,
+    ...(data !== undefined && { data })
+  };
+  res.status(status).json(response);
 };
   
 export const responseHandler = {
-  success<T>(res: Response, data?: T, isJson: boolean = true): void {
+  success<T>(res: Response, data?: T): void {
     sendResponse(
       res, 
       HTTP_STATUS.OK, 
-      RESPONSE_MESSAGE.SUCCESS, 
-      isJson,
+      RESPONSE_MESSAGE.SUCCESS,
       data
     );
   },
 
-  created<T>(res: Response, data?: T, isJson: boolean = true): void {
+  created(res: Response): void {
     sendResponse(
       res, 
       HTTP_STATUS.CREATED, 
-      RESPONSE_MESSAGE.SUCCESS, 
-      isJson,
-      data
+      RESPONSE_MESSAGE.SUCCESS
     );
   },
-
 
   noData(res: Response): void {
     sendResponse(

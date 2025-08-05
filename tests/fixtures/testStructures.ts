@@ -169,11 +169,14 @@ export const describeServerErrorTests = (
 
 export const describeCustIdValidationTest = (
   route: string,
+  mockAdminData: MockAdminData,
   createRequestFn: RequestFunction,
   expectResponseFn: ResponseValidator
 ): void => {
   describe("custId Parameter Validation", () => {
     test("should return 400 if custId format is invalid", async () => {
+      mockUserFindOne.mockResolvedValue(mockAdminData);
+      
       const response = await createRequestFn(
         `${route}/invalid-id`,
         HTTP_STATUS.BAD_REQUEST

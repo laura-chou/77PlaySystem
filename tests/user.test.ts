@@ -68,7 +68,7 @@ describe("User API", () => {
     describe("Validation Error Cases", () => {
       test.each([
         ["invalid Content-Type", { password: MOCK_ADMIN_DATA.userName }, false, RESPONSE_MESSAGE.INVALID_CONTENT_TYPE],
-        ["missing key in JSON body", { userNamerCode: "userName" }, true, RESPONSE_MESSAGE.INVALID_JSON_KEY],
+        ["missing key in JSON body", { userNameCode: "userName" }, true, RESPONSE_MESSAGE.INVALID_JSON_KEY],
         ["invalid data type", { password: 123456 }, true, RESPONSE_MESSAGE.INVALID_JSON_FORMAT]
       ])("should bad request for %s", async (_, requestBody, isSetJson, expectedMessage) => {
         const response = await createRequest.post(ROUTE.LOGIN, requestBody, HTTP_STATUS.BAD_REQUEST, {}, isSetJson);

@@ -81,15 +81,30 @@ export const createRequest = {
     route: string,
     body: string | object,
     status: number,
+    tokenInfo?: Partial<TokenInfo>,
     isSetJson: boolean = true,
     isExpectJson: boolean = true
   ): request.Test => {
+    const mergedTokenInfo = { ...defaultTokenInfo, ...tokenInfo };
     const setContentType = isSetJson ? CONTENT_TYPE.JSON : CONTENT_TYPE.FORM_URLENCODED;
     const expectContentType = isExpectJson ? CONTENT_TYPE.JSON_WITH_CHARSET : CONTENT_TYPE.TEXT_WITH_CHARSET;
-    return request(app)
+    const req = request(app)
       .patch(route)
       .set("Content-Type", setContentType)
-      .send(body)
+      .send(body);
+
+    if (mergedTokenInfo.showToken) {
+      const validToken = jwt.sign(
+        { user: mergedTokenInfo.existUser ? "testuser" : "notExistUser" },
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        process.env.JWT_SECRET!,
+        { expiresIn: mergedTokenInfo.isExpired ? -1 : "1h" }
+      );
+      const token = mergedTokenInfo.isInvalid ? "invalidtoken" : validToken;
+      req.set("Authorization", `Bearer ${token}`);
+    }
+    
+    return req
       .expect("Content-Type", expectContentType)
       .expect(status);
   }

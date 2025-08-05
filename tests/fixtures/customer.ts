@@ -1,7 +1,8 @@
 const base = "/customer";
 
 export const ROUTE = {
-  CUSTOMER: `${base}`
+  CUSTOMER: `${base}`,
+  UPDATE_CUSTOMER: `${base}/update`
 } as const;
 
 export const MOCK_CUSTOMERS_DATA= [

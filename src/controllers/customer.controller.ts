@@ -54,3 +54,40 @@ export const getCustomer = setFunctionName(
   },
   "getCustomer"
 );
+
+export const updateCustInfo = setFunctionName(
+  async (request: Request, response: Response): Promise<void> => {
+    try {
+      const custId = request.params.custId;
+
+      if (!baseController.validateCustId(custId, response, updateCustInfo.name)) {
+        return;
+      }
+
+      if(!baseController.validateContentType(request, response, updateCustInfo.name)){
+        return;
+      }
+
+      const fields = [
+        { key: "custName", type: "string" }
+      ];
+      if (!baseController.validateBodyFields(request, response, updateCustInfo.name, fields)) {
+        return;
+      }
+
+      const custName = request.body.custName;
+      if (custId) {
+        await Customer.findByIdAndUpdate(
+          custId,
+          { custName },
+          { new: true }
+        );
+        setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, updateCustInfo.name);
+        responseHandler.success(response);
+      }
+    } catch (error) {
+      baseController.errorHandler(response, error, updateCustInfo.name);
+    }
+  },
+  "updateCustInfo"
+);
