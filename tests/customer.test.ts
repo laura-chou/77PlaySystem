@@ -3,12 +3,19 @@ import Customer from "../src/models/customer.model";
 import User from "../src/models/user.model";
 
 import { ROUTE, MOCK_CUSTOMER_DATA, MOCK_CUSTOMERS_DATA } from "./fixtures/customer";
-import { describeSuccessTests, describeAuthErrorTests, describeServerErrorTests, describeCustIdValidationTest } from "./fixtures/testStructures";
+import { describeCustIdValidationTest, describeAuthErrorTests, describeValidationErrorTests, describeServerErrorTests } from "./fixtures/testStructures";
 import { createRequest, expectResponse } from "./fixtures/testUtils";
 import { MOCK_ADMIN_DATA } from "./fixtures/user";
 
-jest.mock("../src/models/user.model");
-jest.mock("../src/models/customer.model");
+jest.mock("../src/models/user.model", () => ({
+  findOne: jest.fn(),
+  updateOne: jest.fn()
+}));
+
+jest.mock("../src/models/customer.model", () => ({
+  aggregate: jest.fn(),
+  findByIdAndUpdate: jest.fn()
+}));
 
 describe("Customer API", () => {
   beforeEach(() => {
@@ -16,57 +23,97 @@ describe("Customer API", () => {
   });
 
   describe(`GET ${ROUTE.CUSTOMER}`, () => {
-    describeSuccessTests(
-      ROUTE.CUSTOMER,
-      MOCK_ADMIN_DATA,
-      MOCK_CUSTOMERS_DATA,
-      createRequest.get,
-      expectResponse
-    );
-
     describeAuthErrorTests(
       ROUTE.CUSTOMER,
-      createRequest.get,
+      (route, status, tokenInfo) => createRequest.get(route, status, tokenInfo),
       expectResponse
     );
 
+    describe("Success Cases", () => {
+      test("should return all customer with valid JWT", async () => {
+        (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN_DATA);
+        (Customer.aggregate as jest.Mock).mockResolvedValue(MOCK_CUSTOMERS_DATA);
+
+        const response = await createRequest.get(ROUTE.CUSTOMER, HTTP_STATUS.OK);
+        expectResponse.success(response, MOCK_CUSTOMERS_DATA);
+      });
+    });
+
     describeServerErrorTests(
-      ROUTE.CUSTOMER,
-      MOCK_ADMIN_DATA,
-      createRequest.get,
+      {
+        route: ROUTE.CUSTOMER,
+        requestFn: createRequest.get,
+        dbErrorCases: [
+          {
+            name: "User.findOne",
+            mockFn: User.findOne as jest.Mock
+          },
+          {
+            name: "Customer.aggregate",
+            mockFn: Customer.aggregate as jest.Mock,
+            setupMocks: (): void => {
+              (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN_DATA);
+            }
+          }
+        ]
+      },
       expectResponse
     );
   });
 
   describe(`GET ${ROUTE.CUSTOMER}/:custId`, () => {
-    const customerId = MOCK_CUSTOMER_DATA[0].custId;
-    const customerRoute = `${ROUTE.CUSTOMER}/${customerId}`;
-
-    describeSuccessTests(
-      customerRoute,
-      MOCK_ADMIN_DATA,
-      MOCK_CUSTOMER_DATA,
-      createRequest.get,
+    describeCustIdValidationTest(
+      `${ROUTE.CUSTOMER}/invalid-id`,
+      (route, status, tokenInfo) => createRequest.get(route, status, tokenInfo),
       expectResponse
     );
-
+    
     describeAuthErrorTests(
-      customerRoute,
-      createRequest.get,
+      `${ROUTE.CUSTOMER}/${MOCK_CUSTOMER_DATA[0].custId}`,
+      (route, status, tokenInfo) => createRequest.get(route, status, tokenInfo),
       expectResponse
     );
+
+    describe("Success Cases", () => {
+      test("should return customer information with valid JWT", async () => {
+        (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN_DATA);
+        (Customer.aggregate as jest.Mock).mockResolvedValue(MOCK_CUSTOMER_DATA);
+
+        const response = await createRequest.get(
+          `${ROUTE.CUSTOMER}/${MOCK_CUSTOMER_DATA[0].custId}`,
+          HTTP_STATUS.OK);
+        expectResponse.success(response, MOCK_CUSTOMER_DATA);
+      });
+
+      test("should return no data when customer does not exist", async () => {
+        (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN_DATA);
+        (Customer.aggregate as jest.Mock).mockResolvedValue([]);
+    
+        const response = await createRequest.get(
+          `${ROUTE.CUSTOMER}/${MOCK_CUSTOMER_DATA[0].custId}`,
+          HTTP_STATUS.OK);
+        expectResponse.noData(response);
+      });
+    });
 
     describeServerErrorTests(
-      customerRoute,
-      MOCK_ADMIN_DATA,
-      createRequest.get,
-      expectResponse
-    );
-
-    describeCustIdValidationTest(
-      ROUTE.CUSTOMER,
-      MOCK_ADMIN_DATA,
-      createRequest.get,
+      {
+        route: `${ROUTE.CUSTOMER}/${MOCK_CUSTOMER_DATA[0].custId}`,
+        requestFn: createRequest.get,
+        dbErrorCases: [
+          {
+            name: "User.findOne",
+            mockFn: User.findOne as jest.Mock
+          },
+          {
+            name: "Customer.aggregate",
+            mockFn: Customer.aggregate as jest.Mock,
+            setupMocks: (): void => {
+              (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN_DATA);
+            }
+          }
+        ]
+      },
       expectResponse
     );
   });
@@ -75,33 +122,27 @@ describe("Customer API", () => {
     const customerId = MOCK_CUSTOMER_DATA[0].custId;
     const customerRoute = `${ROUTE.UPDATE_CUSTOMER}/${customerId}`;
 
+    describeCustIdValidationTest(
+      `${ROUTE.UPDATE_CUSTOMER}/invalid-id`,
+      (route, status, tokenInfo) =>
+        createRequest.patch(route, { custName: "updateName" }, status, tokenInfo),
+      expectResponse
+    );
+
     describeAuthErrorTests(
       customerRoute,
-      (route, status, tokenInfo) =>
-        createRequest.patch(route, { password: MOCK_ADMIN_DATA.userName }, status, tokenInfo),
+      (route, status, tokenInfo) => createRequest.patch(route, { custName: "updateName" }, status, tokenInfo),
       expectResponse
     );
 
-    describeCustIdValidationTest(
-      ROUTE.UPDATE_CUSTOMER,
-      MOCK_ADMIN_DATA,
-      (route, status, tokenInfo) =>
-        createRequest.patch(route, { custName: "updatedName" }, status, tokenInfo),
+    describeValidationErrorTests(
+      {
+        route: customerRoute,
+        validBody: { custName: "updateName" },
+        requestFn: createRequest.patch
+      },
       expectResponse
     );
-
-    describe("Validation Error Cases", () => {
-      test.each([
-        ["invalid Content-Type", { custName: "updateName" }, false, RESPONSE_MESSAGE.INVALID_CONTENT_TYPE],
-        ["missing key in JSON body", { custNameCode: "updateName" }, true, RESPONSE_MESSAGE.INVALID_JSON_KEY],
-        ["invalid data type", { custName: 123456 }, true, RESPONSE_MESSAGE.INVALID_JSON_FORMAT]
-      ])("should bad request for %s", async (_, requestBody, isSetJson, expectedMessage) => {
-        (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN_DATA);
-
-        const response = await createRequest.patch(customerRoute, requestBody, HTTP_STATUS.BAD_REQUEST, {}, isSetJson);
-        expectResponse.badRequest(response, expectedMessage);
-      });
-    });
 
     describe("Success Cases", () => {
       test("should update customer information successfully", async () => {
@@ -119,29 +160,26 @@ describe("Customer API", () => {
       });
     });
 
-    describe("Server Error Cases", () => {
-      test("should return 500 if User.findOne throws error", async () => {
-        (User.findOne as jest.Mock).mockRejectedValue(new Error("DB Error"));
-        
-        const response = await createRequest.patch(
-          customerRoute,
-          { custName: "updateName" },
-          HTTP_STATUS.SERVER_ERROR
-        );
-        expectResponse.error(response);
-      });
-
-      test("should return 500 if Customer.findByIdAndUpdate throws error", async () => {
-        (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN_DATA);
-        (Customer.findByIdAndUpdate as jest.Mock).mockRejectedValue(new Error("DB Error"));
-        
-        const response = await createRequest.patch(
-          customerRoute,
-          { custName: "updateName" },
-          HTTP_STATUS.SERVER_ERROR
-        );
-        expectResponse.error(response);
-      });
-    });
+    describeServerErrorTests(
+      {
+        route: customerRoute,
+        requestFn: createRequest.patch,
+        requestBody: { custName: "updateName" },
+        dbErrorCases: [
+          {
+            name: "User.findOne",
+            mockFn: User.findOne as jest.Mock
+          },
+          {
+            name: "Customer.findByIdAndUpdate",
+            mockFn: Customer.findByIdAndUpdate as jest.Mock,
+            setupMocks: (): void => {
+              (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN_DATA);
+            }
+          }
+        ]
+      },
+      expectResponse
+    );
   });
 });

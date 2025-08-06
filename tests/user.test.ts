@@ -2,7 +2,7 @@
 import { HTTP_STATUS, RESPONSE_MESSAGE } from "../src/common/constants";
 import User from "../src/models/user.model";
 
-import { describeAuthErrorTests } from "./fixtures/testStructures";
+import { describeAuthErrorTests, describeServerErrorTests, describeValidationErrorTests } from "./fixtures/testStructures";
 import { createRequest, expectResponse } from "./fixtures/testUtils";
 import { ROUTE, MOCK_ADMIN_DATA, MOCK_INCORRECT_PASSWORD_DATA } from "./fixtures/user";
 
@@ -65,53 +65,46 @@ describe("User API", () => {
       });
     });
 
-    describe("Validation Error Cases", () => {
-      test.each([
-        ["invalid Content-Type", { password: MOCK_ADMIN_DATA.userName }, false, RESPONSE_MESSAGE.INVALID_CONTENT_TYPE],
-        ["missing key in JSON body", { userNameCode: "userName" }, true, RESPONSE_MESSAGE.INVALID_JSON_KEY],
-        ["invalid data type", { password: 123456 }, true, RESPONSE_MESSAGE.INVALID_JSON_FORMAT]
-      ])("should bad request for %s", async (_, requestBody, isSetJson, expectedMessage) => {
-        const response = await createRequest.post(ROUTE.LOGIN, requestBody, HTTP_STATUS.BAD_REQUEST, {}, isSetJson);
-        expectResponse.badRequest(response, expectedMessage);
-      });
-    });
+    describeValidationErrorTests(
+      {
+        route: ROUTE.LOGIN,
+        validBody: { password: MOCK_ADMIN_DATA.userName },
+        requestFn: createRequest.post
+      },
+      expectResponse
+    );
 
-    describe("Server Error Cases", () => {
-      test("should return 500 if User.findOne throws error", async () => {
-        (User.findOne as jest.Mock).mockRejectedValue(new Error("DB Error"));
-        
-        const response = await createRequest.post(
-          ROUTE.LOGIN,
+    describeServerErrorTests(
+      {
+        route: ROUTE.CREATE,
+        requestFn: createRequest.post,
+        requestBody: { password: MOCK_ADMIN_DATA.userName },
+        dbErrorCases: [
           {
-            password: MOCK_INCORRECT_PASSWORD_DATA.userName,
-          },
-          HTTP_STATUS.SERVER_ERROR
-        );
-        expectResponse.error(response);
-      });
-    });
+            name: "User.findOne",
+            mockFn: User.findOne as jest.Mock
+          }
+        ]
+      },
+      expectResponse
+    );
   });
 
   describe(`POST ${ROUTE.CREATE}`, () => {
     describeAuthErrorTests(
       ROUTE.CREATE,
-      (route, status, tokenInfo) =>
-        createRequest.post(route, { password: MOCK_ADMIN_DATA.userName }, status, tokenInfo),
+      (route, status, tokenInfo) => createRequest.post(route, { password: MOCK_ADMIN_DATA.userName }, status, tokenInfo),
       expectResponse
     );
 
-    describe("Validation Error Cases", () => {
-      test.each([
-        ["invalid Content-Type", { password: MOCK_ADMIN_DATA.userName }, false, RESPONSE_MESSAGE.INVALID_CONTENT_TYPE],
-        ["missing key in JSON body", { userNamerCode: "userName" }, true, RESPONSE_MESSAGE.INVALID_JSON_KEY],
-        ["invalid data type", { password: 123456 }, true, RESPONSE_MESSAGE.INVALID_JSON_FORMAT]
-      ])("should bad request for %s", async (_, requestBody, isSetJson, expectedMessage) => {
-        (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN_DATA);
-        
-        const response = await createRequest.post(ROUTE.CREATE, requestBody, HTTP_STATUS.BAD_REQUEST, {}, isSetJson);
-        expectResponse.badRequest(response, expectedMessage);
-      });
-    });
+    describeValidationErrorTests(
+      {
+        route: ROUTE.CREATE,
+        validBody: { password: MOCK_ADMIN_DATA.userName },
+        requestFn: createRequest.post
+      },
+      expectResponse
+    );
 
     describe("Success Cases", () => {
       test("should create user successfully", async () => {
@@ -129,33 +122,26 @@ describe("User API", () => {
       });
     });
 
-    describe("Server Error Cases", () => {
-      test("should return 500 if User.findOne throws error", async () => {
-        (User.findOne as jest.Mock).mockRejectedValue(new Error("DB Error"));
-        
-        const response = await createRequest.post(
-          ROUTE.CREATE,
+    describeServerErrorTests(
+      {
+        route: ROUTE.CREATE,
+        requestFn: createRequest.post,
+        requestBody: { password: MOCK_ADMIN_DATA.userName },
+        dbErrorCases: [
           {
-            password: MOCK_INCORRECT_PASSWORD_DATA.userName,
+            name: "User.findOne",
+            mockFn: User.findOne as jest.Mock
           },
-          HTTP_STATUS.SERVER_ERROR
-        );
-        expectResponse.error(response);
-      });
-
-      test("should return 500 if User.create throws error", async () => {
-        (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN_DATA);
-        (User.create as jest.Mock).mockRejectedValue(new Error("DB Error"));
-
-        const response = await createRequest.post(
-          ROUTE.CREATE,
           {
-            password: MOCK_INCORRECT_PASSWORD_DATA.userName,
-          },
-          HTTP_STATUS.SERVER_ERROR
-        );
-        expectResponse.error(response);
-      });
-    });
+            name: "User.create",
+            mockFn: User.create as jest.Mock,
+            setupMocks: (): void => {
+              (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN_DATA);
+            }
+          }
+        ]
+      },
+      expectResponse
+    );
   });
 });

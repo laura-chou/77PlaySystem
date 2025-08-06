@@ -2,7 +2,7 @@
   "scripts": {
     "start": "nodemon src/app.ts",
     "build": "tsc --project ./",
-    "test": "jest --coverage --watchAll",
+    "test": "jest --coverage --watchAll --verbose",
     "lint": "eslint . --ext .ts",
     "lint:fix": "eslint . --ext .ts --fix"
   },
