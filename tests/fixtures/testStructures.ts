@@ -2,9 +2,9 @@ import request from "supertest";
 
 import { HTTP_STATUS, RESPONSE_MESSAGE } from "../../src/common/constants";
 import User from "../../src/models/user.model";
-import { MOCK_ADMIN_DATA } from "../fixtures/user";
 
 import { expectResponse } from "./testUtils";
+import { MOCK_ADMIN_DATA } from "./userTestConfig";
 
 type TokenInfo = {
   showToken: boolean;

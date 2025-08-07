@@ -3,8 +3,8 @@ import { HTTP_STATUS, RESPONSE_MESSAGE } from "../src/common/constants";
 import User from "../src/models/user.model";
 
 import { describeAuthErrorTests, describeServerErrorTests, describeValidationErrorTests } from "./fixtures/testStructures";
-import { createRequest, expectResponse } from "./fixtures/testUtils";
-import { ROUTE, MOCK_ADMIN_DATA, MOCK_INCORRECT_PASSWORD_DATA } from "./fixtures/user";
+import { createRequest, expectResponse, mockUserFindOne } from "./fixtures/testUtils";
+import { ROUTE, MOCK_ADMIN_DATA, MOCK_INCORRECT_PASSWORD_DATA } from "./fixtures/userTestConfig";
 
 jest.mock("../src/models/user.model", () => ({
   findOne: jest.fn(),
@@ -21,8 +21,8 @@ describe("User API", () => {
   describe(`POST ${ROUTE.LOGIN}`, () => {
     describe("Success Cases", () => {
       test("should login successfully and return a token", async () => {
-        (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN_DATA);
-        
+        mockUserFindOne();
+
         const response = await createRequest.post(
           ROUTE.LOGIN,
           {
@@ -37,7 +37,7 @@ describe("User API", () => {
 
     describe("Authentication Error Cases", () => {
       test("should fail if user does not exist", async () => {
-        (User.findOne as jest.Mock).mockResolvedValue(null);
+        mockUserFindOne(null);
         
         const response = await createRequest.post(
           ROUTE.LOGIN,
@@ -49,9 +49,9 @@ describe("User API", () => {
     
         expectResponse.unauthorized(response);
       });
-    
+
       it("should fail if password is incorrect", async () => {
-        (User.findOne as jest.Mock).mockResolvedValue(MOCK_INCORRECT_PASSWORD_DATA);
+        mockUserFindOne(MOCK_INCORRECT_PASSWORD_DATA);
 
         const response = await createRequest.post(
           ROUTE.LOGIN,
@@ -76,7 +76,7 @@ describe("User API", () => {
 
     describeServerErrorTests(
       {
-        route: ROUTE.CREATE,
+        route: ROUTE.LOGIN,
         requestFn: createRequest.post,
         requestBody: { password: MOCK_ADMIN_DATA.userName },
         dbErrorCases: [
@@ -108,7 +108,7 @@ describe("User API", () => {
 
     describe("Success Cases", () => {
       test("should create user successfully", async () => {
-        (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN_DATA);
+        mockUserFindOne();
 
         const response = await createRequest.post(
           ROUTE.CREATE,

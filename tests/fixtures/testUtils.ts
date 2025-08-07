@@ -4,6 +4,9 @@ import request, { Response } from "supertest";
 import app from "../../src/app";
 import { CONTENT_TYPE, HTTP_STATUS, RESPONSE_MESSAGE } from "../../src/common/constants";
 import { isTypeString } from "../../src/common/utils";
+import User from "../../src/models/user.model";
+
+import { MOCK_ADMIN_DATA } from "./userTestConfig";
 
 interface TokenInfo {
   showToken: boolean;
@@ -17,6 +20,10 @@ const defaultTokenInfo: Required<TokenInfo> = {
   existUser: true,
   isExpired: false,
   isInvalid: false
+};
+
+export const mockUserFindOne = (data: object | null = MOCK_ADMIN_DATA): void => {
+  (User.findOne as jest.Mock).mockResolvedValue(data);
 };
 
 export const createRequest = {
