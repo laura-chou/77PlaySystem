@@ -4,7 +4,7 @@ import { HTTP_STATUS, RESPONSE_MESSAGE } from "../../src/common/constants";
 import User from "../../src/models/user.model";
 
 import { expectResponse } from "./testUtils";
-import { MOCK_ADMIN_DATA } from "./userTestConfig";
+import { MOCK_ADMIN } from "./userTestConfig";
 
 type TokenInfo = {
   showToken: boolean;
@@ -64,7 +64,7 @@ export const describeCustIdValidationTest = (
 ): void => {
   describe("custId Parameter Validation", () => {
     test("should return 400 if custId format is invalid", async () => {
-      (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN_DATA);
+      (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN);
       
       const response = await requestFn(
         route,
@@ -104,7 +104,7 @@ export const describeAuthErrorTests = (
         if (isUserNull) {
           (User.findOne as jest.Mock).mockResolvedValue(null);
         } else {
-          (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN_DATA);
+          (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN);
         }
         const response = await requestFn(route, HTTP_STATUS.UNAUTHORIZED, tokenInfo);
         expectResponseFn.unauthorized(response, expectedMessage);
@@ -127,7 +127,7 @@ export const describeValidationErrorTests = (
     test.each(validationTestCases)(
       "should bad request for %s",
       async (_, requestBody, isSetJson, expectedMessage) => {
-        (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN_DATA);
+        (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN);
         
         const response = await config.requestFn(
           config.route,

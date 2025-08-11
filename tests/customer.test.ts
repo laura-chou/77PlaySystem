@@ -2,12 +2,12 @@ import { HTTP_STATUS, RESPONSE_MESSAGE } from "../src/common/constants";
 import Customer from "../src/models/customer.model";
 import User from "../src/models/user.model";
 
-import { ROUTE, MOCK_CUSTOMER_DATA, MOCK_CUSTOMERS_DATA } from "./fixtures/customerTestConfig";
+import { ROUTE, MOCK_CUSTOMER, MOCK_CUSTOMERS } from "./fixtures/customerTestConfig";
 import { describeCustIdValidationTest, describeAuthErrorTests, describeValidationErrorTests, describeServerErrorTests } from "./fixtures/testStructures";
 import { createRequest, expectResponse, mockUserFindOne } from "./fixtures/testUtils";
-import { MOCK_ADMIN_DATA } from "./fixtures/userTestConfig";
+import { MOCK_ADMIN } from "./fixtures/userTestConfig";
 
-const customerId = MOCK_CUSTOMER_DATA[0].custId;
+const customerId = MOCK_CUSTOMER[0].custId;
 
 jest.mock("../src/models/user.model", () => ({
   findOne: jest.fn(),
@@ -38,10 +38,10 @@ describe("Customer API", () => {
     describe("Success Cases", () => {
       test("should return all customer with valid JWT", async () => {
         mockUserFindOne();
-        mockCustAggregate(MOCK_CUSTOMERS_DATA);
+        mockCustAggregate(MOCK_CUSTOMERS);
 
         const response = await createRequest.get(ROUTE.CUSTOMER, HTTP_STATUS.OK);
-        expectResponse.success(response, MOCK_CUSTOMERS_DATA);
+        expectResponse.success(response, MOCK_CUSTOMERS);
       });
     });
 
@@ -58,7 +58,7 @@ describe("Customer API", () => {
             name: "Customer.aggregate",
             mockFn: Customer.aggregate as jest.Mock,
             setupMocks: (): void => {
-              (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN_DATA);
+              (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN);
             }
           }
         ]
@@ -85,12 +85,12 @@ describe("Customer API", () => {
     describe("Success Cases", () => {
       test("should return customer information with valid JWT", async () => {
         mockUserFindOne();
-        mockCustAggregate(MOCK_CUSTOMER_DATA);
+        mockCustAggregate(MOCK_CUSTOMER);
 
         const response = await createRequest.get(
           customerRoute,
           HTTP_STATUS.OK);
-        expectResponse.success(response, MOCK_CUSTOMER_DATA);
+        expectResponse.success(response, MOCK_CUSTOMER);
       });
 
       test("should return no data when customer does not exist", async () => {
@@ -117,7 +117,7 @@ describe("Customer API", () => {
             name: "Customer.aggregate",
             mockFn: Customer.aggregate as jest.Mock,
             setupMocks: (): void => {
-              (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN_DATA);
+              (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN);
             }
           }
         ]
@@ -181,7 +181,7 @@ describe("Customer API", () => {
             name: "Customer.findByIdAndUpdate",
             mockFn: Customer.findByIdAndUpdate as jest.Mock,
             setupMocks: (): void => {
-              (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN_DATA);
+              (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN);
             }
           }
         ]
