@@ -15,7 +15,12 @@ type TokenInfo = {
 
 type AuthTestCase = [string, Partial<TokenInfo>, string, boolean?];
 
-type ValidationTestCase = [string, object, boolean, string];
+type ValidationTestCase = [
+  description: string,
+  requestBody: Record<string, unknown>,
+  isSetJson: boolean,
+  expectedMessage: string
+];
 
 interface ValidationConfig<T extends Record<string, unknown>> {
   route: string;
@@ -138,7 +143,7 @@ export const describeAuthErrorTests = (
 };
 
 export const describeValidationErrorTests = <T extends Record<string, unknown>>(
-  config: ValidationConfig<T>,
+  config: ValidationConfig<T> & { includeInvalidLogicTest?: boolean },
   expectResponseFn: typeof expectResponse
 ): void => {
   describe("Validation Error Cases", () => {
@@ -148,11 +153,20 @@ export const describeValidationErrorTests = <T extends Record<string, unknown>>(
       ["invalid data type", generateInvalidTypeBody(config.validBody), true, RESPONSE_MESSAGE.INVALID_JSON_FORMAT]
     ];
 
+    if (config.includeInvalidLogicTest) {
+      validationTestCases.push([
+        "invalid logic",
+        { refill: true, amount: -100 },
+        true,
+        RESPONSE_MESSAGE.INVALID_LOGIC
+      ]);
+    }
+
     test.each(validationTestCases)(
       "should bad request for %s",
       async (_, requestBody, isSetJson, expectedMessage) => {
         (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN);
-        
+
         const response = await config.requestFn(
           config.route,
           requestBody,

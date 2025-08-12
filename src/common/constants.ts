@@ -7,8 +7,10 @@ export const enum LOG_LEVEL {
 
 export const LOG_MESSAGE = {
   SUCCESS: "success",
+  TXN_NOT_FOUND: "customer data not found for this transaction.",
   ERROR: {
-    UNKNOWN: "unknown error"
+    UNKNOWN: "unknown error",
+    LOGIC: "logical inconsistency found"
   }
 } as const;
 
@@ -43,4 +45,5 @@ export const RESPONSE_MESSAGE = {
   USER_NOT_EXIST: "User does not exist.",
   TOKEN_EXPIRED: "Token expired.",
   INVALID_CUSTID: "Invalid Customer ID format.",
+  INVALID_LOGIC: "Invalid logic in request."
 } as const;

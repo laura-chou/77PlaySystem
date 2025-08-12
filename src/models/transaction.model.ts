@@ -10,8 +10,8 @@ interface ITransaction extends Document {
   serviceTypeId: Types.ObjectId;
   amount: number;
   currentBalance: number;
-  spendDate: string;
-  expiryDate: string;
+  spendDate: Date;
+  expiryDate: Date;
 }
 
 const txnSchema = new Schema<ITransaction>({
@@ -32,11 +32,11 @@ const txnSchema = new Schema<ITransaction>({
     required: true
   },
   spendDate: {
-    type: String,
+    type: Date,
     required: true
   },
   expiryDate: {
-    type: String,
+    type: Date,
     required: true
   }
 }, {

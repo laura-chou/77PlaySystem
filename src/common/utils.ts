@@ -33,12 +33,7 @@ export const isTypeBoolean = (value: unknown): boolean => {
   return typeof value === "boolean";
 };
 
-export const convertToBool = (value: string | undefined): boolean => {
-  if (!value) {
-    return false;
-  }
-  return value.toLowerCase() === "true" || value === "1";
-};
+export const isNegative = (num: number): boolean => num < 0;
 
 export const setFunctionName = <T extends (
   request: Request,

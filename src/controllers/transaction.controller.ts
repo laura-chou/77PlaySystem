@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 
 import { LOG_LEVEL, LOG_MESSAGE } from "../common/constants";
 import { responseHandler } from "../common/response";
-import { getNowDate, getThreeMonthsLater, setFunctionName } from "../common/utils";
+import { getNowDate, getThreeMonthsLater, isNegative, setFunctionName } from "../common/utils";
 import { setLog } from "../core/logger";
 import Transaction from "../models/transaction.model";
 
@@ -24,25 +24,35 @@ export const createTransaction = setFunctionName(
     if (!baseController.validateBodyFields(request, response, createTransaction.name, fields)) {
       return;
     }
+    const amount = request.body["amount"];
+    const refill = request.body["refill"];
+    if (refill && isNegative(amount)) {
+      setLog(LOG_LEVEL.ERROR, LOG_MESSAGE.ERROR.LOGIC, createTransaction.name);
+      responseHandler.badRequest(response, "LOGIC");
+      return;
+    }
     try {
-      const lastTransaction = await Transaction.findOne({ custId }).sort({ spendDate: -1 });
-      const amount = request.body["amount"];
-      const currentBalance = lastTransaction?.currentBalance + amount;
-      const refill = request.body["refill"];
-      const createDate = getNowDate();
-      const expiryDate = refill ? getThreeMonthsLater(createDate) : lastTransaction?.expiryDate;
+      const lastTransaction = await Transaction.findOne({ customerId: custId }).sort({ spendDate: -1 });
+      if (lastTransaction) {
+        const currentBalance = lastTransaction?.currentBalance + amount;
+        const nowDate = getNowDate();
+        const expiryDate = refill ? getThreeMonthsLater(nowDate) : lastTransaction?.expiryDate;
 
-      const data = {
-        customerId: custId,
-        amount: amount,
-        serviceTypeId: lastTransaction?.serviceTypeId,
-        currentBalance: currentBalance,
-        createDate: createDate,
-        expiryDate: expiryDate
-      };
-      await Transaction.create(data);
-      setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, createTransaction.name);
-      responseHandler.created(response);
+        const data = {
+          customerId: custId,
+          amount: amount,
+          serviceTypeId: lastTransaction?.serviceTypeId,
+          currentBalance: currentBalance,
+          spendDate: nowDate,
+          expiryDate: expiryDate
+        };
+        await Transaction.create(data);
+        setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, createTransaction.name);
+        responseHandler.created(response);
+      } else {
+        setLog(LOG_LEVEL.INFO, LOG_MESSAGE.TXN_NOT_FOUND, createTransaction.name);
+        responseHandler.noData(response);
+      }
     } catch (error) {
       baseController.errorHandler(response, error, createTransaction.name);
     }

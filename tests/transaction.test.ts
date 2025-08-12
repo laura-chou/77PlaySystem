@@ -1,4 +1,5 @@
 import { HTTP_STATUS } from "../src/common/constants";
+import * as utils from "../src/common/utils";
 import Transaction from "../src/models/transaction.model";
 import User from "../src/models/user.model";
 
@@ -8,6 +9,7 @@ import { ROUTE, MOCK_LASTEST_TRANSACTION } from "./fixtures/transactionTestConfi
 import { MOCK_ADMIN } from "./fixtures/userTestConfig";
 
 const customerId = MOCK_LASTEST_TRANSACTION[0].customerId;
+let spy: jest.SpyInstance;
 
 jest.mock("../src/models/user.model", () => ({
   findOne: jest.fn(),
@@ -22,6 +24,11 @@ jest.mock("../src/models/transaction.model", () => ({
 describe("Transaction API", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    spy = jest.spyOn(utils, "getThreeMonthsLater").mockReturnValue("2025-08-12T16:47:39");
+  });
+
+  afterEach(() => {
+    spy.mockRestore();
   });
 
   describe(`POST ${ROUTE.CREATE}/:custId`, () => {
@@ -43,7 +50,8 @@ describe("Transaction API", () => {
       {
         route: txnRoute,
         validBody: { amount: 100, refill: true },
-        requestFn: createRequest.post
+        requestFn: createRequest.post,
+        includeInvalidLogicTest: true
       },
       expectResponse
     );
@@ -62,6 +70,50 @@ describe("Transaction API", () => {
         );
 
         expectResponse.created(response);
+      });
+
+      test("should return no data when customer does not exist", async () => {
+        mockUserFindOne();
+        (Transaction.findOne as jest.Mock).mockImplementationOnce(() => ({
+          sort: jest.fn().mockResolvedValue(null)
+        }));
+
+        const response = await createRequest.post(
+          txnRoute,
+          { amount: 100, refill: true },
+          HTTP_STATUS.OK
+        );
+        expectResponse.noData(response);
+      });
+
+      test("should call getThreeMonthsLater when refill is true", async () => {
+        mockUserFindOne();
+        (Transaction.findOne as jest.Mock).mockReturnValue({
+          sort: jest.fn().mockResolvedValue(MOCK_LASTEST_TRANSACTION[0])
+        });
+
+        await createRequest.post(
+          txnRoute,
+          { amount: 100, refill: true },
+          HTTP_STATUS.CREATED
+        );
+
+        expect(spy).toHaveBeenCalledTimes(1);
+      });
+
+      test("should call getThreeMonthsLater when refill is false", async () => {
+        mockUserFindOne();
+        (Transaction.findOne as jest.Mock).mockReturnValue({
+          sort: jest.fn().mockResolvedValue(MOCK_LASTEST_TRANSACTION[0])
+        });
+
+        await createRequest.post(
+          txnRoute,
+          { amount: 100, refill: false },
+          HTTP_STATUS.CREATED
+        );
+
+        expect(spy).not.toHaveBeenCalled();
       });
     });
 
