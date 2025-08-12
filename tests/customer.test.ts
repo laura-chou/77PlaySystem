@@ -1,4 +1,4 @@
-import { HTTP_STATUS, RESPONSE_MESSAGE } from "../src/common/constants";
+import { HTTP_STATUS } from "../src/common/constants";
 import Customer from "../src/models/customer.model";
 import User from "../src/models/user.model";
 
@@ -161,10 +161,7 @@ describe("Customer API", () => {
           HTTP_STATUS.OK
         );
         
-        expect(response.body).toEqual({
-          status: HTTP_STATUS.OK,
-          message: RESPONSE_MESSAGE.SUCCESS
-        });
+        expectResponse.updated(response);
       });
     });
 

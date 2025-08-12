@@ -151,6 +151,20 @@ export const expectResponse = {
     }
   },
 
+  created: (response: Response): void => {
+    expect(response.body).toEqual({
+      status: HTTP_STATUS.CREATED,
+      message: RESPONSE_MESSAGE.SUCCESS
+    });
+  },
+
+  updated: (response: Response): void => {
+    expect(response.body).toEqual({
+      status: HTTP_STATUS.OK,
+      message: RESPONSE_MESSAGE.SUCCESS
+    });
+  },
+
   noData: (response: Response): void => {
     expect(response.body).toEqual({
       status: HTTP_STATUS.OK,

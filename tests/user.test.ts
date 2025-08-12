@@ -1,4 +1,4 @@
-import { HTTP_STATUS, RESPONSE_MESSAGE } from "../src/common/constants";
+import { HTTP_STATUS } from "../src/common/constants";
 import User from "../src/models/user.model";
 
 import { describeAuthErrorTests, describeServerErrorTests, describeValidationErrorTests } from "./fixtures/testStructures";
@@ -114,10 +114,8 @@ describe("User API", () => {
           { password: "newUser" },
           HTTP_STATUS.CREATED
         );
-        expect(response.body).toEqual({
-          status: HTTP_STATUS.CREATED,
-          message: RESPONSE_MESSAGE.SUCCESS
-        });
+
+        expectResponse.created(response);
       });
     });
 

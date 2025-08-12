@@ -1,4 +1,4 @@
-import { HTTP_STATUS, RESPONSE_MESSAGE } from "../src/common/constants";
+import { HTTP_STATUS } from "../src/common/constants";
 import Transaction from "../src/models/transaction.model";
 import User from "../src/models/user.model";
 
@@ -61,10 +61,7 @@ describe("Transaction API", () => {
           HTTP_STATUS.CREATED
         );
 
-        expect(response.body).toEqual({
-          status: HTTP_STATUS.CREATED,
-          message: RESPONSE_MESSAGE.SUCCESS
-        });
+        expectResponse.created(response);
       });
     });
 
