@@ -1,4 +1,5 @@
 import jwt from "jsonwebtoken";
+import { Model } from "mongoose";
 import request, { Response } from "supertest";
 
 import app from "../../src/app";
@@ -22,8 +23,28 @@ const defaultTokenInfo: Required<TokenInfo> = {
   isInvalid: false
 };
 
+type MockOptions<T> = {
+  resolve?: T;
+  reject?: Error;
+};
+
 export const mockUserFindOne = (data: object | null = MOCK_ADMIN): void => {
   (User.findOne as jest.Mock).mockResolvedValue(data);
+};
+
+export const mockFindOneSortLean = <T, M = unknown>(
+  model: Pick<Model<M>, "findOne">,
+  options: MockOptions<T[]> = {}
+): { sortMock: jest.Mock, leanMock: jest.Mock } => {
+  const leanMock = options.resolve
+    ? jest.fn().mockResolvedValue(options.resolve)
+    : jest.fn().mockRejectedValue(options.reject);
+  const sortMock = jest.fn().mockReturnThis();
+  (model.findOne as jest.Mock).mockImplementation(() => ({
+    sort: sortMock,
+    lean: leanMock
+  }));
+  return { sortMock, leanMock };
 };
 
 export const createRequest = {

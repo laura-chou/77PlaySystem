@@ -160,6 +160,7 @@ describe("Customer API", () => {
           { custName: "updateName" },
           HTTP_STATUS.OK
         );
+        
         expect(response.body).toEqual({
           status: HTTP_STATUS.OK,
           message: RESPONSE_MESSAGE.SUCCESS

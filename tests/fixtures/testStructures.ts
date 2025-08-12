@@ -17,12 +17,12 @@ type AuthTestCase = [string, Partial<TokenInfo>, string, boolean?];
 
 type ValidationTestCase = [string, object, boolean, string];
 
-interface ValidationConfig {
+interface ValidationConfig<T extends Record<string, unknown>> {
   route: string;
-  validBody: object;
+  validBody: T;
   requestFn: (
-    route: string, 
-    body: object, 
+    route: string,
+    body: Partial<T> | Record<string, unknown>,
     status: number,
     tokenInfo?: Partial<TokenInfo>,
     isSetJson?: boolean
@@ -52,6 +52,30 @@ interface ServerErrorConfig {
     setupMocks?: () => void;
   }[];
 }
+
+const generateInvalidTypeBody = <T extends Record<string, unknown>>(validBody: T): { [K in keyof T]: unknown } => {
+  return Object.keys(validBody).reduce((acc, key) => {
+    const value = validBody[key as keyof T];
+
+    let invalidValue: unknown;
+
+    if (typeof value === "number") {
+      invalidValue = "not a number";
+    } else if (typeof value === "string") {
+      invalidValue = 9999;
+    } else if (typeof value === "boolean") {
+      invalidValue = "true";
+    } else if (Array.isArray(value)) {
+      invalidValue = "not an array";
+    } else if (typeof value === "object" && value !== null) {
+      invalidValue = "not an object";
+    } else {
+      invalidValue = null;
+    }
+
+    return { ...acc, [key]: invalidValue };
+  }, {} as { [K in keyof T]: unknown });
+};
 
 export const describeCustIdValidationTest = (
   route: string,
@@ -113,15 +137,15 @@ export const describeAuthErrorTests = (
   });
 };
 
-export const describeValidationErrorTests = (
-  config: ValidationConfig,
+export const describeValidationErrorTests = <T extends Record<string, unknown>>(
+  config: ValidationConfig<T>,
   expectResponseFn: typeof expectResponse
 ): void => {
   describe("Validation Error Cases", () => {
     const validationTestCases: ValidationTestCase[] = [
       ["invalid Content-Type", config.validBody, false, RESPONSE_MESSAGE.INVALID_CONTENT_TYPE],
       ["missing key in JSON body", { wrongKey: "value" }, true, RESPONSE_MESSAGE.INVALID_JSON_KEY],
-      ["invalid data type", { ...config.validBody, ...{ [Object.keys(config.validBody)[0]]: 123456 } }, true, RESPONSE_MESSAGE.INVALID_JSON_FORMAT]
+      ["invalid data type", generateInvalidTypeBody(config.validBody), true, RESPONSE_MESSAGE.INVALID_JSON_FORMAT]
     ];
 
     test.each(validationTestCases)(

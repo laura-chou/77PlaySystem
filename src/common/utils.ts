@@ -7,6 +7,10 @@ export const getNowDate = (): string => {
   return moment().tz("Asia/Taipei").format();
 };
 
+export const getThreeMonthsLater = (nowDate: string): string => {
+  return moment.tz(nowDate, "Asia/Taipei").add(3, "months").format();
+};
+
 export const isNullOrEmpty = (value: string | null | undefined): boolean => {
   if (value == null) {
     return true;
