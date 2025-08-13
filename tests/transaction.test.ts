@@ -3,9 +3,9 @@ import * as utils from "../src/common/utils";
 import Transaction from "../src/models/transaction.model";
 import User from "../src/models/user.model";
 
-import { describeAuthErrorTests, describeCustIdValidationTest, describeServerErrorTests, describeValidationErrorTests } from "./fixtures/testStructures";
+import { describeAuthErrorTests, describeValidationCustIdTest, describeServerErrorTests, describeValidationErrorTests } from "./fixtures/testStructures";
 import { createRequest, expectResponse, mockUserFindOne } from "./fixtures/testUtils";
-import { ROUTE, MOCK_LASTEST_TRANSACTION } from "./fixtures/transactionTestConfig";
+import { ROUTE, MOCK_LASTEST_TRANSACTION, MOCK_POST_DATA } from "./fixtures/transactionTestConfig";
 import { MOCK_ADMIN } from "./fixtures/userTestConfig";
 
 const customerId = MOCK_LASTEST_TRANSACTION[0].customerId;
@@ -20,6 +20,30 @@ jest.mock("../src/models/transaction.model", () => ({
   findOne: jest.fn(),
   create: jest.fn()
 }));
+
+const mockTransactionFindOne = (type?: "null" | "error"): void => {
+  const mock = Transaction.findOne as jest.Mock;
+
+  switch (type) {
+    case "null":
+      mock.mockReturnValue({
+        sort: jest.fn().mockResolvedValue(null),
+      });
+      break;
+
+    case "error":
+      mock.mockImplementationOnce(() => ({
+        sort: jest.fn().mockRejectedValue(new Error("DB Error")),
+      }));
+      break;
+
+    default:
+      mock.mockReturnValue({
+        sort: jest.fn().mockResolvedValue(MOCK_LASTEST_TRANSACTION[0]),
+      });
+      break;
+  }
+};
 
 describe("Transaction API", () => {
   beforeEach(() => {
@@ -40,16 +64,16 @@ describe("Transaction API", () => {
       expectResponse
     );
 
-    describeCustIdValidationTest(
+    describeValidationCustIdTest(
       `${ROUTE.CREATE}/invalid-id`,
-      (route, status, tokenInfo) => createRequest.post(route, { amount: 100, refill: true }, status, tokenInfo),
+      (route, status, tokenInfo) => createRequest.post(route, MOCK_POST_DATA, status, tokenInfo),
       expectResponse
     );
 
     describeValidationErrorTests(
       {
         route: txnRoute,
-        validBody: { amount: 100, refill: true },
+        validBody: MOCK_POST_DATA,
         requestFn: createRequest.post,
         includeInvalidLogicTest: true
       },
@@ -59,13 +83,11 @@ describe("Transaction API", () => {
     describe("Success Cases", () => {
       test("should create transaction successfully", async () => {
         mockUserFindOne();
-        (Transaction.findOne as jest.Mock).mockReturnValue({
-          sort: jest.fn().mockResolvedValue(MOCK_LASTEST_TRANSACTION[0])
-        });
+        mockTransactionFindOne();
 
         const response = await createRequest.post(
           txnRoute,
-          { amount: 100, refill: true },
+          MOCK_POST_DATA,
           HTTP_STATUS.CREATED
         );
 
@@ -74,13 +96,11 @@ describe("Transaction API", () => {
 
       test("should return no data when customer does not exist", async () => {
         mockUserFindOne();
-        (Transaction.findOne as jest.Mock).mockImplementationOnce(() => ({
-          sort: jest.fn().mockResolvedValue(null)
-        }));
+        mockTransactionFindOne("null");
 
         const response = await createRequest.post(
           txnRoute,
-          { amount: 100, refill: true },
+          MOCK_POST_DATA,
           HTTP_STATUS.OK
         );
         expectResponse.noData(response);
@@ -88,9 +108,7 @@ describe("Transaction API", () => {
 
       test("should call getThreeMonthsLater when refill is true", async () => {
         mockUserFindOne();
-        (Transaction.findOne as jest.Mock).mockReturnValue({
-          sort: jest.fn().mockResolvedValue(MOCK_LASTEST_TRANSACTION[0])
-        });
+        mockTransactionFindOne();
 
         await createRequest.post(
           txnRoute,
@@ -103,13 +121,11 @@ describe("Transaction API", () => {
 
       test("should call getThreeMonthsLater when refill is false", async () => {
         mockUserFindOne();
-        (Transaction.findOne as jest.Mock).mockReturnValue({
-          sort: jest.fn().mockResolvedValue(MOCK_LASTEST_TRANSACTION[0])
-        });
+        mockTransactionFindOne();
 
         await createRequest.post(
           txnRoute,
-          { amount: 100, refill: false },
+          MOCK_POST_DATA,
           HTTP_STATUS.CREATED
         );
 
@@ -121,7 +137,7 @@ describe("Transaction API", () => {
       {
         route: txnRoute,
         requestFn: createRequest.post,
-        requestBody: { amount: 100, refill: true },
+        requestBody: MOCK_POST_DATA,
         dbErrorCases: [
           {
             name: "User.findOne",
@@ -132,9 +148,7 @@ describe("Transaction API", () => {
             mockFn: Transaction.findOne as jest.Mock,
             setupMocks: (): void => {
               mockUserFindOne();
-              (Transaction.findOne as jest.Mock).mockImplementationOnce(() => ({
-                sort: jest.fn().mockRejectedValue(new Error("DB Error"))
-              }));
+              mockTransactionFindOne("error");
             }
           },
           {
@@ -142,9 +156,7 @@ describe("Transaction API", () => {
             mockFn: Transaction.create as jest.Mock,
             setupMocks: (): void => {
               mockUserFindOne();
-              (Transaction.findOne as jest.Mock).mockImplementationOnce(() => ({
-                sort: jest.fn().mockResolvedValue(MOCK_LASTEST_TRANSACTION[0])
-              }));
+              mockTransactionFindOne();
             }
           }
         ]

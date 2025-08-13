@@ -3,7 +3,7 @@ import User from "../src/models/user.model";
 
 import { describeAuthErrorTests, describeServerErrorTests, describeValidationErrorTests } from "./fixtures/testStructures";
 import { createRequest, expectResponse, mockUserFindOne } from "./fixtures/testUtils";
-import { ROUTE, MOCK_ADMIN, MOCK_INCORRECT_PASSWORD } from "./fixtures/userTestConfig";
+import { ROUTE, MOCK_ADMIN, MOCK_NOTEXIST_USER, MOCK_EXIST_USER } from "./fixtures/userTestConfig";
 
 jest.mock("../src/models/user.model", () => ({
   findOne: jest.fn(),
@@ -40,9 +40,7 @@ describe("User API", () => {
         
         const response = await createRequest.post(
           ROUTE.LOGIN,
-          {
-            password: "userName",
-          },
+          MOCK_NOTEXIST_USER,
           HTTP_STATUS.UNAUTHORIZED
         );
     
@@ -50,13 +48,11 @@ describe("User API", () => {
       });
 
       it("should fail if password is incorrect", async () => {
-        mockUserFindOne(MOCK_INCORRECT_PASSWORD);
+        mockUserFindOne(MOCK_ADMIN);
 
         const response = await createRequest.post(
           ROUTE.LOGIN,
-          {
-            password: MOCK_INCORRECT_PASSWORD.userName,
-          },
+          MOCK_NOTEXIST_USER,
           HTTP_STATUS.UNAUTHORIZED
         );
 
@@ -67,7 +63,7 @@ describe("User API", () => {
     describeValidationErrorTests(
       {
         route: ROUTE.LOGIN,
-        validBody: { password: MOCK_ADMIN.userName },
+        validBody: MOCK_EXIST_USER,
         requestFn: createRequest.post
       },
       expectResponse
@@ -77,7 +73,7 @@ describe("User API", () => {
       {
         route: ROUTE.LOGIN,
         requestFn: createRequest.post,
-        requestBody: { password: MOCK_ADMIN.userName },
+        requestBody: MOCK_EXIST_USER,
         dbErrorCases: [
           {
             name: "User.findOne",
@@ -92,14 +88,14 @@ describe("User API", () => {
   describe(`POST ${ROUTE.CREATE}`, () => {
     describeAuthErrorTests(
       ROUTE.CREATE,
-      (route, status, tokenInfo) => createRequest.post(route, { password: MOCK_ADMIN.userName }, status, tokenInfo),
+      (route, status, tokenInfo) => createRequest.post(route, MOCK_EXIST_USER, status, tokenInfo),
       expectResponse
     );
 
     describeValidationErrorTests(
       {
         route: ROUTE.CREATE,
-        validBody: { password: MOCK_ADMIN.userName },
+        validBody: MOCK_EXIST_USER,
         requestFn: createRequest.post
       },
       expectResponse
@@ -111,7 +107,7 @@ describe("User API", () => {
 
         const response = await createRequest.post(
           ROUTE.CREATE,
-          { password: "newUser" },
+          MOCK_NOTEXIST_USER,
           HTTP_STATUS.CREATED
         );
 
@@ -123,7 +119,7 @@ describe("User API", () => {
       {
         route: ROUTE.CREATE,
         requestFn: createRequest.post,
-        requestBody: { password: MOCK_ADMIN.userName },
+        requestBody: MOCK_EXIST_USER,
         dbErrorCases: [
           {
             name: "User.findOne",
@@ -133,7 +129,7 @@ describe("User API", () => {
             name: "User.create",
             mockFn: User.create as jest.Mock,
             setupMocks: (): void => {
-              (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN);
+              mockUserFindOne();
             }
           }
         ]

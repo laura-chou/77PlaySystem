@@ -11,7 +11,11 @@ export const MOCK_ADMIN = {
   token: "token"
 };
 
-export const MOCK_INCORRECT_PASSWORD = { 
-  userName: "testuser",
-  password: "incorrect password"
+export const MOCK_EXIST_USER = {
+  password: MOCK_ADMIN.userName
 };
+
+export const MOCK_NOTEXIST_USER = { 
+  password: "not exist"
+};
+

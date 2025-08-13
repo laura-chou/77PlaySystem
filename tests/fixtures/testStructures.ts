@@ -1,10 +1,8 @@
 import request from "supertest";
 
 import { HTTP_STATUS, RESPONSE_MESSAGE } from "../../src/common/constants";
-import User from "../../src/models/user.model";
 
-import { expectResponse } from "./testUtils";
-import { MOCK_ADMIN } from "./userTestConfig";
+import { expectResponse, mockUserFindOne } from "./testUtils";
 
 type TokenInfo = {
   showToken: boolean;
@@ -82,7 +80,7 @@ const generateInvalidTypeBody = <T extends Record<string, unknown>>(validBody: T
   }, {} as { [K in keyof T]: unknown });
 };
 
-export const describeCustIdValidationTest = (
+export const describeValidationCustIdTest = (
   route: string,
   requestFn: (
     route: string,
@@ -91,9 +89,9 @@ export const describeCustIdValidationTest = (
   ) => Promise<request.Response>,
   expectResponseFn: typeof expectResponse
 ): void => {
-  describe("custId Parameter Validation", () => {
+  describe("Validation CustId Parameter", () => {
     test("should return 400 if custId format is invalid", async () => {
-      (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN);
+      mockUserFindOne();
       
       const response = await requestFn(
         route,
@@ -131,9 +129,9 @@ export const describeAuthErrorTests = (
         isUserNull: boolean = false
       ) => {
         if (isUserNull) {
-          (User.findOne as jest.Mock).mockResolvedValue(null);
+          mockUserFindOne(null);
         } else {
-          (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN);
+          mockUserFindOne();
         }
         const response = await requestFn(route, HTTP_STATUS.UNAUTHORIZED, tokenInfo);
         expectResponseFn.unauthorized(response, expectedMessage);
@@ -165,7 +163,7 @@ export const describeValidationErrorTests = <T extends Record<string, unknown>>(
     test.each(validationTestCases)(
       "should bad request for %s",
       async (_, requestBody, isSetJson, expectedMessage) => {
-        (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN);
+        mockUserFindOne();
 
         const response = await config.requestFn(
           config.route,

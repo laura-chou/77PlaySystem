@@ -4,6 +4,10 @@ export const ROUTE = {
   CREATE: `${base}/create`
 } as const;
 
+export const MOCK_POST_DATA = { 
+  amount: -100,
+  refill: false
+};
 
 export const MOCK_LASTEST_TRANSACTION = [
   {

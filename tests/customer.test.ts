@@ -2,10 +2,9 @@ import { HTTP_STATUS } from "../src/common/constants";
 import Customer from "../src/models/customer.model";
 import User from "../src/models/user.model";
 
-import { ROUTE, MOCK_CUSTOMER, MOCK_CUSTOMERS } from "./fixtures/customerTestConfig";
-import { describeCustIdValidationTest, describeAuthErrorTests, describeValidationErrorTests, describeServerErrorTests } from "./fixtures/testStructures";
+import { ROUTE, MOCK_CUSTOMER, MOCK_CUSTOMERS, MOCK_UPDATE_DATA } from "./fixtures/customerTestConfig";
+import { describeValidationCustIdTest, describeAuthErrorTests, describeValidationErrorTests, describeServerErrorTests } from "./fixtures/testStructures";
 import { createRequest, expectResponse, mockUserFindOne } from "./fixtures/testUtils";
-import { MOCK_ADMIN } from "./fixtures/userTestConfig";
 
 const customerId = MOCK_CUSTOMER[0].custId;
 
@@ -58,7 +57,7 @@ describe("Customer API", () => {
             name: "Customer.aggregate",
             mockFn: Customer.aggregate as jest.Mock,
             setupMocks: (): void => {
-              (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN);
+              mockUserFindOne();
             }
           }
         ]
@@ -70,7 +69,7 @@ describe("Customer API", () => {
   describe(`GET ${ROUTE.CUSTOMER}/:custId`, () => {
     const customerRoute = `${ROUTE.CUSTOMER}/${customerId}`;
 
-    describeCustIdValidationTest(
+    describeValidationCustIdTest(
       `${ROUTE.CUSTOMER}/invalid-id`,
       (route, status, tokenInfo) => createRequest.get(route, status, tokenInfo),
       expectResponse
@@ -117,7 +116,7 @@ describe("Customer API", () => {
             name: "Customer.aggregate",
             mockFn: Customer.aggregate as jest.Mock,
             setupMocks: (): void => {
-              (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN);
+              mockUserFindOne();
             }
           }
         ]
@@ -129,23 +128,23 @@ describe("Customer API", () => {
   describe(`PATCH ${ROUTE.UPDATE_CUSTOMER}/:custId`, () => {
     const customerRoute = `${ROUTE.UPDATE_CUSTOMER}/${customerId}`;
 
-    describeCustIdValidationTest(
+    describeValidationCustIdTest(
       `${ROUTE.UPDATE_CUSTOMER}/invalid-id`,
       (route, status, tokenInfo) =>
-        createRequest.patch(route, { custName: "updateName" }, status, tokenInfo),
+        createRequest.patch(route, MOCK_UPDATE_DATA, status, tokenInfo),
       expectResponse
     );
 
     describeAuthErrorTests(
       customerRoute,
-      (route, status, tokenInfo) => createRequest.patch(route, { custName: "updateName" }, status, tokenInfo),
+      (route, status, tokenInfo) => createRequest.patch(route, MOCK_UPDATE_DATA, status, tokenInfo),
       expectResponse
     );
 
     describeValidationErrorTests(
       {
         route: customerRoute,
-        validBody: { custName: "updateName" },
+        validBody: MOCK_UPDATE_DATA,
         requestFn: createRequest.patch
       },
       expectResponse
@@ -157,7 +156,7 @@ describe("Customer API", () => {
 
         const response = await createRequest.patch(
           customerRoute,
-          { custName: "updateName" },
+          MOCK_UPDATE_DATA,
           HTTP_STATUS.OK
         );
         
@@ -169,7 +168,7 @@ describe("Customer API", () => {
       {
         route: customerRoute,
         requestFn: createRequest.patch,
-        requestBody: { custName: "updateName" },
+        requestBody: MOCK_UPDATE_DATA,
         dbErrorCases: [
           {
             name: "User.findOne",
@@ -179,7 +178,7 @@ describe("Customer API", () => {
             name: "Customer.findByIdAndUpdate",
             mockFn: Customer.findByIdAndUpdate as jest.Mock,
             setupMocks: (): void => {
-              (User.findOne as jest.Mock).mockResolvedValue(MOCK_ADMIN);
+              mockUserFindOne();
             }
           }
         ]

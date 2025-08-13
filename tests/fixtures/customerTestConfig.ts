@@ -5,7 +5,11 @@ export const ROUTE = {
   UPDATE_CUSTOMER: `${base}/update`
 } as const;
 
-export const MOCK_CUSTOMERS= [
+export const MOCK_UPDATE_DATA = { 
+  custName: "updateName"
+};
+
+export const MOCK_CUSTOMERS = [
   {
     custId: "507f1f77bcf86cd799439011",
     custName: "customer1",
