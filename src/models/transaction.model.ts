@@ -1,11 +1,11 @@
 import "dotenv/config";
 
-import { Document, Model, model, Schema, Types } from "mongoose";
+import { Model, model, Schema, Types } from "mongoose";
 
 import { RESPONSE_MESSAGE } from "../common/constants";
 import { isNullOrEmpty } from "../common/utils";
 
-interface ITransaction extends Document {
+export interface ITransaction {
   customerId: Types.ObjectId;
   serviceTypeId: Types.ObjectId;
   amount: number;

@@ -1,13 +1,13 @@
 import "dotenv/config";
 
-import { Document, Model, model, Schema } from "mongoose";
+import { Model, model, Schema, Types } from "mongoose";
 
 import { RESPONSE_MESSAGE } from "../common/constants";
 import { isNullOrEmpty } from "../common/utils";
 
-interface ICustomer extends Document {
+export interface ICustomer {
   custName: string;
-  serviceTypes: Array<number>;
+  serviceTypes: Array<Types.ObjectId>;
   createDate: Date;
 }
 

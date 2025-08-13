@@ -1,14 +1,14 @@
 import "dotenv/config";
 
-import { Document, Model, model, Schema } from "mongoose";
+import { Model, model, Schema } from "mongoose";
 
 import { RESPONSE_MESSAGE } from "../common/constants";
 import { isNullOrEmpty } from "../common/utils";
 
-interface IUser extends Document {
+export interface IUser {
   userName: string;
   password: string;
-  token: string;
+  token?: string;
   createDate: Date;
 }
 

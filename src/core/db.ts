@@ -91,8 +91,8 @@ export const getCustomerDetailPipeline = (custId: string): PipelineStage[] => [
           serviceName: "$serviceTypes.serviceName",
           amount: "$transactions.amount",
           currentBalance: "$transactions.currentBalance",
-          spendDate: dateToString("$transactions.spendDate"),
-          expiryDate: dateToString("$transactions.expiryDate")
+          spendDate: "$transactions.spendDate",
+          expiryDate: "$transactions.expiryDate"
         }
       }
     }
@@ -100,6 +100,23 @@ export const getCustomerDetailPipeline = (custId: string): PipelineStage[] => [
   {
     $addFields: {
       history: sortArray("$history", { spendDate: -1 })
+    }
+  },
+  {
+    $set: {
+      history: {
+        $map: {
+          input: "$history",
+          as: "item",
+          in: {
+            serviceName: "$$item.serviceName",
+            amount: "$$item.amount",
+            currentBalance: "$$item.currentBalance",
+            spendDate: dateToString("$$item.spendDate"),
+            expiryDate: dateToString("$$item.expiryDate")
+          }
+        }
+      }
     }
   },
   {

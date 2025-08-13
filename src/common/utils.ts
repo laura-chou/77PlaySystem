@@ -3,12 +3,12 @@ import moment from "moment-timezone";
 
 export const isJestTest: boolean = typeof jest !== "undefined";
 
-export const getNowDate = (): string => {
-  return moment().tz("Asia/Taipei").format();
+export const getNowDate = (): Date => {
+  return moment().tz("Asia/Taipei").toDate();
 };
 
-export const getThreeMonthsLater = (nowDate: string): string => {
-  return moment.tz(nowDate, "Asia/Taipei").add(3, "months").format();
+export const getThreeMonthsLater = (nowDate: Date): Date => {
+  return moment.tz(nowDate, "Asia/Taipei").add(3, "months").toDate();
 };
 
 export const isNullOrEmpty = (value: string | null | undefined): boolean => {

@@ -6,7 +6,7 @@ import { LOG_LEVEL, LOG_MESSAGE } from "../common/constants";
 import { responseHandler } from "../common/response";
 import { getNowDate, setFunctionName } from "../common/utils";
 import { setLog } from "../core/logger";
-import User from "../models/user.model";
+import User, { IUser } from "../models/user.model";
 
 import * as baseController from "./base.controller";
 
@@ -48,8 +48,8 @@ export const userCreate = setFunctionName(
       return;
     }
     try {
-      const userName = request.body["password"];
-      const data = {
+      const userName = request.body.password;
+      const data: IUser = {
         userName: userName,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         password: await bcrypt.hash(userName, parseInt(process.env.BCRYPT_SALT_ROUNDS!)),

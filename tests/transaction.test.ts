@@ -48,7 +48,7 @@ const mockTransactionFindOne = (type?: "null" | "error"): void => {
 describe("Transaction API", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    spy = jest.spyOn(utils, "getThreeMonthsLater").mockReturnValue("2025-08-12T16:47:39");
+    spy = jest.spyOn(utils, "getThreeMonthsLater").mockReturnValue(new Date("2025-08-12T16:47:39"));
   });
 
   afterEach(() => {

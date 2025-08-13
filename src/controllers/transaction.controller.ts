@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
+import { Types } from "mongoose";
 
 import { LOG_LEVEL, LOG_MESSAGE } from "../common/constants";
 import { responseHandler } from "../common/response";
 import { getNowDate, getThreeMonthsLater, isNegative, setFunctionName } from "../common/utils";
 import { setLog } from "../core/logger";
-import Transaction from "../models/transaction.model";
+import Transaction, { ITransaction } from "../models/transaction.model";
 
 import * as baseController from "./base.controller";
 
@@ -24,8 +25,8 @@ export const createTransaction = setFunctionName(
     if (!baseController.validateBodyFields(request, response, createTransaction.name, fields)) {
       return;
     }
-    const amount = request.body["amount"];
-    const refill = request.body["refill"];
+    const amount = request.body.amount;
+    const refill = request.body.refill;
     if (refill && isNegative(amount)) {
       setLog(LOG_LEVEL.ERROR, LOG_MESSAGE.ERROR.LOGIC, createTransaction.name);
       responseHandler.badRequest(response, "LOGIC");
@@ -38,8 +39,8 @@ export const createTransaction = setFunctionName(
         const nowDate = getNowDate();
         const expiryDate = refill ? getThreeMonthsLater(nowDate) : lastTransaction?.expiryDate;
 
-        const data = {
-          customerId: custId,
+        const data: ITransaction = {
+          customerId: new Types.ObjectId(custId),
           amount: amount,
           serviceTypeId: lastTransaction?.serviceTypeId,
           currentBalance: currentBalance,
