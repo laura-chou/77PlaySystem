@@ -7,6 +7,7 @@ export const custRoutes = (): RouteConfig => {
   return createRoute("/customer", (router) => {
     router.get("/", authMiddleware("jwt"), customerController.getCustList);
     router.get("/:custId", authMiddleware("jwt"), customerController.getCustomer);
+    router.post("/create", authMiddleware("jwt"), customerController.createCustomer);
     router.patch("/update/:custId", authMiddleware("jwt"), customerController.updateCustInfo);
   });
 };

@@ -2,11 +2,17 @@ const base = "/customer";
 
 export const ROUTE = {
   CUSTOMER: `${base}`,
-  UPDATE_CUSTOMER: `${base}/update`
+  CREATE: `${base}/create`,
+  UPDATE: `${base}/update`
 } as const;
 
 export const MOCK_UPDATE_DATA = { 
   custName: "updateName"
+};
+
+export const MOCK_CREATE_DATA = { 
+  custName: "createName",
+  amount: 1500
 };
 
 export const MOCK_CUSTOMERS = [

@@ -1,11 +1,14 @@
 import { Request, Response } from "express";
+import mongoose from "mongoose";
 
 import { LOG_LEVEL, LOG_MESSAGE } from "../common/constants";
 import { responseHandler } from "../common/response";
-import { setFunctionName } from "../common/utils";
+import { getNowDate, getThreeMonthsLater, setFunctionName } from "../common/utils";
 import { getCustomerListPipeline, getCustomerDetailPipeline } from "../core/db";
 import { setLog } from "../core/logger";
-import Customer from "../models/customer.model";
+import Customer, { ICustomer } from "../models/customer.model";
+import ServiceType from "../models/serviceType.model";
+import Transaction, { ITransaction } from "../models/transaction.model";
 
 import * as baseController from "./base.controller";
 
@@ -53,6 +56,59 @@ export const getCustomer = setFunctionName(
     }
   },
   "getCustomer"
+);
+
+export const createCustomer = setFunctionName(
+  async (request: Request, response: Response): Promise<void> => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+      if (!baseController.validateContentType(request, response, createCustomer.name)) {
+        return;
+      }
+      const fields = [
+        { key: "custName", type: "string" },
+        { key: "amount", type: "integer" }
+      ];
+      if (!baseController.validateBodyFields(request, response, updateCustInfo.name, fields)) {
+        return;
+      }
+
+      const custName = request.body.custName;
+      const amount = request.body.amount;
+      const nowDate = getNowDate();
+      const expiryDate = getThreeMonthsLater(nowDate);
+      const serviceTypeId = (await ServiceType.findOne({}, "_id"))?._id;
+      if (serviceTypeId) {
+        const custData: ICustomer = {
+          custName: custName,
+          serviceTypes: [serviceTypeId],
+          createDate: nowDate
+        };
+        const [custDoc] = await Customer.create([custData], { session });
+
+        const txnData: ITransaction = {
+          customerId: custDoc._id,
+          amount: amount,
+          serviceTypeId: serviceTypeId,
+          currentBalance: amount,
+          spendDate: nowDate,
+          expiryDate: expiryDate
+        };
+        await Transaction.create([txnData], { session });
+
+        await session.commitTransaction();
+        setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, createCustomer.name);
+        responseHandler.created(response);
+      }
+    } catch (error) {
+      await session.abortTransaction();
+      baseController.errorHandler(response, error, createCustomer.name);
+    } finally {
+      session.endSession();
+    }
+  },
+  "createCustomer"
 );
 
 export const updateCustInfo = setFunctionName(

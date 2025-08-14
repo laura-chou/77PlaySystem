@@ -2,7 +2,7 @@ import request from "supertest";
 
 import { HTTP_STATUS, RESPONSE_MESSAGE } from "../../src/common/constants";
 
-import { expectResponse, mockUserFindOne } from "./testUtils";
+import { expectResponse, mockSession, mockUserFindOne } from "./testUtils";
 
 type TokenInfo = {
   showToken: boolean;
@@ -53,6 +53,7 @@ interface ServerErrorConfig {
     name: string;
     mockFn: jest.Mock;
     setupMocks?: () => void;
+    includeAbortTransactionTest?: boolean;
   }[];
 }
 
@@ -185,7 +186,7 @@ export const describeServerErrorTests = (
   describe("Server Error Cases", () => {
     test.each(config.dbErrorCases)(
       "should return 500 if $name throws error",
-      async ({ mockFn, setupMocks }) => {
+      async ({ mockFn, setupMocks, includeAbortTransactionTest }) => {
         if (setupMocks) {
           setupMocks();
         }
@@ -207,6 +208,12 @@ export const describeServerErrorTests = (
             ));
 
         expectResponseFn.error(response);
+
+        if (includeAbortTransactionTest) {
+          expect(mockSession.abortTransaction).toHaveBeenCalled();
+          expect(mockSession.commitTransaction).not.toHaveBeenCalled();
+          expect(mockSession.endSession).toHaveBeenCalled();
+        }
       }
     );
   });
