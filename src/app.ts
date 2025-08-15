@@ -11,11 +11,10 @@ import cors, { CorsOptions } from "cors";
 import express, { Express, NextFunction, Request, Response } from "express";
 import morgan from "morgan";
 
-import { LOG_LEVEL } from "./common/constants";
 import { responseHandler } from "./common/response";
 import { isJestTest, isNullOrEmpty } from "./common/utils";
 import { connectDB } from "./core/db";
-import { setLog } from "./core/logger";
+import { LOG_LEVEL, setLog } from "./core/logger";
 import { router } from "./routes/router";
 
 const app: Express = express();

@@ -6,7 +6,7 @@ import ServiceType from "../src/models/serviceType.model";
 import Transaction from "../src/models/transaction.model";
 import User from "../src/models/user.model";
 
-import { ROUTE, MOCK_CUSTOMER, MOCK_CUSTOMERS, MOCK_UPDATE_DATA, MOCK_CREATE_DATA } from "./fixtures/customerTestConfig";
+import { ROUTE, MOCK_CUSTOMER, MOCK_CUSTOMERS, MOCK_UPDATE_DATA, MOCK_CREATE_DATA, MOCK_ID } from "./fixtures/customerTestConfig";
 import { describeValidationCustIdTest, describeAuthErrorTests, describeValidationErrorTests, describeServerErrorTests } from "./fixtures/testStructures";
 import { createRequest, expectResponse, mockSession, mockUserFindOne } from "./fixtures/testUtils";
 
@@ -35,6 +35,17 @@ const mockCustAggregate = (data: Array<object>): void => {
   (Customer.aggregate as jest.Mock).mockResolvedValue(data);
 };
 
+const mockCustCreate = (): void => {
+  (Customer.create as jest.Mock).mockResolvedValue([MOCK_ID]);
+};
+
+const mockTxnCreate = (): void => {
+  (Transaction.create as jest.Mock).mockResolvedValue([MOCK_ID]);
+};
+
+const mockServiceTypeFindOne = (): void => {
+  (ServiceType.findOne as jest.Mock).mockResolvedValue(MOCK_ID);
+};
 
 describe("Customer API", () => {
   beforeEach(() => {
@@ -161,9 +172,9 @@ describe("Customer API", () => {
         (mongoose.startSession as jest.Mock).mockResolvedValue(mockSession);
 
         mockUserFindOne();
-        (ServiceType.findOne as jest.Mock).mockResolvedValue({ _id: "123" });
-        (Customer.create as jest.Mock).mockResolvedValue([{ _id: "123" }]);
-        (Transaction.create as jest.Mock).mockResolvedValue([]);
+        mockServiceTypeFindOne();
+        mockCustCreate();
+        mockTxnCreate();
 
         const response = await createRequest.post(
           ROUTE.CREATE,
@@ -201,7 +212,7 @@ describe("Customer API", () => {
             mockFn: Customer.create as jest.Mock,
             setupMocks: (): void => {
               mockUserFindOne();
-              (ServiceType.findOne as jest.Mock).mockResolvedValue({ _id: "123" });
+              mockServiceTypeFindOne();
             },
             includeAbortTransactionTest: true
           },
@@ -210,8 +221,8 @@ describe("Customer API", () => {
             mockFn: Transaction.create as jest.Mock,
             setupMocks: (): void => {
               mockUserFindOne();
-              (ServiceType.findOne as jest.Mock).mockResolvedValue({ _id: "123" });
-              (Customer.create as jest.Mock).mockResolvedValue([{ _id: "123" }]);
+              mockServiceTypeFindOne();
+              mockCustCreate();
             },
             includeAbortTransactionTest: true
           }
@@ -255,7 +266,7 @@ describe("Customer API", () => {
           MOCK_UPDATE_DATA,
           HTTP_STATUS.OK
         );
-        
+
         expectResponse.updated(response);
       });
     });

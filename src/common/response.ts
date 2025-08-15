@@ -1,6 +1,8 @@
 import { Response } from "express";
 
-import { HTTP_STATUS, LOG_MESSAGE, RESPONSE_MESSAGE } from "./constants";
+import { LOG_MESSAGE } from "../core/logger";
+
+import { HTTP_STATUS, RESPONSE_MESSAGE } from "./constants";
 
 interface ApiResponse<T> {
   status: number

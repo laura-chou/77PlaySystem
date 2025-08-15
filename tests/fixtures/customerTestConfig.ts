@@ -6,16 +6,46 @@ export const ROUTE = {
   UPDATE: `${base}/update`
 } as const;
 
-export const MOCK_UPDATE_DATA = { 
+type UpdateCustModel = {
+  custName?: string;
+};
+
+type CreateCustModel = Record<string, unknown> & {
+  custName: string;
+  amount: number;
+}
+
+interface CustsModel {
+  custId: string;
+  custName: string;
+  expiryDate: string;
+}
+
+interface CustHistory {
+  serviceName: string;
+  amount: number;
+  currentBalance: number;
+  spendDate: string;
+  expiryDate: string;
+}
+
+interface CustModel {
+  custId: string;
+  custName: string;
+  createDate: string;
+  history: CustHistory[];
+}
+
+export const MOCK_UPDATE_DATA: UpdateCustModel = { 
   custName: "updateName"
 };
 
-export const MOCK_CREATE_DATA = { 
+export const MOCK_CREATE_DATA: CreateCustModel = { 
   custName: "createName",
   amount: 1500
 };
 
-export const MOCK_CUSTOMERS = [
+export const MOCK_CUSTOMERS: CustsModel[] = [
   {
     custId: "507f1f77bcf86cd799439011",
     custName: "customer1",
@@ -29,7 +59,7 @@ export const MOCK_CUSTOMERS = [
 ];
 
 
-export const MOCK_CUSTOMER= [
+export const MOCK_CUSTOMER: CustModel[] = [
   {
     custId: "507f1f77bcf86cd799439011",
     custName: "customer1",
@@ -52,3 +82,7 @@ export const MOCK_CUSTOMER= [
     ]
   }
 ];
+
+export const MOCK_ID = {
+  _id: "507f1f77bcf86cd799439011"
+};

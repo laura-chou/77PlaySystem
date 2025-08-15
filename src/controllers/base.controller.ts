@@ -1,12 +1,12 @@
 import { Request, Response } from "express";
 import { Types } from "mongoose";
 
-import { LOG_LEVEL, LOG_MESSAGE, RESPONSE_MESSAGE } from "../common/constants";
+import { RESPONSE_MESSAGE } from "../common/constants";
 import { responseHandler } from "../common/response";
 import {
   isNullOrEmpty, isTypeBoolean, isTypeInteger, isTypeString
 } from "../common/utils";
-import { setLog } from "../core/logger";
+import { LOG_LEVEL, LOG_MESSAGE, setLog } from "../core/logger";
 
 
 export const validateContentType = (request: Request, response: Response, functionName: string): boolean => {
@@ -72,7 +72,8 @@ export const errorHandler = (
   setLog(
     LOG_LEVEL.ERROR,
     error instanceof Error ? error.message : LOG_MESSAGE.ERROR.UNKNOWN, 
-    functionName);
+    functionName
+  );
   responseHandler.serverError(response);
 };
 

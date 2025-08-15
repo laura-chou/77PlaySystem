@@ -1,19 +1,3 @@
-export const enum LOG_LEVEL {
-  INFO = "info",
-  ERROR = "error",
-  WARN = "warn",
-  HTTP = "http"
-}
-
-export const LOG_MESSAGE = {
-  SUCCESS: "success",
-  TXN_NOT_FOUND: "customer data not found for this transaction.",
-  ERROR: {
-    UNKNOWN: "unknown error",
-    LOGIC: "logical inconsistency found"
-  }
-} as const;
-
 export const HTTP_STATUS = {
   OK: 200,
   CREATED: 201,

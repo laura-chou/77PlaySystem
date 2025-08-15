@@ -2,9 +2,8 @@ import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 import passport from "passport";
 
-import { LOG_LEVEL, LOG_MESSAGE } from "../common/constants";
 import { responseHandler } from "../common/response";
-import { setLog } from "../core/logger";
+import { LOG_LEVEL, LOG_MESSAGE , setLog } from "../core/logger";
 import User from "../models/user.model";
 
 interface AuthenticatedUser extends Document {

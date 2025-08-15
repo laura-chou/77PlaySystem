@@ -2,10 +2,9 @@ import bcrypt from "bcrypt";
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
-import { LOG_LEVEL, LOG_MESSAGE } from "../common/constants";
 import { responseHandler } from "../common/response";
 import { getNowDate, setFunctionName } from "../common/utils";
-import { setLog } from "../core/logger";
+import { LOG_LEVEL, LOG_MESSAGE , setLog } from "../core/logger";
 import User, { IUser } from "../models/user.model";
 
 import * as baseController from "./base.controller";

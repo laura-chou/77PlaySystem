@@ -1,10 +1,25 @@
 import winston from "winston";
 import DailyRotateFile from "winston-daily-rotate-file";
 
-import { LOG_LEVEL } from "../common/constants";
 import { isNullOrEmpty } from "../common/utils";
 
 const { combine, timestamp, printf } = winston.format;
+
+export const enum LOG_LEVEL {
+  INFO = "info",
+  ERROR = "error",
+  WARN = "warn",
+  HTTP = "http"
+}
+
+export const LOG_MESSAGE = {
+  SUCCESS: "success",
+  TXN_NOT_FOUND: "customer data not found for this transaction.",
+  ERROR: {
+    UNKNOWN: "unknown error",
+    LOGIC: "logical inconsistency found"
+  }
+} as const;
 
 interface DailyRotateFileOption {
   level: string,
