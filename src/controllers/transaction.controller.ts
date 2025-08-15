@@ -14,9 +14,11 @@ export const createTransaction = setFunctionName(
     if (!baseController.validateCustId(custId, response, createTransaction.name)) {
       return;
     }
+
     if(!baseController.validateContentType(request, response, createTransaction.name)){
       return;
     }
+
     const fields = [
       { key: "amount", type: "integer" },
       { key: "refill", type: "boolean" }
@@ -24,6 +26,7 @@ export const createTransaction = setFunctionName(
     if (!baseController.validateBodyFields(request, response, createTransaction.name, fields)) {
       return;
     }
+
     const amount = request.body.amount;
     const refill = request.body.refill;
     if (refill && isNegative(amount)) {
@@ -31,6 +34,7 @@ export const createTransaction = setFunctionName(
       responseHandler.badRequest(response, "LOGIC");
       return;
     }
+
     try {
       const lastTransaction = await Transaction.findOne({ customerId: custId }).sort({ spendDate: -1 });
       if (lastTransaction) {
@@ -50,7 +54,7 @@ export const createTransaction = setFunctionName(
         setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, createTransaction.name);
         responseHandler.created(response);
       } else {
-        setLog(LOG_LEVEL.INFO, LOG_MESSAGE.TXN_NOT_FOUND, createTransaction.name);
+        setLog(LOG_LEVEL.INFO, LOG_MESSAGE.TXNNOTFOUND, createTransaction.name);
         responseHandler.noData(response);
       }
     } catch (error) {

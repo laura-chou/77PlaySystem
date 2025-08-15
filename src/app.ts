@@ -19,6 +19,7 @@ import { router } from "./routes/router";
 
 const app: Express = express();
 const whiteList: string[] = process.env.WHITELIST?.split(",") || [];
+const loggedOrigins = new Set<string>();
 
 morgan.token("apiPath", (req: Request) => `${req.method} ${req.originalUrl}`);
 app.use(morgan(":apiPath", {
@@ -41,7 +42,12 @@ const corsOptions: CorsOptions = {
     if (!isNullOrEmpty(origin)) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const hostName: string = new URL(origin!).hostname;
-      setLog(LOG_LEVEL.INFO, `origin: ${origin}`);
+
+      if (!loggedOrigins.has(hostName)) {
+        setLog(LOG_LEVEL.INFO, `origin: ${origin}`);
+        loggedOrigins.add(hostName);
+      }
+
       callback(null, whiteList.includes(hostName));
     }
   },

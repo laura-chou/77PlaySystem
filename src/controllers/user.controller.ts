@@ -40,12 +40,14 @@ export const userCreate = setFunctionName(
     if(!baseController.validateContentType(request, response, userCreate.name)){
       return;
     }
+
     const fields = [
       { key: "password", type: "string" }
     ];
     if (!baseController.validateBodyFields(request, response, userCreate.name, fields)) {
       return;
     }
+
     try {
       const userName = request.body.password;
       const data: IUser = {

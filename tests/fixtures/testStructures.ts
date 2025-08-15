@@ -57,6 +57,10 @@ interface ServerErrorConfig {
   }[];
 }
 
+type ValidationBaseModel = {
+  [key: string]: unknown;
+};
+
 const generateInvalidTypeBody = <T extends Record<string, unknown>>(validBody: T): { [K in keyof T]: unknown } => {
   return Object.keys(validBody).reduce((acc, key) => {
     const value = validBody[key as keyof T];
@@ -141,7 +145,7 @@ export const describeAuthErrorTests = (
   });
 };
 
-export const describeValidationErrorTests = <T extends Record<string, unknown>>(
+export const describeValidationErrorTests = <T extends ValidationBaseModel>(
   config: ValidationConfig<T> & { includeInvalidLogicTest?: boolean },
   expectResponseFn: typeof expectResponse
 ): void => {

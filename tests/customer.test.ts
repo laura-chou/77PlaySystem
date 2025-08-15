@@ -20,6 +20,7 @@ jest.mock("../src/models/user.model", () => ({
 jest.mock("../src/models/customer.model", () => ({
   aggregate: jest.fn(),
   findByIdAndUpdate: jest.fn(),
+  findOne: jest.fn(),
   create: jest.fn()
 }));
 
@@ -33,6 +34,10 @@ jest.mock("../src/models/transaction.model", () => ({
 
 const mockCustAggregate = (data: Array<object>): void => {
   (Customer.aggregate as jest.Mock).mockResolvedValue(data);
+};
+
+const mockCustFindOne = (data: object | null = null): void => {
+  (Customer.findOne as jest.Mock).mockResolvedValue(data);
 };
 
 const mockCustCreate = (): void => {
@@ -167,11 +172,27 @@ describe("Customer API", () => {
       expectResponse
     );
 
+    describe("Validate Customer Existence", () => {
+      test("should return conflict if customer already exists", async () => {
+        mockUserFindOne();
+        mockCustFindOne(MOCK_ID);
+
+        const response = await createRequest.post(
+          ROUTE.CREATE,
+          MOCK_CREATE_DATA,
+          HTTP_STATUS.CONFLICT
+        );
+
+        expectResponse.conflict(response);
+      });
+    });
+
     describe("Success Cases", () => {
       test("should create customer successfully with transaction", async () => {
         (mongoose.startSession as jest.Mock).mockResolvedValue(mockSession);
 
         mockUserFindOne();
+        mockCustFindOne();
         mockServiceTypeFindOne();
         mockCustCreate();
         mockTxnCreate();

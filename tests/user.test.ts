@@ -3,7 +3,7 @@ import User from "../src/models/user.model";
 
 import { describeAuthErrorTests, describeServerErrorTests, describeValidationErrorTests } from "./fixtures/testStructures";
 import { createRequest, expectResponse, mockUserFindOne } from "./fixtures/testUtils";
-import { ROUTE, MOCK_ADMIN, MOCK_NOTEXIST_USER, MOCK_EXIST_USER } from "./fixtures/userTestConfig";
+import { ROUTE, MOCK_USER_ADMIN, MOCK_NOTEXIST_USER, MOCK_EXIST_USER } from "./fixtures/userTestConfig";
 
 jest.mock("../src/models/user.model", () => ({
   findOne: jest.fn(),
@@ -25,7 +25,7 @@ describe("User API", () => {
         const response = await createRequest.post(
           ROUTE.LOGIN,
           {
-            password: MOCK_ADMIN.userName
+            password: MOCK_USER_ADMIN.userName
           },
           HTTP_STATUS.OK
         );
@@ -48,7 +48,7 @@ describe("User API", () => {
       });
 
       it("should fail if password is incorrect", async () => {
-        mockUserFindOne(MOCK_ADMIN);
+        mockUserFindOne(MOCK_USER_ADMIN);
 
         const response = await createRequest.post(
           ROUTE.LOGIN,

@@ -5,10 +5,10 @@ import User from "../src/models/user.model";
 
 import { describeAuthErrorTests, describeValidationCustIdTest, describeServerErrorTests, describeValidationErrorTests } from "./fixtures/testStructures";
 import { createRequest, expectResponse, mockUserFindOne } from "./fixtures/testUtils";
-import { ROUTE, MOCK_LASTEST_TRANSACTION, MOCK_POST_DATA } from "./fixtures/transactionTestConfig";
-import { MOCK_ADMIN } from "./fixtures/userTestConfig";
+import { ROUTE, MOCK_LATEST_TRANSACTION, MOCK_CREATE_TRANSACTION } from "./fixtures/transactionTestConfig";
+import { MOCK_USER_ADMIN } from "./fixtures/userTestConfig";
 
-const customerId = MOCK_LASTEST_TRANSACTION[0].customerId;
+const customerId = MOCK_LATEST_TRANSACTION[0].customerId;
 let spy: jest.SpyInstance;
 
 jest.mock("../src/models/user.model", () => ({
@@ -39,7 +39,7 @@ const mockTransactionFindOne = (type?: "null" | "error"): void => {
 
     default:
       mock.mockReturnValue({
-        sort: jest.fn().mockResolvedValue(MOCK_LASTEST_TRANSACTION[0]),
+        sort: jest.fn().mockResolvedValue(MOCK_LATEST_TRANSACTION[0]),
       });
       break;
   }
@@ -60,20 +60,20 @@ describe("Transaction API", () => {
     
     describeAuthErrorTests(
       txnRoute,
-      (route, status, tokenInfo) => createRequest.post(route, { password: MOCK_ADMIN.userName }, status, tokenInfo),
+      (route, status, tokenInfo) => createRequest.post(route, { password: MOCK_USER_ADMIN.userName }, status, tokenInfo),
       expectResponse
     );
 
     describeValidationCustIdTest(
       `${ROUTE.CREATE}/invalid-id`,
-      (route, status, tokenInfo) => createRequest.post(route, MOCK_POST_DATA, status, tokenInfo),
+      (route, status, tokenInfo) => createRequest.post(route, MOCK_CREATE_TRANSACTION, status, tokenInfo),
       expectResponse
     );
 
     describeValidationErrorTests(
       {
         route: txnRoute,
-        validBody: MOCK_POST_DATA,
+        validBody: MOCK_CREATE_TRANSACTION,
         requestFn: createRequest.post,
         includeInvalidLogicTest: true
       },
@@ -87,7 +87,7 @@ describe("Transaction API", () => {
 
         const response = await createRequest.post(
           txnRoute,
-          MOCK_POST_DATA,
+          MOCK_CREATE_TRANSACTION,
           HTTP_STATUS.CREATED
         );
 
@@ -100,7 +100,7 @@ describe("Transaction API", () => {
 
         const response = await createRequest.post(
           txnRoute,
-          MOCK_POST_DATA,
+          MOCK_CREATE_TRANSACTION,
           HTTP_STATUS.OK
         );
         expectResponse.noData(response);
@@ -125,7 +125,7 @@ describe("Transaction API", () => {
 
         await createRequest.post(
           txnRoute,
-          MOCK_POST_DATA,
+          MOCK_CREATE_TRANSACTION,
           HTTP_STATUS.CREATED
         );
 
@@ -137,7 +137,7 @@ describe("Transaction API", () => {
       {
         route: txnRoute,
         requestFn: createRequest.post,
-        requestBody: MOCK_POST_DATA,
+        requestBody: MOCK_CREATE_TRANSACTION,
         dbErrorCases: [
           {
             name: "User.findOne",

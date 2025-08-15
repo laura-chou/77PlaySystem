@@ -5,6 +5,7 @@ export const HTTP_STATUS = {
   BAD_REQUEST: 400,
   UNAUTHORIZED: 401,
   FORBIDDEN: 403,
+  CONFLICT: 409,
   SERVER_ERROR: 500
 } as const;
 
@@ -29,5 +30,6 @@ export const RESPONSE_MESSAGE = {
   USER_NOT_EXIST: "User does not exist.",
   TOKEN_EXPIRED: "Token expired.",
   INVALID_CUSTID: "Invalid Customer ID format.",
-  INVALID_LOGIC: "Invalid logic in request."
+  INVALID_LOGIC: "Invalid logic in request.",
+  CUST_ALREADY_EXISTS: "Customer already exists."
 } as const;

@@ -5,27 +5,27 @@ export const ROUTE = {
   CREATE: `${base}/create`
 } as const;
 
-type PostModel = Record<string, unknown> & {
+type LoginRequest = {
   password: string;
 }
 
-interface UserInfoModel {
+interface UserAuthInfo {
   userName: string;
   password: string;
   token: string;
 }
 
-export const MOCK_ADMIN: UserInfoModel = { 
+export const MOCK_USER_ADMIN: UserAuthInfo = { 
   userName: "testuser",
   password: "$2b$10$19l0oH5kUuLaxRlX.IVCEuOaKptCPyyVV.9jxPlhKER8cot4oNUHi",
   token: "token"
 };
 
-export const MOCK_EXIST_USER: PostModel = {
-  password: MOCK_ADMIN.userName
+export const MOCK_EXIST_USER: LoginRequest = {
+  password: MOCK_USER_ADMIN.userName
 };
 
-export const MOCK_NOTEXIST_USER: PostModel = { 
+export const MOCK_NOTEXIST_USER: LoginRequest = { 
   password: "not exist"
 };
 

@@ -18,7 +18,7 @@ const custSchema = new Schema<ICustomer>({
     unique: true
   },
   serviceTypes: {
-    type: [Number],
+    type: [Types.ObjectId],
     required: true
   },
   createDate: {

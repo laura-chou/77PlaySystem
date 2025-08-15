@@ -61,20 +61,30 @@ export const createCustomer = setFunctionName(
   async (request: Request, response: Response): Promise<void> => {
     const session = await mongoose.startSession();
     session.startTransaction();
+
     try {
       if (!baseController.validateContentType(request, response, createCustomer.name)) {
         return;
       }
+
       const fields = [
         { key: "custName", type: "string" },
         { key: "amount", type: "integer" }
       ];
-      if (!baseController.validateBodyFields(request, response, updateCustInfo.name, fields)) {
+      if (!baseController.validateBodyFields(request, response, createCustomer.name, fields)) {
         return;
       }
 
       const custName = request.body.custName;
       const amount = request.body.amount;
+      const isCustExist = await Customer.findOne({ custName });
+      if (isCustExist) {
+        const logMsg = `${LOG_MESSAGE.ERROR.CUSTEXISTS}, custName: ${custName}`;
+        setLog(LOG_LEVEL.ERROR, logMsg, createCustomer.name);
+        responseHandler.conflict(response);
+        return;
+      }
+
       const nowDate = getNowDate();
       const expiryDate = getThreeMonthsLater(nowDate);
       const serviceTypeId = (await ServiceType.findOne({}, "_id"))?._id;

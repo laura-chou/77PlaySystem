@@ -50,14 +50,6 @@ export const responseHandler = {
     );
   },
 
-  serverError(res: Response): void {
-    sendResponse(
-      res, 
-      HTTP_STATUS.SERVER_ERROR, 
-      RESPONSE_MESSAGE.SERVER_ERROR
-    );
-  },
-
   badRequest(
     res: Response,
     type: "CONTENT_TYPE" | "JSON_KEY" | "JSON_FORMAT" | "CUST_ID" | "LOGIC"
@@ -77,6 +69,14 @@ export const responseHandler = {
     );
   },
 
+  unauthorized(res: Response, message: string = LOG_MESSAGE.ERROR.UNKNOWN): void {
+    sendResponse(
+      res,
+      HTTP_STATUS.UNAUTHORIZED,
+      message
+    );
+  },
+
   forbidden(res: Response): void {
     sendResponse(
       res, 
@@ -85,12 +85,20 @@ export const responseHandler = {
     );
   },
 
-  unauthorized(res: Response, message: string = LOG_MESSAGE.ERROR.UNKNOWN): void {
+  conflict(res: Response): void {
     sendResponse(
       res,
-      HTTP_STATUS.UNAUTHORIZED,
-      message
+      HTTP_STATUS.CONFLICT,
+      RESPONSE_MESSAGE.CUST_ALREADY_EXISTS
     );
   },
+
+  serverError(res: Response): void {
+    sendResponse(
+      res, 
+      HTTP_STATUS.SERVER_ERROR, 
+      RESPONSE_MESSAGE.SERVER_ERROR
+    );
+  }
 };
   

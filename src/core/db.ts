@@ -1,4 +1,4 @@
-import mongoose, { Types, PipelineStage } from "mongoose";
+import mongoose, { PipelineStage, Types } from "mongoose";
 
 import { RESPONSE_MESSAGE } from "../common/constants";
 import { isNullOrEmpty } from "../common/utils";
@@ -19,6 +19,10 @@ export const connectDB = async (): Promise<void> => {
       ${error instanceof Error ? error.message : LOG_MESSAGE.ERROR.UNKNOWN}`);
     process.exit(1);
   }
+};
+
+const toObjectId = (idStr: string): Types.ObjectId => {
+  return new Types.ObjectId(idStr);
 };
 
 const dateToString = (dateField: object | string): object => ({
@@ -76,7 +80,7 @@ export const getCustomerListPipeline = (): PipelineStage[] => [
 ];
 
 export const getCustomerDetailPipeline = (custId: string): PipelineStage[] => [
-  { $match: { _id: new Types.ObjectId(custId) } },
+  { $match: { _id: toObjectId(custId) } },
   lookupTransaction,
   { $unwind: "$transactions" },
   lookupServiceType,

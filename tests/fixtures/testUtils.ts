@@ -6,7 +6,7 @@ import { CONTENT_TYPE, HTTP_STATUS, RESPONSE_MESSAGE } from "../../src/common/co
 import { isTypeString } from "../../src/common/utils";
 import User from "../../src/models/user.model";
 
-import { MOCK_ADMIN } from "./userTestConfig";
+import { MOCK_USER_ADMIN } from "./userTestConfig";
 
 interface TokenInfo {
   showToken: boolean;
@@ -22,7 +22,7 @@ const defaultTokenInfo: Required<TokenInfo> = {
   isInvalid: false
 };
 
-export const mockUserFindOne = (data: object | null = MOCK_ADMIN): void => {
+export const mockUserFindOne = (data: object | null = MOCK_USER_ADMIN): void => {
   (User.findOne as jest.Mock).mockResolvedValue(data);
 };
 
@@ -180,5 +180,12 @@ export const expectResponse = {
       status: HTTP_STATUS.UNAUTHORIZED,
       message: message
     });
-  }
+  },
+
+  conflict: (response: Response): void => {
+    expect(response.body).toEqual({
+      status: HTTP_STATUS.CONFLICT,
+      message: RESPONSE_MESSAGE.CUST_ALREADY_EXISTS
+    });
+  },
 };

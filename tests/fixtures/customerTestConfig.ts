@@ -10,18 +10,18 @@ type UpdateCustModel = {
   custName?: string;
 };
 
-type CreateCustModel = Record<string, unknown> & {
+type CreateCustModel = {
   custName: string;
   amount: number;
 }
 
-interface CustsModel {
+interface CustListItem {
   custId: string;
   custName: string;
   expiryDate: string;
 }
 
-interface CustHistory {
+interface CustHistoryItem {
   serviceName: string;
   amount: number;
   currentBalance: number;
@@ -29,11 +29,15 @@ interface CustHistory {
   expiryDate: string;
 }
 
-interface CustModel {
+interface CustTransaction {
   custId: string;
   custName: string;
   createDate: string;
-  history: CustHistory[];
+  history: CustHistoryItem[];
+}
+
+interface IdOnlyItem {
+  _id: string;
 }
 
 export const MOCK_UPDATE_DATA: UpdateCustModel = { 
@@ -45,7 +49,7 @@ export const MOCK_CREATE_DATA: CreateCustModel = {
   amount: 1500
 };
 
-export const MOCK_CUSTOMERS: CustsModel[] = [
+export const MOCK_CUSTOMERS: CustListItem[] = [
   {
     custId: "507f1f77bcf86cd799439011",
     custName: "customer1",
@@ -58,8 +62,7 @@ export const MOCK_CUSTOMERS: CustsModel[] = [
   }
 ];
 
-
-export const MOCK_CUSTOMER: CustModel[] = [
+export const MOCK_CUSTOMER: CustTransaction[] = [
   {
     custId: "507f1f77bcf86cd799439011",
     custName: "customer1",
@@ -83,6 +86,6 @@ export const MOCK_CUSTOMER: CustModel[] = [
   }
 ];
 
-export const MOCK_ID = {
+export const MOCK_ID: IdOnlyItem = {
   _id: "507f1f77bcf86cd799439011"
 };

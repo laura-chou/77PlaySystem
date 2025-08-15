@@ -4,12 +4,12 @@ export const ROUTE = {
   CREATE: `${base}/create`
 } as const;
 
-type PostTxnModel = Record<string, unknown> & {
+type TransactionInput = {
   amount: number;
   refill: boolean;
 }
 
-interface LatestTxnModel {
+interface LatestTransaction {
   customerId: string;
   serviceTypeId: string;
   amount: number;
@@ -18,12 +18,12 @@ interface LatestTxnModel {
   spendDate: string;
 }
 
-export const MOCK_POST_DATA: PostTxnModel = { 
+export const MOCK_CREATE_TRANSACTION: TransactionInput = { 
   amount: -100,
   refill: false
 };
 
-export const MOCK_LASTEST_TRANSACTION: LatestTxnModel[] = [
+export const MOCK_LATEST_TRANSACTION: LatestTransaction[] = [
   {
     customerId: "507f1f77bcf86cd799439011",
     serviceTypeId: "507f1f77bcf86cd799439022",
