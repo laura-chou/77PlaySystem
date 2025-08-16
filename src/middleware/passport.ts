@@ -1,14 +1,11 @@
 import bcrypt from "bcrypt";
 import passport from "passport";
-import passportJWT from "passport-jwt";
+import passportJWT, { Strategy as JwtStrategy, ExtractJwt as ExtractJwt } from "passport-jwt";
 import { Strategy as LocalStrategy } from "passport-local";
 
 import { RESPONSE_MESSAGE } from "../common/constants";
 import { isNullOrEmpty } from "../common/utils";
-import User from "../models/user.model";
-
-const JWTStrategy = passportJWT.Strategy;
-const ExtractJwt = passportJWT.ExtractJwt;
+import User, { UserRole } from "../models/user.model";
 
 interface JWTPayload {
   user: string;
@@ -16,9 +13,13 @@ interface JWTPayload {
   exp: number;
 }
 
-passport.use(
-  "jwt",
-  new JWTStrategy(
+interface UserQuery {
+  userName: string;
+  userRole?: UserRole;
+}
+
+const createJwtStrategy = (requiredRole?: UserRole): JwtStrategy => 
+  new JwtStrategy(
     {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -26,22 +27,27 @@ passport.use(
     },
     async (jwtPayload: JWTPayload, done: passportJWT.VerifiedCallback) => {
       try {
-        const user = await User.findOne({ userName: jwtPayload.user });
-        
-        if (user) {
-          if (isNullOrEmpty(user.token)) {
-            return done(null, false, { message: RESPONSE_MESSAGE.TOKEN_EXPIRED });
-          }
-          return done(null, user);
-        } else {
+        const query: UserQuery = { userName: jwtPayload.user };
+        if (requiredRole) {
+          query.userRole = requiredRole;
+        }
+
+        const user = await User.findOne(query);
+
+        if (!user) {
           return done(null, false, { message: RESPONSE_MESSAGE.USER_NOT_EXIST });
         }
+
+        if (isNullOrEmpty(user.token)) {
+          return done(null, false, { message: RESPONSE_MESSAGE.TOKEN_EXPIRED });
+        }
+
+        return done(null, user);
       } catch (error) {
         return done(error, false, { message: RESPONSE_MESSAGE.SERVER_ERROR });
       }
     }
-  )
-);
+  );
 
 passport.use(
   "login",
@@ -69,5 +75,8 @@ passport.use(
     }
   )
 );
+
+passport.use("jwt-basic", createJwtStrategy());
+passport.use("jwt-admin", createJwtStrategy(UserRole.ADMIN));
 
 export default passport;

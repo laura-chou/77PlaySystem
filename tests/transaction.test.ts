@@ -13,7 +13,10 @@ let spy: jest.SpyInstance;
 
 jest.mock("../src/models/user.model", () => ({
   findOne: jest.fn(),
-  updateOne: jest.fn()
+  updateOne: jest.fn(),
+  UserRole: {
+    ADMIN: "admin"
+  }
 }));
 
 jest.mock("../src/models/transaction.model", () => ({

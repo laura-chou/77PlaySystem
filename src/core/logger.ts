@@ -18,7 +18,8 @@ export const LOG_MESSAGE = {
   ERROR: {
     UNKNOWN: "unknown error",
     LOGIC: "logical inconsistency found",
-    CUSTEXISTS: "customer already exists"
+    CUSTEXISTS: "customer already exists",
+    USEREXISTS: "user already exists"
   }
 } as const;
 

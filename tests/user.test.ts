@@ -9,7 +9,10 @@ jest.mock("../src/models/user.model", () => ({
   findOne: jest.fn(),
   findByIdAndUpdate: jest.fn(),
   updateOne: jest.fn(),
-  create: jest.fn()
+  create: jest.fn(),
+  UserRole: {
+    ADMIN: "admin"
+  }
 }));
 
 describe("User API", () => {
@@ -103,7 +106,9 @@ describe("User API", () => {
 
     describe("Success Cases", () => {
       test("should create user successfully", async () => {
-        mockUserFindOne();
+        (User.findOne as jest.Mock)
+          .mockImplementationOnce(() => Promise.resolve(MOCK_USER_ADMIN)) // 第一次
+          .mockImplementationOnce(() => Promise.resolve(null));
 
         const response = await createRequest.post(
           ROUTE.CREATE,
@@ -122,14 +127,23 @@ describe("User API", () => {
         requestBody: MOCK_EXIST_USER,
         dbErrorCases: [
           {
-            name: "User.findOne",
+            name: "first User.findOne",
             mockFn: User.findOne as jest.Mock
+          },
+          {
+            name: "second User.findOne",
+            mockFn: User.findOne as jest.Mock,
+            setupMocks: (): void => {
+              mockUserFindOne();
+            }
           },
           {
             name: "User.create",
             mockFn: User.create as jest.Mock,
             setupMocks: (): void => {
-              mockUserFindOne();
+              (User.findOne as jest.Mock)
+                .mockImplementationOnce(() => Promise.resolve(MOCK_USER_ADMIN)) // 第一次
+                .mockImplementationOnce(() => Promise.resolve(null));
             }
           }
         ]

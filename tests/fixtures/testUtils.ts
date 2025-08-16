@@ -185,7 +185,7 @@ export const expectResponse = {
   conflict: (response: Response): void => {
     expect(response.body).toEqual({
       status: HTTP_STATUS.CONFLICT,
-      message: RESPONSE_MESSAGE.CUST_ALREADY_EXISTS
+      message: RESPONSE_MESSAGE.DATA_ALREADY_EXISTS
     });
   },
 };

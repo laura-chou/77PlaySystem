@@ -5,7 +5,7 @@ import jwt from "jsonwebtoken";
 import { responseHandler } from "../common/response";
 import { getNowDate, setFunctionName } from "../common/utils";
 import { LOG_LEVEL, LOG_MESSAGE , setLog } from "../core/logger";
-import User, { IUser } from "../models/user.model";
+import User, { IUser, UserRole } from "../models/user.model";
 
 import * as baseController from "./base.controller";
 
@@ -44,14 +44,27 @@ export const userCreate = setFunctionName(
     const fields = [
       { key: "password", type: "string" }
     ];
+    const userRole = request.body.userRole;
+    if (userRole) {
+      fields.push({ key: "userRole", type: "string" });
+    }
     if (!baseController.validateBodyFields(request, response, userCreate.name, fields)) {
       return;
     }
 
     try {
       const userName = request.body.password;
+      const role = userRole ? UserRole.ADMIN : UserRole.USER;
+      const isUserExist = await User.findOne({ userName });
+      if (isUserExist) {
+        const logMsg = `${LOG_MESSAGE.ERROR.USEREXISTS}, userName: ${userName}`;
+        setLog(LOG_LEVEL.ERROR, logMsg, userCreate.name);
+        responseHandler.conflict(response);
+        return;
+      }
       const data: IUser = {
         userName: userName,
+        userRole: role,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         password: await bcrypt.hash(userName, parseInt(process.env.BCRYPT_SALT_ROUNDS!)),
         createDate: getNowDate()

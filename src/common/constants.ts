@@ -31,5 +31,5 @@ export const RESPONSE_MESSAGE = {
   TOKEN_EXPIRED: "Token expired.",
   INVALID_CUSTID: "Invalid Customer ID format.",
   INVALID_LOGIC: "Invalid logic in request.",
-  CUST_ALREADY_EXISTS: "Customer already exists."
+  DATA_ALREADY_EXISTS: "This record already exists."
 } as const;

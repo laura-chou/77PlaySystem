@@ -5,8 +5,14 @@ import { Model, model, Schema } from "mongoose";
 import { RESPONSE_MESSAGE } from "../common/constants";
 import { isNullOrEmpty } from "../common/utils";
 
+export enum UserRole {
+  ADMIN = "admin",
+  USER = "user"
+}
+
 export interface IUser {
   userName: string;
+  userRole: UserRole;
   password: string;
   token?: string;
   createDate: Date;
@@ -17,6 +23,10 @@ const userSchema = new Schema<IUser>({
     type: String,
     required: true,
     unique: true
+  },
+  userRole: {
+    type: String,
+    required: true
   },
   password: {
     type: String,

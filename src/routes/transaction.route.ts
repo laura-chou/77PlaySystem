@@ -5,6 +5,6 @@ import { createRoute, RouteConfig } from "./route";
 
 export const txnRoutes = (): RouteConfig => {
   return createRoute("/transaction", (router) => {
-    router.post("/create/:custId", authMiddleware("jwt"), transactionController.createTransaction);
+    router.post("/create/:custId", authMiddleware("jwt-basic"), transactionController.createTransaction);
   });
 };

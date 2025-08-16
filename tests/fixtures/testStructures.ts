@@ -121,7 +121,7 @@ export const describeAuthErrorTests = (
     ["no JWT", { showToken: false }, "No auth token"],
     ["invalid JWT", { isInvalid: true }, "jwt malformed"],
     ["expired JWT", { isExpired: true }, "jwt expired"],
-    ["Customer in JWT does not exist", { existUser: false, showToken: true }, RESPONSE_MESSAGE.USER_NOT_EXIST, true]
+    ["User in JWT does not exist", { existUser: false, showToken: true }, RESPONSE_MESSAGE.USER_NOT_EXIST, true]
   ];
 
   describe("Authentication Error Cases", () => {

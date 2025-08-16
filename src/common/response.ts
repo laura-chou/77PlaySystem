@@ -89,7 +89,7 @@ export const responseHandler = {
     sendResponse(
       res,
       HTTP_STATUS.CONFLICT,
-      RESPONSE_MESSAGE.CUST_ALREADY_EXISTS
+      RESPONSE_MESSAGE.DATA_ALREADY_EXISTS
     );
   },
 
