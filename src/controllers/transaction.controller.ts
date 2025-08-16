@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import { Types } from "mongoose";
 
 import { responseHandler } from "../common/response";
-import { getNowDate, getThreeMonthsLater, isNegative, setFunctionName } from "../common/utils";
+import { getNowDate, getThreeMonthsLater, isNegative, isNullOrEmpty, setFunctionName } from "../common/utils";
 import { LOG_LEVEL, LOG_MESSAGE , setLog } from "../core/logger";
 import Transaction, { ITransaction } from "../models/transaction.model";
 
@@ -23,6 +23,10 @@ export const createTransaction = setFunctionName(
       { key: "amount", type: "integer" },
       { key: "refill", type: "boolean" }
     ];
+    const createDate = request.body.createDate;
+    if (!isNullOrEmpty(createDate)) {
+      fields.push({ key: "createDate", type: "date" });
+    }
     if (!baseController.validateBodyFields(request, response, createTransaction.name, fields)) {
       return;
     }
@@ -39,7 +43,7 @@ export const createTransaction = setFunctionName(
       const lastTransaction = await Transaction.findOne({ customerId: custId }).sort({ spendDate: -1 });
       if (lastTransaction) {
         const currentBalance = lastTransaction?.currentBalance + amount;
-        const nowDate = getNowDate();
+        const nowDate = getNowDate(createDate);
         const expiryDate = refill ? getThreeMonthsLater(nowDate) : lastTransaction?.expiryDate;
 
         const data: ITransaction = {

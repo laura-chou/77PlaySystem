@@ -4,7 +4,7 @@ import { Types } from "mongoose";
 import { RESPONSE_MESSAGE } from "../common/constants";
 import { responseHandler } from "../common/response";
 import {
-  isNullOrEmpty, isTypeBoolean, isTypeInteger, isTypeString
+  isNullOrEmpty, isTypeBoolean, isTypeDate, isTypeInteger, isTypeString
 } from "../common/utils";
 import { LOG_LEVEL, LOG_MESSAGE, setLog } from "../core/logger";
 
@@ -27,6 +27,8 @@ const validateFieldType = (value: unknown, type: string): boolean => {
       return isTypeInteger(value);
     case "boolean":
       return isTypeBoolean(value);
+    case "date":
+      return typeof value === "string" && isTypeDate(value);
     default:
       return false;
   }

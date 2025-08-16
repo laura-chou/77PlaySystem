@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import mongoose from "mongoose";
 
 import { responseHandler } from "../common/response";
-import { getNowDate, getThreeMonthsLater, setFunctionName } from "../common/utils";
+import { getNowDate, getThreeMonthsLater, isNullOrEmpty, setFunctionName } from "../common/utils";
 import { getCustomerListPipeline, getCustomerDetailPipeline } from "../core/db";
 import { LOG_LEVEL, LOG_MESSAGE , setLog } from "../core/logger";
 import Customer, { ICustomer } from "../models/customer.model";
@@ -71,6 +71,10 @@ export const createCustomer = setFunctionName(
         { key: "custName", type: "string" },
         { key: "amount", type: "integer" }
       ];
+      const createDate = request.body.createDate;
+      if (!isNullOrEmpty(createDate)) {
+        fields.push({ key: "createDate", type: "date" });
+      }
       if (!baseController.validateBodyFields(request, response, createCustomer.name, fields)) {
         return;
       }
@@ -85,7 +89,7 @@ export const createCustomer = setFunctionName(
         return;
       }
 
-      const nowDate = getNowDate();
+      const nowDate = getNowDate(createDate);
       const expiryDate = getThreeMonthsLater(nowDate);
       const serviceTypeId = (await ServiceType.findOne({}, "_id"))?._id;
       if (serviceTypeId) {

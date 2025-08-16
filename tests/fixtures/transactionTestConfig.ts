@@ -7,6 +7,7 @@ export const ROUTE = {
 type TransactionInput = {
   amount: number;
   refill: boolean;
+  createDate?: string;
 }
 
 interface LatestTransaction {
@@ -20,7 +21,8 @@ interface LatestTransaction {
 
 export const MOCK_CREATE_TRANSACTION: TransactionInput = { 
   amount: -100,
-  refill: false
+  refill: false,
+  createDate: "2025-07-02 19:00"
 };
 
 export const MOCK_LATEST_TRANSACTION: LatestTransaction[] = [

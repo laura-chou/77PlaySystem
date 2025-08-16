@@ -3,8 +3,10 @@ import moment from "moment-timezone";
 
 export const isJestTest: boolean = typeof jest !== "undefined";
 
-export const getNowDate = (): Date => {
-  return moment().tz("Asia/Taipei").toDate();
+export const getNowDate = (dateStr?: string): Date => {
+  return dateStr
+    ? moment.tz(dateStr.replace(/\//g, "-"), "Asia/Taipei").toDate()
+    : moment().tz("Asia/Taipei").toDate();
 };
 
 export const getThreeMonthsLater = (nowDate: Date): Date => {
@@ -31,6 +33,10 @@ export const isTypeString = (value: unknown): boolean => {
 
 export const isTypeBoolean = (value: unknown): boolean => {
   return typeof value === "boolean";
+};
+
+export const isTypeDate = (value: string): boolean => {
+  return moment(value).isValid();
 };
 
 export const isNegative = (num: number): boolean => num < 0;

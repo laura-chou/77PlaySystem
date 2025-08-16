@@ -13,6 +13,7 @@ type UpdateCustModel = {
 type CreateCustModel = {
   custName: string;
   amount: number;
+  createDate?: string;
 }
 
 interface CustListItem {
@@ -46,7 +47,8 @@ export const MOCK_UPDATE_DATA: UpdateCustModel = {
 
 export const MOCK_CREATE_DATA: CreateCustModel = { 
   custName: "createName",
-  amount: 1500
+  amount: 1500,
+  createDate: "2025-07-02 19:00"
 };
 
 export const MOCK_CUSTOMERS: CustListItem[] = [
