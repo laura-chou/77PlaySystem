@@ -42,12 +42,12 @@ export const getCustomer = setFunctionName(
       if (custId) {
         const customer = await Customer.aggregate(getCustomerDetailPipeline(custId));
 
-        setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, getCustomer.name);
-
         if (customer.length > 0) {
+          setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, getCustomer.name);
           responseHandler.success(response, customer);
         } else {
-          responseHandler.noData(response);
+          setLog(LOG_LEVEL.ERROR, LOG_MESSAGE.ERROR.NOTFOUND, getCustomer.name);
+          responseHandler.notFound(response);
         }
       }
     } catch (error) {

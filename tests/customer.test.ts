@@ -125,15 +125,18 @@ describe("Customer API", () => {
           HTTP_STATUS.OK);
         expectResponse.success(response, MOCK_CUSTOMER);
       });
+    });
 
-      test("should return no data when customer does not exist", async () => {
+    describe("Not Found Cases", () => {
+      test("should return not found when customer does not exist", async () => {
         mockUserFindOne();
         mockCustAggregate([]);
 
         const response = await createRequest.get(
           customerRoute,
-          HTTP_STATUS.OK);
-        expectResponse.noData(response);
+          HTTP_STATUS.NOT_FOUND);
+
+        expectResponse.notFound(response);
       });
     });
 

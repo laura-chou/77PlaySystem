@@ -5,6 +5,7 @@ export const HTTP_STATUS = {
   BAD_REQUEST: 400,
   UNAUTHORIZED: 401,
   FORBIDDEN: 403,
+  NOT_FOUND: 404,
   CONFLICT: 409,
   SERVER_ERROR: 500
 } as const;
@@ -20,6 +21,7 @@ export const CONTENT_TYPE = {
 export const RESPONSE_MESSAGE = {
   SUCCESS: "",
   NO_DATA: "No data.",
+  NOT_FOUND: "No data found.",
   SERVER_ERROR: "Internal server error.",
   WRONG_PASSWORD: "Wrong password.",
   INVALID_CONTENT_TYPE: "Invalid content type.",

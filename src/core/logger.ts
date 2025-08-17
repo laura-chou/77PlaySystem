@@ -14,12 +14,12 @@ export const enum LOG_LEVEL {
 
 export const LOG_MESSAGE = {
   SUCCESS: "success",
-  TXNNOTFOUND: "customer data not found for this transaction.",
   ERROR: {
     UNKNOWN: "unknown error",
     LOGIC: "logical inconsistency found",
     CUSTEXISTS: "customer already exists",
-    USEREXISTS: "user already exists"
+    USEREXISTS: "user already exists",
+    NOTFOUND: "no data found"
   }
 } as const;
 

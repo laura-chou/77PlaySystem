@@ -58,8 +58,8 @@ export const createTransaction = setFunctionName(
         setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, createTransaction.name);
         responseHandler.created(response);
       } else {
-        setLog(LOG_LEVEL.INFO, LOG_MESSAGE.TXNNOTFOUND, createTransaction.name);
-        responseHandler.noData(response);
+        setLog(LOG_LEVEL.ERROR, LOG_MESSAGE.ERROR.NOTFOUND, createTransaction.name);
+        responseHandler.notFound(response);
       }
     } catch (error) {
       baseController.errorHandler(response, error, createTransaction.name);

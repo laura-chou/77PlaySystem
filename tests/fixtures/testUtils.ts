@@ -122,6 +122,32 @@ export const createRequest = {
     return req
       .expect("Content-Type", expectContentType)
       .expect(status);
+  },
+
+  delete: (
+    route: string,
+    status: number,
+    tokenInfo?: Partial<TokenInfo>,    
+    isExpectJson: boolean = true
+  ): request.Test => {
+    const mergedTokenInfo = { ...defaultTokenInfo, ...tokenInfo };
+    const expectContentType = isExpectJson ? CONTENT_TYPE.JSON_WITH_CHARSET : CONTENT_TYPE.TEXT_WITH_CHARSET;
+    const req = request(app).delete(route);
+
+    if (mergedTokenInfo.showToken) {
+      const validToken = jwt.sign(
+        { user: mergedTokenInfo.existUser ? "testuser" : "notExistUser"},
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        process.env.JWT_SECRET!,
+        { expiresIn: mergedTokenInfo.isExpired ? -1 : "1h" }
+      );
+      const token = mergedTokenInfo.isInvalid ? "invalidtoken" : validToken;
+      req.set("Authorization", `Bearer ${token}`);
+    }
+
+    return req
+      .expect("Content-Type", expectContentType)
+      .expect(status);
   }
 };
 
@@ -163,6 +189,13 @@ export const expectResponse = {
     expect(response.body).toEqual({
       status: HTTP_STATUS.BAD_REQUEST,
       message: message
+    });
+  },
+
+  notFound: (response: Response): void => {
+    expect(response.body).toEqual({
+      status: HTTP_STATUS.NOT_FOUND,
+      message: RESPONSE_MESSAGE.NOT_FOUND,
     });
   },
 

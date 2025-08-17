@@ -97,18 +97,6 @@ describe("Transaction API", () => {
         expectResponse.created(response);
       });
 
-      test("should return no data when customer does not exist", async () => {
-        mockUserFindOne();
-        mockTransactionFindOne("null");
-
-        const response = await createRequest.post(
-          txnRoute,
-          MOCK_CREATE_TRANSACTION,
-          HTTP_STATUS.OK
-        );
-        expectResponse.noData(response);
-      });
-
       test("should call getThreeMonthsLater when refill is true", async () => {
         mockUserFindOne();
         mockTransactionFindOne();
@@ -133,6 +121,21 @@ describe("Transaction API", () => {
         );
 
         expect(spy).not.toHaveBeenCalled();
+      });
+    });
+
+    describe("Not Found Cases", () => {
+      test("should return not found when customer does not exist", async () => {
+        mockUserFindOne();
+        mockTransactionFindOne("null");
+
+        const response = await createRequest.post(
+          txnRoute,
+          MOCK_CREATE_TRANSACTION,
+          HTTP_STATUS.NOT_FOUND
+        );
+
+        expectResponse.notFound(response);
       });
     });
 

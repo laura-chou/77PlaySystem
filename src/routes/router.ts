@@ -1,3 +1,4 @@
+import { collectionRoutes } from "./collection.route";
 import { custRoutes } from "./customer.route";
 import { indexRoute } from "./index.route";
 import { RouteConfig } from "./route";
@@ -8,5 +9,6 @@ export const router: Array<RouteConfig> = [
   indexRoute(),
   userRoutes(),
   custRoutes(),
-  txnRoutes()
+  txnRoutes(),
+  collectionRoutes()
 ];

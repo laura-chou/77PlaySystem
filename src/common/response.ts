@@ -85,6 +85,14 @@ export const responseHandler = {
     );
   },
 
+  notFound(res: Response): void {
+    sendResponse(
+      res,
+      HTTP_STATUS.NOT_FOUND,
+      RESPONSE_MESSAGE.NOT_FOUND
+    );
+  },
+
   conflict(res: Response): void {
     sendResponse(
       res,
