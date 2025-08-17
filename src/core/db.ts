@@ -21,7 +21,7 @@ export const connectDB = async (): Promise<void> => {
   }
 };
 
-const toObjectId = (idStr: string): Types.ObjectId => {
+export const toObjectId = (idStr: string): Types.ObjectId => {
   return new Types.ObjectId(idStr);
 };
 
@@ -89,6 +89,7 @@ export const getCustomerDetailPipeline = (custId: string): PipelineStage[] => [
     $group: {
       _id: "$_id",
       custName: { $first: "$custName" },
+      extendedTimes: { $first: "$extendedTimes" },
       createDate:  { $first: dateToString("$createDate") },
       history: {
         $push: {
@@ -128,6 +129,7 @@ export const getCustomerDetailPipeline = (custId: string): PipelineStage[] => [
       custId: "$_id",
       _id: 0,
       custName: 1,
+      extendedTimes: 1,
       createDate: 1,
       history: 1
     }

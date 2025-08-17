@@ -23,8 +23,7 @@ export const userLogin = setFunctionName(
 
       await User.findByIdAndUpdate(
         user._id,
-        { token },
-        { new: true }
+        { token }
       );
       setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, userLogin.name);
       responseHandler.success(response, { token });

@@ -1,3 +1,7 @@
+import { Types } from "mongoose";
+
+import { ICustomer } from "../../src/models/customer.model";
+
 const base = "/customer";
 
 export const ROUTE = {
@@ -33,6 +37,7 @@ interface CustHistoryItem {
 interface CustTransaction {
   custId: string;
   custName: string;
+  extendedTimes: number;
   createDate: string;
   history: CustHistoryItem[];
 }
@@ -64,10 +69,11 @@ export const MOCK_CUSTOMERS: CustListItem[] = [
   }
 ];
 
-export const MOCK_CUSTOMER: CustTransaction[] = [
+export const MOCK_CUSTOMER_WITH_HISTORY: CustTransaction[] = [
   {
     custId: "507f1f77bcf86cd799439011",
     custName: "customer1",
+    extendedTimes: 0,
     createDate: "2025/07/01",
     history: [
       {
@@ -90,4 +96,11 @@ export const MOCK_CUSTOMER: CustTransaction[] = [
 
 export const MOCK_ID: IdOnlyItem = {
   _id: "507f1f77bcf86cd799439011"
+};
+
+export const MOCK_CUSTOMER_INFO: ICustomer = {
+  custName: "customerName",
+  serviceTypes: [new Types.ObjectId("507f1f77bcf86cd799439022")],
+  extendedTimes: 0,
+  createDate: new Date("2025-09-30"),
 };

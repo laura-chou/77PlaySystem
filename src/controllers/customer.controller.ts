@@ -2,7 +2,7 @@ import { Request, Response } from "express";
 import mongoose from "mongoose";
 
 import { responseHandler } from "../common/response";
-import { getNowDate, getThreeMonthsLater, isNullOrEmpty, setFunctionName } from "../common/utils";
+import { getNowDate, getDateAfterMonths, isNullOrEmpty, setFunctionName } from "../common/utils";
 import { getCustomerListPipeline, getCustomerDetailPipeline } from "../core/db";
 import { LOG_LEVEL, LOG_MESSAGE , setLog } from "../core/logger";
 import Customer, { ICustomer } from "../models/customer.model";
@@ -90,7 +90,7 @@ export const createCustomer = setFunctionName(
       }
 
       const nowDate = getNowDate(createDate);
-      const expiryDate = getThreeMonthsLater(nowDate);
+      const expiryDate = getDateAfterMonths(nowDate, 3);
       const serviceTypeId = (await ServiceType.findOne({}, "_id"))?._id;
       if (serviceTypeId) {
         const custData: ICustomer = {
@@ -148,8 +148,7 @@ export const updateCustInfo = setFunctionName(
       if (custId) {
         await Customer.findByIdAndUpdate(
           custId,
-          { custName },
-          { new: true }
+          { custName }
         );
         setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, updateCustInfo.name);
         responseHandler.success(response);

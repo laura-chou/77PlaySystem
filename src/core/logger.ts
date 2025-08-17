@@ -19,7 +19,8 @@ export const LOG_MESSAGE = {
     LOGIC: "logical inconsistency found",
     CUSTEXISTS: "customer already exists",
     USEREXISTS: "user already exists",
-    NOTFOUND: "no data found"
+    NOTFOUND: "no data found",
+    EXTENSIONLIMIT: "extension limit reached."
   }
 } as const;
 

@@ -93,11 +93,11 @@ export const responseHandler = {
     );
   },
 
-  conflict(res: Response): void {
+  conflict(res: Response, message: string = RESPONSE_MESSAGE.DATA_ALREADY_EXISTS): void {
     sendResponse(
       res,
       HTTP_STATUS.CONFLICT,
-      RESPONSE_MESSAGE.DATA_ALREADY_EXISTS
+      message
     );
   },
 

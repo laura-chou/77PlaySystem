@@ -2,7 +2,7 @@ import request from "supertest";
 
 import { HTTP_STATUS, RESPONSE_MESSAGE } from "../../src/common/constants";
 
-import { expectResponse, mockSession, mockUserFindOne } from "./testUtils";
+import { expectResponse, mockSession, mockTransactionFindOne, mockUserFindOne } from "./testUtils";
 
 type TokenInfo = {
   showToken: boolean;
@@ -157,12 +157,28 @@ export const describeValidationErrorTests = <T extends ValidationBaseModel>(
     ];
 
     if (config.includeInvalidLogicTest) {
-      validationTestCases.push([
-        "invalid logic",
-        { refill: true, amount: -100 },
-        true,
-        RESPONSE_MESSAGE.INVALID_LOGIC
-      ]);
+      const logicCases: ValidationTestCase[] = [
+        [
+          "invalid logic: refill is true and amount is negative",
+          { refill: true, amount: -100, extend: false },
+          true,
+          RESPONSE_MESSAGE.INVALID_LOGIC
+        ],
+        [
+          "invalid logic: refill and extend are both true",
+          { refill: true, amount: 100, extend: true },
+          true,
+          RESPONSE_MESSAGE.INVALID_LOGIC
+        ],
+        [
+          "invalid logic: extend is true but expiryDate is not expired",
+          { refill: true, amount: 100, extend: true },
+          true,
+          RESPONSE_MESSAGE.INVALID_LOGIC
+        ]
+      ];
+      validationTestCases.push(...logicCases);
+      mockTransactionFindOne("expiry");
     }
 
     test.each(validationTestCases)(

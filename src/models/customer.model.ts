@@ -9,6 +9,7 @@ export interface ICustomer {
   custName: string;
   serviceTypes: Array<Types.ObjectId>;
   createDate: Date;
+  extendedTimes?: number;
 }
 
 const custSchema = new Schema<ICustomer>({
@@ -20,6 +21,11 @@ const custSchema = new Schema<ICustomer>({
   serviceTypes: {
     type: [Types.ObjectId],
     required: true
+  },
+  extendedTimes: {
+    type: Number,
+    required: true,
+    default: 0
   },
   createDate: {
     type: Date,

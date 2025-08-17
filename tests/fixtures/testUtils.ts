@@ -1,11 +1,14 @@
 import jwt from "jsonwebtoken";
+import mongoose from "mongoose";
 import request, { Response } from "supertest";
 
 import app from "../../src/app";
 import { CONTENT_TYPE, HTTP_STATUS, RESPONSE_MESSAGE } from "../../src/common/constants";
 import { isTypeString } from "../../src/common/utils";
+import Transaction from "../../src/models/transaction.model";
 import User from "../../src/models/user.model";
 
+import { MOCK_LATEST_TRANSACTION_EXPIRED, MOCK_LATEST_TRANSACTION_NOT_EXPIRED } from "./transactionTestConfig";
 import { MOCK_USER_ADMIN } from "./userTestConfig";
 
 interface TokenInfo {
@@ -26,6 +29,36 @@ export const mockUserFindOne = (data: object | null = MOCK_USER_ADMIN): void => 
   (User.findOne as jest.Mock).mockResolvedValue(data);
 };
 
+export const mockTransactionFindOne = (type?: "null" | "error" | "expiry"): void => {
+  const mock = Transaction.findOne as jest.Mock;
+
+  switch (type) {
+    case "null":
+      mock.mockReturnValue({
+        sort: jest.fn().mockResolvedValue(null),
+      });
+      break;
+
+    case "error":
+      mock.mockImplementationOnce(() => ({
+        sort: jest.fn().mockRejectedValue(new Error("DB Error")),
+      }));
+      break;
+    
+    case "expiry":
+      mock.mockReturnValue({
+        sort: jest.fn().mockResolvedValue(MOCK_LATEST_TRANSACTION_EXPIRED),
+      });
+      break;
+
+    default:
+      mock.mockReturnValue({
+        sort: jest.fn().mockResolvedValue(MOCK_LATEST_TRANSACTION_NOT_EXPIRED),
+      });
+      break;
+  }
+};
+
 export const mockSession = {
   startTransaction: jest.fn(),
   commitTransaction: jest.fn(),
@@ -33,6 +66,9 @@ export const mockSession = {
   endSession: jest.fn(),
 };
 
+export const mockStartSession = (): void => {
+  (mongoose.startSession as jest.Mock).mockResolvedValue(mockSession);
+};
 
 export const createRequest = {
   get: (

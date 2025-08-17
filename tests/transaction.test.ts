@@ -1,14 +1,18 @@
+import mongoose from "mongoose";
+
 import { HTTP_STATUS } from "../src/common/constants";
 import * as utils from "../src/common/utils";
+import Customer from "../src/models/customer.model";
 import Transaction from "../src/models/transaction.model";
 import User from "../src/models/user.model";
 
+import { MOCK_CUSTOMER_INFO } from "./fixtures/customerTestConfig";
 import { describeAuthErrorTests, describeValidationCustIdTest, describeServerErrorTests, describeValidationErrorTests } from "./fixtures/testStructures";
-import { createRequest, expectResponse, mockUserFindOne } from "./fixtures/testUtils";
-import { ROUTE, MOCK_LATEST_TRANSACTION, MOCK_CREATE_TRANSACTION } from "./fixtures/transactionTestConfig";
+import { createRequest, expectResponse, mockSession, mockStartSession, mockTransactionFindOne, mockUserFindOne } from "./fixtures/testUtils";
+import { ROUTE, MOCK_LATEST_TRANSACTION_NOT_EXPIRED, MOCK_CREATE_TRANSACTION, MOCK_EXTEND_TRANSACTION, MOCK_REFILL_TRANSACTION } from "./fixtures/transactionTestConfig";
 import { MOCK_USER_ADMIN } from "./fixtures/userTestConfig";
 
-const customerId = MOCK_LATEST_TRANSACTION[0].customerId;
+const customerId = MOCK_LATEST_TRANSACTION_NOT_EXPIRED.customerId;
 let spy: jest.SpyInstance;
 
 jest.mock("../src/models/user.model", () => ({
@@ -24,34 +28,19 @@ jest.mock("../src/models/transaction.model", () => ({
   create: jest.fn()
 }));
 
-const mockTransactionFindOne = (type?: "null" | "error"): void => {
-  const mock = Transaction.findOne as jest.Mock;
+jest.mock("../src/models/customer.model", () => ({
+  findOneAndUpdate: jest.fn()
+}));
 
-  switch (type) {
-    case "null":
-      mock.mockReturnValue({
-        sort: jest.fn().mockResolvedValue(null),
-      });
-      break;
-
-    case "error":
-      mock.mockImplementationOnce(() => ({
-        sort: jest.fn().mockRejectedValue(new Error("DB Error")),
-      }));
-      break;
-
-    default:
-      mock.mockReturnValue({
-        sort: jest.fn().mockResolvedValue(MOCK_LATEST_TRANSACTION[0]),
-      });
-      break;
-  }
+const mockCustFindOneAndUpdate = (): void => {
+  (Customer.findOneAndUpdate as jest.Mock).mockResolvedValueOnce(MOCK_CUSTOMER_INFO);
 };
 
 describe("Transaction API", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    spy = jest.spyOn(utils, "getThreeMonthsLater").mockReturnValue(new Date("2025-08-12T16:47:39"));
+    mongoose.startSession = jest.fn().mockResolvedValue(mockSession);
+    spy = jest.spyOn(utils, "getDateAfterMonths").mockReturnValue(new Date("2025-08-12T16:47:39"));
   });
 
   afterEach(() => {
@@ -85,6 +74,7 @@ describe("Transaction API", () => {
 
     describe("Success Cases", () => {
       test("should create transaction successfully", async () => {
+        mockStartSession();
         mockUserFindOne();
         mockTransactionFindOne();
 
@@ -97,20 +87,39 @@ describe("Transaction API", () => {
         expectResponse.created(response);
       });
 
-      test("should call getThreeMonthsLater when refill is true", async () => {
+      test("should call getDateAfterMonths with 3 months when refill is true", async () => {
+        mockStartSession();
         mockUserFindOne();
         mockTransactionFindOne();
 
         await createRequest.post(
           txnRoute,
-          { amount: 100, refill: true },
+          MOCK_REFILL_TRANSACTION,
           HTTP_STATUS.CREATED
         );
 
+        expect(spy).toHaveBeenCalledWith(expect.any(Date), 3);
         expect(spy).toHaveBeenCalledTimes(1);
       });
 
-      test("should call getThreeMonthsLater when refill is false", async () => {
+      test("should call getDateAfterMonths with 1 month when extend is true", async () => {
+        mockStartSession();
+        mockUserFindOne();
+        mockTransactionFindOne("expiry");
+        mockCustFindOneAndUpdate();
+
+        await createRequest.post(
+          txnRoute,
+          MOCK_EXTEND_TRANSACTION,
+          HTTP_STATUS.CREATED
+        );
+
+        expect(spy).toHaveBeenCalledWith(expect.any(Date), 1);
+        expect(spy).toHaveBeenCalledTimes(1);
+      });
+
+      test("should not call getDateAfterMonths when both refill and extend are false", async () => {
+        mockStartSession();
         mockUserFindOne();
         mockTransactionFindOne();
 
@@ -126,6 +135,7 @@ describe("Transaction API", () => {
 
     describe("Not Found Cases", () => {
       test("should return not found when customer does not exist", async () => {
+        mockStartSession();
         mockUserFindOne();
         mockTransactionFindOne("null");
 
@@ -143,7 +153,7 @@ describe("Transaction API", () => {
       {
         route: txnRoute,
         requestFn: createRequest.post,
-        requestBody: MOCK_CREATE_TRANSACTION,
+        requestBody: MOCK_EXTEND_TRANSACTION,
         dbErrorCases: [
           {
             name: "User.findOne",
@@ -155,15 +165,17 @@ describe("Transaction API", () => {
             setupMocks: (): void => {
               mockUserFindOne();
               mockTransactionFindOne("error");
-            }
+            },
+            includeAbortTransactionTest: true
           },
           {
-            name: "Transaction.create",
-            mockFn: Transaction.create as jest.Mock,
+            name: "Customer.findOneAndUpdate",
+            mockFn: Customer.findOneAndUpdate as jest.Mock,
             setupMocks: (): void => {
               mockUserFindOne();
-              mockTransactionFindOne();
-            }
+              mockTransactionFindOne("expiry");
+            },
+            includeAbortTransactionTest: true
           }
         ]
       },

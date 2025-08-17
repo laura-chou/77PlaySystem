@@ -6,11 +6,11 @@ import ServiceType from "../src/models/serviceType.model";
 import Transaction from "../src/models/transaction.model";
 import User from "../src/models/user.model";
 
-import { ROUTE, MOCK_CUSTOMER, MOCK_CUSTOMERS, MOCK_UPDATE_DATA, MOCK_CREATE_DATA, MOCK_ID } from "./fixtures/customerTestConfig";
+import { ROUTE, MOCK_CUSTOMER_WITH_HISTORY, MOCK_CUSTOMERS, MOCK_UPDATE_DATA, MOCK_CREATE_DATA, MOCK_ID } from "./fixtures/customerTestConfig";
 import { describeValidationCustIdTest, describeAuthErrorTests, describeValidationErrorTests, describeServerErrorTests } from "./fixtures/testStructures";
-import { createRequest, expectResponse, mockSession, mockUserFindOne } from "./fixtures/testUtils";
+import { createRequest, expectResponse, mockSession, mockStartSession, mockUserFindOne } from "./fixtures/testUtils";
 
-const customerId = MOCK_CUSTOMER[0].custId;
+const customerId = MOCK_CUSTOMER_WITH_HISTORY[0].custId;
 
 jest.mock("../src/models/user.model", () => ({
   findOne: jest.fn(),
@@ -118,12 +118,12 @@ describe("Customer API", () => {
     describe("Success Cases", () => {
       test("should return customer information with valid JWT", async () => {
         mockUserFindOne();
-        mockCustAggregate(MOCK_CUSTOMER);
+        mockCustAggregate(MOCK_CUSTOMER_WITH_HISTORY);
 
         const response = await createRequest.get(
           customerRoute,
           HTTP_STATUS.OK);
-        expectResponse.success(response, MOCK_CUSTOMER);
+        expectResponse.success(response, MOCK_CUSTOMER_WITH_HISTORY);
       });
     });
 
@@ -195,8 +195,7 @@ describe("Customer API", () => {
 
     describe("Success Cases", () => {
       test("should create customer successfully with transaction", async () => {
-        (mongoose.startSession as jest.Mock).mockResolvedValue(mockSession);
-
+        mockStartSession();
         mockUserFindOne();
         mockCustFindOne();
         mockServiceTypeFindOne();

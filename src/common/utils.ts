@@ -9,8 +9,19 @@ export const getNowDate = (dateStr?: string): Date => {
     : moment().tz("Asia/Taipei").toDate();
 };
 
-export const getThreeMonthsLater = (nowDate: Date): Date => {
-  return moment.tz(nowDate, "Asia/Taipei").add(3, "months").toDate();
+export const getDateAfterMonths = (nowDate: Date, months: number): Date => {
+  const taipeiDate = moment.tz(nowDate, "Asia/Taipei").add(months, "months"); 
+  const currentYear = moment.tz("Asia/Taipei").year();
+
+  if (taipeiDate.year() < currentYear) {
+    taipeiDate.year(currentYear);
+  }
+
+  return taipeiDate.toDate();
+};
+
+export const isExpiry = (expiryDate: Date): boolean => {
+  return moment.tz("Asia/Taipei").isSameOrAfter(expiryDate);
 };
 
 export const isNullOrEmpty = (value: string | null | undefined): boolean => {
