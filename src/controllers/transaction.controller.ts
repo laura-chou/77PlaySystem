@@ -38,7 +38,10 @@ export const createTransaction = setFunctionName(
     const amount = request.body.amount;
     const refill = request.body.refill;
     const extend = request.body.extend;
-    if (refill && isNegative(amount) || refill && extend) {
+    if (refill && extend ||
+        refill && isNegative(amount) || 
+        extend && isNegative(amount))
+    {
       setLog(LOG_LEVEL.ERROR, LOG_MESSAGE.ERROR.LOGIC, createTransaction.name);
       responseHandler.badRequest(response, "LOGIC");
       return;

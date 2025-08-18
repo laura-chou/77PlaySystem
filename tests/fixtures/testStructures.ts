@@ -160,31 +160,40 @@ export const describeValidationErrorTests = <T extends ValidationBaseModel>(
       const logicCases: ValidationTestCase[] = [
         [
           "invalid logic: refill is true and amount is negative",
-          { refill: true, amount: -100, extend: false },
+          { refill: true, extend: false, amount: -100 },
+          true,
+          RESPONSE_MESSAGE.INVALID_LOGIC
+        ],
+        [
+          "invalid logic: extend is true and amount is negative",
+          { refill: false, extend: true, amount: -100 },
           true,
           RESPONSE_MESSAGE.INVALID_LOGIC
         ],
         [
           "invalid logic: refill and extend are both true",
-          { refill: true, amount: 100, extend: true },
+          { refill: true, extend: true, amount: 100 },
           true,
           RESPONSE_MESSAGE.INVALID_LOGIC
         ],
         [
           "invalid logic: extend is true but expiryDate is not expired",
-          { refill: true, amount: 100, extend: true },
+          { refill: false, extend: true, amount: 100 },
           true,
           RESPONSE_MESSAGE.INVALID_LOGIC
         ]
       ];
       validationTestCases.push(...logicCases);
-      mockTransactionFindOne("expiry");
+      // mockTransactionFindOne("expiry");
     }
 
     test.each(validationTestCases)(
       "should bad request for %s",
       async (_, requestBody, isSetJson, expectedMessage) => {
         mockUserFindOne();
+        if (expectedMessage.includes(RESPONSE_MESSAGE.INVALID_LOGIC)) {
+          mockTransactionFindOne();
+        }
 
         const response = await config.requestFn(
           config.route,

@@ -1,8 +1,6 @@
-import mongoose from "mongoose";
-
-import { HTTP_STATUS } from "../src/common/constants";
+import { HTTP_STATUS, RESPONSE_MESSAGE } from "../src/common/constants";
 import * as utils from "../src/common/utils";
-import Customer from "../src/models/customer.model";
+import Customer, { ICustomer } from "../src/models/customer.model";
 import Transaction from "../src/models/transaction.model";
 import User from "../src/models/user.model";
 
@@ -32,14 +30,15 @@ jest.mock("../src/models/customer.model", () => ({
   findOneAndUpdate: jest.fn()
 }));
 
-const mockCustFindOneAndUpdate = (): void => {
-  (Customer.findOneAndUpdate as jest.Mock).mockResolvedValueOnce(MOCK_CUSTOMER_INFO);
+const mockCustFindOneAndUpdate = (data: ICustomer | null = MOCK_CUSTOMER_INFO): void => {
+  (Customer.findOneAndUpdate as jest.Mock).mockResolvedValueOnce(data);
 };
 
 describe("Transaction API", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mongoose.startSession = jest.fn().mockResolvedValue(mockSession);
+    jest.resetAllMocks();
+    mockStartSession();
     spy = jest.spyOn(utils, "getDateAfterMonths").mockReturnValue(new Date("2025-08-12T16:47:39"));
   });
 
@@ -85,6 +84,9 @@ describe("Transaction API", () => {
         );
 
         expectResponse.created(response);
+        expect(mockSession.startTransaction).toHaveBeenCalled();
+        expect(mockSession.commitTransaction).toHaveBeenCalled();
+        expect(mockSession.endSession).toHaveBeenCalled();
       });
 
       test("should call getDateAfterMonths with 3 months when refill is true", async () => {
@@ -130,6 +132,23 @@ describe("Transaction API", () => {
         );
 
         expect(spy).not.toHaveBeenCalled();
+      });
+    });
+    
+    describe("Validate Customer Extension", () => {
+      test("should return conflict if customer extendedTimes more than 3", async () => {
+        mockStartSession();
+        mockUserFindOne();
+        mockTransactionFindOne("expiry");
+        mockCustFindOneAndUpdate(null);
+
+        const response = await createRequest.post(
+          txnRoute,
+          MOCK_EXTEND_TRANSACTION,
+          HTTP_STATUS.CONFLICT
+        );
+
+        expectResponse.conflict(response, RESPONSE_MESSAGE.EXTENSION_LIMIT);
       });
     });
 

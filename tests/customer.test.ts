@@ -1,5 +1,3 @@
-import mongoose from "mongoose";
-
 import { HTTP_STATUS } from "../src/common/constants";
 import Customer from "../src/models/customer.model";
 import ServiceType from "../src/models/serviceType.model";
@@ -47,10 +45,6 @@ const mockCustCreate = (): void => {
   (Customer.create as jest.Mock).mockResolvedValue([MOCK_ID]);
 };
 
-const mockTxnCreate = (): void => {
-  (Transaction.create as jest.Mock).mockResolvedValue([MOCK_ID]);
-};
-
 const mockServiceTypeFindOne = (): void => {
   (ServiceType.findOne as jest.Mock).mockResolvedValue(MOCK_ID);
 };
@@ -58,7 +52,7 @@ const mockServiceTypeFindOne = (): void => {
 describe("Customer API", () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mongoose.startSession = jest.fn().mockResolvedValue(mockSession);
+    mockStartSession();
   });
 
   describe(`GET ${ROUTE.CUSTOMER}`, () => {
@@ -200,7 +194,6 @@ describe("Customer API", () => {
         mockCustFindOne();
         mockServiceTypeFindOne();
         mockCustCreate();
-        mockTxnCreate();
 
         const response = await createRequest.post(
           ROUTE.CREATE,

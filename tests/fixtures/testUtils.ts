@@ -67,7 +67,7 @@ export const mockSession = {
 };
 
 export const mockStartSession = (): void => {
-  (mongoose.startSession as jest.Mock).mockResolvedValue(mockSession);
+  mongoose.startSession = jest.fn().mockResolvedValue(mockSession);
 };
 
 export const createRequest = {
@@ -251,10 +251,10 @@ export const expectResponse = {
     });
   },
 
-  conflict: (response: Response): void => {
+  conflict: (response: Response, message: string = RESPONSE_MESSAGE.DATA_ALREADY_EXISTS): void => {
     expect(response.body).toEqual({
       status: HTTP_STATUS.CONFLICT,
-      message: RESPONSE_MESSAGE.DATA_ALREADY_EXISTS
+      message: message
     });
   },
 };

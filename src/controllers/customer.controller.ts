@@ -79,7 +79,7 @@ export const createCustomer = setFunctionName(
         return;
       }
 
-      const custName = request.body.custName;
+      const custName = request.body.custName.trim();
       const amount = request.body.amount;
       const isCustExist = await Customer.findOne({ custName });
       if (isCustExist) {
@@ -144,7 +144,7 @@ export const updateCustInfo = setFunctionName(
         return;
       }
 
-      const custName = request.body.custName;
+      const custName = request.body.custName.trim();
       if (custId) {
         await Customer.findByIdAndUpdate(
           custId,
