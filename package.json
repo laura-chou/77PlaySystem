@@ -1,4 +1,7 @@
 {
+  "name": "77playsystem",
+  "version": "1.0.0",
+  "license": "MIT",
   "scripts": {
     "start": "nodemon src/app.ts",
     "build": "tsc --project ./",

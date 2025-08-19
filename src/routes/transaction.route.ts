@@ -1,7 +1,7 @@
 import * as transactionController from "../controllers/transaction.controller";
 import authMiddleware from "../middleware/authenticate";
 
-import { createRoute, RouteConfig } from "./route";
+import { createRoute, RouteConfig } from "./route.utils.ts";
 
 export const txnRoutes = (): RouteConfig => {
   return createRoute("/transaction", (router) => {

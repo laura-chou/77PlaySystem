@@ -1,9 +1,9 @@
 import * as indexController from "../controllers/index.controller";
 
-import { createRoute, RouteConfig } from "./route";
+import { createRoute, RouteConfig } from "./route.utils.ts";
 
 export const indexRoute = (): RouteConfig => {
   return createRoute("/", (router) => {
-    router.get("/", indexController.getResponse);
+    router.get("/healthz", indexController.getResponse);
   });
 };

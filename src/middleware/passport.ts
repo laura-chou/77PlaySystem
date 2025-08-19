@@ -7,6 +7,12 @@ import { RESPONSE_MESSAGE } from "../common/constants";
 import { isNullOrEmpty } from "../common/utils";
 import User, { UserRole } from "../models/user.model";
 
+if (!process.env.JWT_SECRET) {
+  // eslint-disable-next-line no-console
+  console.error("FATAL ERROR: JWT_SECRET is not defined.");
+  process.exit(1);
+}
+
 interface JWTPayload {
   user: string;
   iat: number;

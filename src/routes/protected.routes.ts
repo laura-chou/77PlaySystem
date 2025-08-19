@@ -1,14 +1,14 @@
 import { collectionRoutes } from "./collection.route";
 import { custRoutes } from "./customer.route";
-import { indexRoute } from "./index.route";
-import { RouteConfig } from "./route";
+import { RouteConfig } from "./route.utils.ts";
 import { txnRoutes } from "./transaction.route";
 import { userRoutes } from "./user.route";
 
-export const router: Array<RouteConfig> = [
-  indexRoute(),
+const protectedRoutes: Array<RouteConfig> = [
   userRoutes(),
   custRoutes(),
   txnRoutes(),
   collectionRoutes()
 ];
+
+export default protectedRoutes;

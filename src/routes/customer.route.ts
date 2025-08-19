@@ -1,7 +1,7 @@
 import * as customerController from "../controllers/customer.controller";
 import authMiddleware from "../middleware/authenticate";
 
-import { createRoute, RouteConfig } from "./route";
+import { createRoute, RouteConfig } from "./route.utils.ts";
 
 export const custRoutes = (): RouteConfig => {
   return createRoute("/customer", (router) => {

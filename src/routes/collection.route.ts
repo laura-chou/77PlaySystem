@@ -1,7 +1,7 @@
 import * as collectionController from "../controllers/collection.controller";
 import authMiddleware from "../middleware/authenticate";
 
-import { createRoute, RouteConfig } from "./route";
+import { createRoute, RouteConfig } from "./route.utils.ts";
 
 export const collectionRoutes = (): RouteConfig => {
   return createRoute("/collection", (router) => {

@@ -1,12 +1,6 @@
 import "dotenv/config";
 import "./middleware/passport";
 
-if (!process.env.JWT_SECRET) {
-  // eslint-disable-next-line no-console
-  console.error("FATAL ERROR: JWT_SECRET is not defined.");
-  process.exit(1);
-}
-
 import cors, { CorsOptions } from "cors";
 import express, { Express, NextFunction, Request, Response } from "express";
 import morgan from "morgan";
@@ -15,7 +9,8 @@ import { responseHandler } from "./common/response";
 import { isJestTest, isNullOrEmpty } from "./common/utils";
 import { connectDB } from "./core/db";
 import { LOG_LEVEL, setLog } from "./core/logger";
-import { router } from "./routes/router";
+import protectedRoutes from "./routes/protected.routes";
+import publicRoutes from "./routes/public.routes";
 
 const app: Express = express();
 const whiteList: string[] = process.env.WHITELIST?.split(",") || [];
@@ -33,6 +28,10 @@ app.use(morgan(":apiPath", {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+publicRoutes.forEach(route => {
+  app.use(route.prefix, route.router);
+});
 
 const corsOptions: CorsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
@@ -66,7 +65,7 @@ app.use((error: Error, _request: Request, response: Response, _next: NextFunctio
   }
 });
 
-router.forEach(route => {
+protectedRoutes.forEach(route => {
   app.use(route.prefix, route.router);
 });
 
