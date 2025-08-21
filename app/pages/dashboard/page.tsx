@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import styles from '@/styles/dashboard.module.scss';
 
 interface User {
     id: number;
@@ -52,9 +53,9 @@ export default function Dashboard() {
     );
 
     return (
-        <div className="container mt-5">
+        <div className={`container ${styles.customerList}`}>
             <div className="d-flex justify-content-between align-items-center mb-4">
-                <h1>客戶清單</h1>
+                <h1 className="page-title">客戶清單</h1>
                 <button className="btn btn-success">
                     <i className="bi bi-plus-circle me-2"></i>
                     新增客戶
@@ -63,7 +64,7 @@ export default function Dashboard() {
             
             <div className="row mb-4">
                 <div className="col-md-6">
-                    <div className="input-group">
+                    <div className={`input-group ${styles.searchGroup}`}>
                         <span className="input-group-text">
                             <i className="bi bi-search"></i>
                         </span>
@@ -79,8 +80,8 @@ export default function Dashboard() {
             </div>
 
             <div className="table-responsive">
-                <table className="table table-striped table-bordered">
-                    <thead className="table-light">
+                <table className={`table table-hover table-bordered ${styles.table}`}>
+                    <thead className="table-success">
                         <tr>
                             <th>電話</th>
                             <th>姓名</th>

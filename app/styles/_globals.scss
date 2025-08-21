@@ -1,8 +1,9 @@
 @import 'bootstrap/dist/css/bootstrap.min.css';
 @import 'bootstrap-icons/font/bootstrap-icons.css';
 
-/* Add any custom styles below */
-
-.noshow {
-    display: none !important;
-} 
+.page-title {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0;
+}

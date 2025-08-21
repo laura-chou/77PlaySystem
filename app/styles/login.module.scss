@@ -1,0 +1,92 @@
+$primary-color: #43aa8b;
+$hover-color: #577590;
+$card-bg: linear-gradient(135deg, #f0f4ff 0%, #e6faff 100%);
+$card-shadow: 0 0 0 4px rgba(67, 170, 139, 0.05),
+            0 16px 48px rgba(0, 0, 0, 0.2);
+$border-radius: 16px;
+
+.container {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.loginWrapper {
+    position: relative;
+    z-index: 1;
+    background: $card-bg;
+    border-radius: $border-radius;
+    padding: 2.5rem 2rem;
+    width: 320px;
+    box-shadow: $card-shadow;
+    border: 1px solid rgba(67, 170, 139, 0.3);
+    backdrop-filter: blur(12px);
+    text-align: center;
+    animation: popIn 0.5s ease-out;
+}
+
+.logo {
+    width: 95px;
+    height: 95px;
+    margin: 0 auto 1rem;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 1.5rem;
+    letter-spacing: 0.5px;
+}
+
+.loginForm {
+    input {
+        width: 100%;
+        padding: 0.75rem;
+        margin-bottom: 1.25rem;
+        border: none;
+        border-radius: 8px;
+        box-shadow: inset 0 0 4px rgba(0, 0, 0, 0.05);
+        font-size: 1rem;
+        transition: box-shadow 0.3s ease;
+
+        &:focus {
+            outline: 2px solid $primary-color;
+            outline-offset: 2px;
+        }
+    }
+
+    button {
+        width: 100%;
+        padding: 0.75rem;
+        background: $primary-color;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-size: 1rem;
+        cursor: pointer;
+        transition: background 0.3s ease;
+
+        &:hover {
+            background: $hover-color;
+        }
+    }
+}
+
+@keyframes popIn {
+    from {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}

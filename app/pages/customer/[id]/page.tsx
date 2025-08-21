@@ -181,7 +181,7 @@ export default function CustomerPage() {
                 <div className="col-md-8 mx-auto">
                     <div className="card">
                         <div className="card-header d-flex justify-content-between align-items-center">
-                            <h3 className="mb-0">客戶資料</h3>
+                            <h3 className="mb-0 page-title">客戶資料</h3>
                             <button 
                                 className="btn btn-secondary"
                                 onClick={() => router.push('/pages/dashboard')}
@@ -191,7 +191,7 @@ export default function CustomerPage() {
                             </button>
                         </div>
                         <div className="card-body">
-                            <div className="row mb-3 noshow">
+                            <div className="row mb-3 d-none">
                                 <label className="col-sm-3 col-form-label">客戶 ID:</label>
                                 <div className="col-sm-9">
                                     <input 
@@ -270,7 +270,7 @@ export default function CustomerPage() {
                                         <label className="col-sm-3 col-form-label">操作類型:</label>
                                         <div className="col-sm-9">                                            
                                             
-                                            <div className="form-check noshow">
+                                            <div className="form-check d-none">
                                                 <input 
                                                     className="form-check-input" 
                                                     type="radio" 
