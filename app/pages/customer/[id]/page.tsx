@@ -2,6 +2,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import axios from 'axios';
+import styles from '@/styles//customer.module.scss';
 
 interface Customer {
     id: number;
@@ -179,7 +180,7 @@ export default function CustomerPage() {
         <div className="container mt-5">
             <div className="row">
                 <div className="col-md-8 mx-auto">
-                    <div className="card">
+                    <div className={`card ${styles.customerDetail}`}>
                         <div className="card-header d-flex justify-content-between align-items-center">
                             <h3 className="mb-0 page-title">客戶資料</h3>
                             <button 
@@ -191,20 +192,8 @@ export default function CustomerPage() {
                             </button>
                         </div>
                         <div className="card-body">
-                            <div className="row mb-3 d-none">
-                                <label className="col-sm-3 col-form-label">客戶 ID:</label>
-                                <div className="col-sm-9">
-                                    <input 
-                                        type="text" 
-                                        className="form-control" 
-                                        value={customer.id} 
-                                        disabled 
-                                    />
-                                </div>
-                            </div>
-                            
                             <div className="row mb-3">
-                                <label className="col-sm-3 col-form-label">客戶 LIND ID:</label>
+                                <label className="col-sm-3 col-form-label">客戶 LINE:</label>
                                 <div className="col-sm-9">
                                     <input 
                                         type="text" 
@@ -268,86 +257,25 @@ export default function CustomerPage() {
                                     
                                     <div className="row mb-3">
                                         <label className="col-sm-3 col-form-label">操作類型:</label>
-                                        <div className="col-sm-9">                                            
-                                            
-                                            <div className="form-check d-none">
-                                                <input 
-                                                    className="form-check-input" 
-                                                    type="radio" 
-                                                    name="balanceAction" 
-                                                    id="name"
-                                                    value="name"
-                                                    checked={balanceAction === 'name'}
+                                        <div className="col-sm-9">
+                                            <div className="col-sm-9">
+                                                <select
+                                                    className="form-select"
+                                                    value={balanceAction}
                                                     onChange={(e) => {
-                                                        setBalanceAction(e.target.value as 'refill' | 'extend' | 'charge' | 'name');
-                                                        if (e.target.value === 'name') {
-                                                            setBalanceAmount(0);
-                                                        }
+                                                        const value = e.target.value as 'refill' | 'extend' | 'charge' | 'name';
+                                                        setBalanceAction(value);
+                                                        if (value === 'name') setBalanceAmount(0);
+                                                        else if (value === 'refill') setBalanceAmount(1500);
+                                                        else if (value === 'extend') setBalanceAmount(200);
+                                                        else if (value === 'charge') setBalanceAmount(200);
                                                     }}
-                                                />
-                                                <label className="form-check-label" htmlFor="name">
-                                                    改LINE ID
-                                                </label>
-                                            </div>
-                                            
-                                            <div className="form-check">
-                                                <input 
-                                                    className="form-check-input" 
-                                                    type="radio" 
-                                                    name="balanceAction" 
-                                                    id="refill"
-                                                    value="refill"
-                                                    checked={balanceAction === 'refill'}
-                                                    onChange={(e) => {
-                                                        setBalanceAction(e.target.value as 'refill' | 'extend' | 'charge' | 'name');
-                                                        if (e.target.value === 'refill') {
-                                                            setBalanceAmount(1500);
-                                                        }
-                                                    }}
-                                                />
-                                                <label className="form-check-label" htmlFor="refill">
-                                                    充值
-                                                </label>
-                                            </div>
-
-                                            <div className="form-check">
-                                                <input 
-                                                    className="form-check-input" 
-                                                    type="radio" 
-                                                    name="balanceAction" 
-                                                    id="extendExpiry"
-                                                    value="extend"
-                                                    checked={balanceAction === 'extend'}
-                                                    onChange={(e) => {
-                                                        setBalanceAction(e.target.value as 'refill' | 'extend' | 'charge' | 'name');
-                                                        if (e.target.value === 'extend') {
-                                                            setBalanceAmount(200);
-                                                        }
-                                                    }}
-                                                />
-                                                <label className="form-check-label" htmlFor="extendExpiry">
-                                                    延長到期日
-                                                </label>
-                                            </div>
-                                            
-                                            <div className="form-check">
-                                                <input 
-                                                    className="form-check-input" 
-                                                    type="radio" 
-                                                    name="balanceAction" 
-                                                    id="addCharge"
-                                                    value="charge"
-                                                    checked={balanceAction === 'charge'}
-                                                    onChange={(e) => {
-                                                        setBalanceAction(e.target.value as 'refill' | 'extend' | 'charge' | 'name');
-                                                        if (e.target.value === 'charge') {
-                                                            setBalanceAmount(200);
-                                                        }
-                                                    }}
-                                                />
-                                                <label className="form-check-label" htmlFor="addCharge">
-                                                    增加費用
-                                                </label>
+                                                >
+                                                <option value="name">改LINE ID</option>
+                                                <option value="refill">充值</option>
+                                                <option value="extend">延長到期日</option>
+                                                <option value="charge">增加費用</option>
+                                                </select>
                                             </div>
                                         </div>
                                     </div>
