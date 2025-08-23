@@ -3,31 +3,32 @@ import axios from 'axios';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-
+import { env } from '../config/env';
 import styles from '@/styles/modules/login.module.scss';
 
 export default function Login() {
-    const [passCode, setPassCode] = useState('');
+    const [password, setPassword] = useState('');
     const router = useRouter();
 
     const handleLogin = async(e: React.FormEvent) => {
+        console.log('start login');
         e.preventDefault();
         try {
-            const request = { "username": passCode, "password": "success-password" };
-            const response = await axios.post('https://json-placeholder.mock.beeceptor.com/login', request);
-            const token = response.data.token;
+            const request = { "password": password };
+            const response = await axios.post(`${env.apiBaseUrl}user/login`, request);
+            const token = response.data.data.token;
             localStorage.setItem('token', token);
             axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             router.push('/pages/dashboard');
         } catch (error) {
-            console.error('登入失敗:', error);
+            alert((error as any).response.data.message);
         }
     };
 
     return (
         <div className={styles.container}>
             <div className={styles.loginWrapper}>
-                <Image 
+                <Image
                     src="/icon/favicon.svg"
                     alt="77Play Logo"
                     width={32}
@@ -38,13 +39,13 @@ export default function Login() {
                 <h1 className={styles.title}>77Play 會員系統</h1>
 
                 <form className={styles.loginForm} onSubmit={handleLogin}>
-                    <input 
+                    <input
                         id="passCode"
                         className="form-control"
                         type="password"
                         placeholder="請輸入密鑰"
-                        value={passCode}
-                        onChange={(e) => setPassCode(e.target.value)}
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
                     />
                     <button type="submit">登入</button>
                 </form>

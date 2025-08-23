@@ -1,0 +1,4 @@
+NEXT_PUBLIC_API_BASE_URL=https://dev-77playsystem.onrender.com/
+
+# CORS settings - 允許的域名
+CORS_ORIGIN=http://localhost:3000,https://dev-77playsystem.onrender.com,https://77playsystem.com
