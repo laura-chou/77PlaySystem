@@ -1,7 +1,8 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
 import styles from '@/styles/dashboard.module.scss';
 
 interface User {
@@ -23,7 +24,7 @@ export default function Dashboard() {
     };
 
     useEffect(() => {
-        const fetchUsers = async () => {
+        const fetchUsers = async() => {
             const token = localStorage.getItem('token');
             if (!token) {
                 router.push('/login');

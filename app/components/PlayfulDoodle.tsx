@@ -1,7 +1,8 @@
 'use client';
-import CssDoodle from '@/components/CssDoodle';
-import styles from '@/styles/base.module.scss'
 import { usePathname } from 'next/navigation';
+
+import CssDoodle from '@/components/CssDoodle';
+import styles from '@/styles/base.module.scss';
 
 const doodleCode = `
     :doodle {

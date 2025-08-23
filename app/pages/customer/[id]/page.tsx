@@ -1,15 +1,16 @@
 'use client';
-import { useEffect, useState } from 'react';
-import { useRouter, useParams } from 'next/navigation';
 import axios from 'axios';
+import { useRouter, useParams } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
 import styles from '@/styles//customer.module.scss';
 
 interface Customer {
-    id: number;
-    name: string;
-    joinDate: string;
-    balance: number;
-    balanceExpiryDate: string;
+        id: number;
+        name: string;
+        joinDate: string;
+        balance: number;
+        balanceExpiryDate: string;
 }
 
 export default function CustomerPage() {
@@ -30,7 +31,7 @@ export default function CustomerPage() {
     const [balanceAmount, setBalanceAmount] = useState(0);
 
     useEffect(() => {
-        const fetchCustomer = async () => {
+        const fetchCustomer = async() => {
             const token = localStorage.getItem('token');
             if (!token) {
                 router.push('/login');
@@ -78,7 +79,7 @@ export default function CustomerPage() {
         }));
     };
 
-    const handleSave = async () => {
+    const handleSave = async() => {
         const token = localStorage.getItem('token');
         if (!token) {
             router.push('/login');
@@ -145,7 +146,7 @@ export default function CustomerPage() {
         }
         setIsEditing(false);
         setBalanceAmount(0);
-                    setBalanceAction('refill');
+        setBalanceAction('refill');
     };
 
     if (loading) {
@@ -271,10 +272,10 @@ export default function CustomerPage() {
                                                         else if (value === 'charge') setBalanceAmount(200);
                                                     }}
                                                 >
-                                                <option value="name">改LINE ID</option>
-                                                <option value="refill">充值</option>
-                                                <option value="extend">延長到期日</option>
-                                                <option value="charge">增加費用</option>
+                                                    <option value="name">改LINE ID</option>
+                                                    <option value="refill">充值</option>
+                                                    <option value="extend">延長到期日</option>
+                                                    <option value="charge">增加費用</option>
                                                 </select>
                                             </div>
                                         </div>

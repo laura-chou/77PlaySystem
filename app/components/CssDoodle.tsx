@@ -13,12 +13,12 @@ export default function CssDoodle({ code, className, style }: CssDoodleProps) {
 
     useEffect(() => {
         if (containerRef.current) {
-        containerRef.current.innerHTML = '';
-        const doodle = document.createElement('css-doodle');
-        doodle.innerHTML = code;
-        if (className) doodle.className = className;
-        if (style) Object.assign(doodle.style, style);
-        containerRef.current.appendChild(doodle);
+            containerRef.current.innerHTML = '';
+            const doodle = document.createElement('css-doodle');
+            doodle.innerHTML = code;
+            if (className) doodle.className = className;
+            if (style) Object.assign(doodle.style, style);
+            containerRef.current.appendChild(doodle);
         }
     }, [code, className, style]);
 

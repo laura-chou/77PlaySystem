@@ -1,0 +1,43 @@
+{
+    "extends": ["next", "next/core-web-vitals"],
+    "plugins": ["import", "react", "react-hooks"],
+    "settings": {
+        "import/resolver": {
+            "typescript": {
+                "project": "./tsconfig.json"
+            }
+        }
+    },
+    "rules": {
+        "semi": ["error", "always"],
+        "space-before-function-paren": ["error", "never"],
+        "keyword-spacing": ["error", { "before": true, "after": true }],
+        "space-infix-ops": "error",
+        "block-spacing": ["error", "always"],
+        "comma-spacing": ["error", { "before": false, "after": true }],
+        "object-curly-spacing": ["error", "always"],
+        "indent": ["error", 4, { "SwitchCase": 1 }],
+        "react-hooks/rules-of-hooks": "error",
+        "react-hooks/exhaustive-deps": "warn",
+        "import/no-unresolved": "error",
+        "import/order": [
+        "warn",
+        {
+            "groups": ["builtin", "external", "internal", "parent", "sibling", "index"],
+            "pathGroups": [
+            {
+                "pattern": "@/**",
+                "group": "internal",
+                "position": "before"
+            }
+            ],
+            "pathGroupsExcludedImportTypes": ["builtin"],
+            "newlines-between": "always",
+            "alphabetize": {
+            "order": "asc",
+            "caseInsensitive": true
+            }
+        }
+        ]
+    }
+}

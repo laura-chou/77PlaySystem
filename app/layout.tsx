@@ -1,6 +1,7 @@
 import '@/styles/_globals.scss';
-import PlayfulDoodle from './components/PlayfulDoodle';
 import Script from 'next/script';
+
+import PlayfulDoodle from './components/PlayfulDoodle';
 
 export default function RootLayout({
     children,
@@ -23,5 +24,5 @@ export default function RootLayout({
                 {children}
             </body>
         </html>
-    )
+    );
 }
