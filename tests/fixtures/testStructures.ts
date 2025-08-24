@@ -95,7 +95,7 @@ export const describeValidationCustIdTest = (
   expectResponseFn: typeof expectResponse
 ): void => {
   describe("Validation CustId Parameter", () => {
-    test("should return 400 if custId format is invalid", async () => {
+    test("should return 400 if custId format is invalid", async() => {
       mockUserFindOne();
       
       const response = await requestFn(
@@ -127,7 +127,7 @@ export const describeAuthErrorTests = (
   describe("Authentication Error Cases", () => {
     test.each(authTestCases)(
       "should fail if %s",
-      async (
+      async(
         _: string,
         tokenInfo: Partial<TokenInfo>,
         expectedMessage: string,
@@ -189,7 +189,7 @@ export const describeValidationErrorTests = <T extends ValidationBaseModel>(
 
     test.each(validationTestCases)(
       "should bad request for %s",
-      async (_, requestBody, isSetJson, expectedMessage) => {
+      async(_, requestBody, isSetJson, expectedMessage) => {
         mockUserFindOne();
         if (expectedMessage.includes(RESPONSE_MESSAGE.INVALID_LOGIC)) {
           mockTransactionFindOne();
@@ -215,7 +215,7 @@ export const describeServerErrorTests = (
   describe("Server Error Cases", () => {
     test.each(config.dbErrorCases)(
       "should return 500 if $name throws error",
-      async ({ mockFn, setupMocks, includeAbortTransactionTest }) => {
+      async({ mockFn, setupMocks, includeAbortTransactionTest }) => {
         if (setupMocks) {
           setupMocks();
         }

@@ -8,7 +8,7 @@ import { LOG_LEVEL, LOG_MESSAGE, setLog } from "../core/logger";
 import * as baseController from "./base.controller";
 
 export const clearCollection = setFunctionName(
-  async (request: Request, response: Response): Promise<void> => {
+  async(request: Request, response: Response): Promise<void> => {
     try {
       const collectionName = request.params.name;
 

@@ -83,7 +83,7 @@ export const createRequest = {
 
     if (mergedTokenInfo.showToken) {
       const validToken = jwt.sign(
-        { user: mergedTokenInfo.existUser ? "testuser" : "notExistUser"},
+        { user: mergedTokenInfo.existUser ? "testuser" : "notExistUser" },
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         process.env.JWT_SECRET!,
         { expiresIn: mergedTokenInfo.isExpired ? -1 : "1h" }
@@ -172,7 +172,7 @@ export const createRequest = {
 
     if (mergedTokenInfo.showToken) {
       const validToken = jwt.sign(
-        { user: mergedTokenInfo.existUser ? "testuser" : "notExistUser"},
+        { user: mergedTokenInfo.existUser ? "testuser" : "notExistUser" },
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         process.env.JWT_SECRET!,
         { expiresIn: mergedTokenInfo.isExpired ? -1 : "1h" }
@@ -211,13 +211,6 @@ export const expectResponse = {
     expect(response.body).toEqual({
       status: HTTP_STATUS.OK,
       message: RESPONSE_MESSAGE.SUCCESS
-    });
-  },
-
-  noData: (response: Response): void => {
-    expect(response.body).toEqual({
-      status: HTTP_STATUS.OK,
-      message: RESPONSE_MESSAGE.NO_DATA,
     });
   },
 

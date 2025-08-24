@@ -20,7 +20,6 @@ export const CONTENT_TYPE = {
 
 export const RESPONSE_MESSAGE = {
   SUCCESS: "",
-  NO_DATA: "No data.",
   NOT_FOUND: "No data found.",
   SERVER_ERROR: "Internal server error.",
   WRONG_PASSWORD: "Wrong password.",

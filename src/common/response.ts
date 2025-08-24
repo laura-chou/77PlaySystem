@@ -42,14 +42,6 @@ export const responseHandler = {
     );
   },
 
-  noData(res: Response): void {
-    sendResponse(
-      res, 
-      HTTP_STATUS.OK, 
-      RESPONSE_MESSAGE.NO_DATA
-    );
-  },
-
   badRequest(
     res: Response,
     type: "CONTENT_TYPE" | "JSON_KEY" | "JSON_FORMAT" | "CUST_ID" | "LOGIC"

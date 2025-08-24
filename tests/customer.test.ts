@@ -63,12 +63,20 @@ describe("Customer API", () => {
     );
 
     describe("Success Cases", () => {
-      test("should return all customer with valid JWT", async () => {
+      test("should return all customer with valid JWT", async() => {
         mockUserFindOne();
         mockCustAggregate(MOCK_CUSTOMERS);
 
         const response = await createRequest.get(ROUTE.CUSTOMER, HTTP_STATUS.OK);
         expectResponse.success(response, MOCK_CUSTOMERS);
+      });
+
+      test("should return empty data when no customers found", async() => {
+        mockUserFindOne();
+        mockCustAggregate([]);
+
+        const response = await createRequest.get(ROUTE.CUSTOMER, HTTP_STATUS.OK);
+        expectResponse.success(response, []);
       });
     });
 
@@ -110,19 +118,20 @@ describe("Customer API", () => {
     );
 
     describe("Success Cases", () => {
-      test("should return customer information with valid JWT", async () => {
+      test("should return customer information with valid JWT", async() => {
         mockUserFindOne();
         mockCustAggregate(MOCK_CUSTOMER_WITH_HISTORY);
 
         const response = await createRequest.get(
           customerRoute,
           HTTP_STATUS.OK);
-        expectResponse.success(response, MOCK_CUSTOMER_WITH_HISTORY);
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        expectResponse.success(response, MOCK_CUSTOMER_WITH_HISTORY.at(0)!);
       });
     });
 
     describe("Not Found Cases", () => {
-      test("should return not found when customer does not exist", async () => {
+      test("should return not found when customer does not exist", async() => {
         mockUserFindOne();
         mockCustAggregate([]);
 
@@ -173,7 +182,7 @@ describe("Customer API", () => {
     );
 
     describe("Validate Customer Existence", () => {
-      test("should return conflict if customer already exists", async () => {
+      test("should return conflict if customer already exists", async() => {
         mockUserFindOne();
         mockCustFindOne(MOCK_ID);
 
@@ -188,7 +197,7 @@ describe("Customer API", () => {
     });
 
     describe("Success Cases", () => {
-      test("should create customer successfully with transaction", async () => {
+      test("should create customer successfully with transaction", async() => {
         mockStartSession();
         mockUserFindOne();
         mockCustFindOne();
@@ -277,7 +286,7 @@ describe("Customer API", () => {
     );
 
     describe("Success Cases", () => {
-      test("should update customer information successfully", async () => {
+      test("should update customer information successfully", async() => {
         mockUserFindOne();
 
         const response = await createRequest.patch(

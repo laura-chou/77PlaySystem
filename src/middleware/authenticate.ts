@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import passport from "passport";
 
 import { responseHandler } from "../common/response";
-import { LOG_LEVEL, LOG_MESSAGE , setLog } from "../core/logger";
+import { LOG_LEVEL, LOG_MESSAGE, setLog } from "../core/logger";
 import User from "../models/user.model";
 
 interface AuthenticatedUser extends Document {
@@ -31,7 +31,7 @@ export default (strategy: string) => {
     passport.authenticate(
       strategy,
       { session: false },
-      async (
+      async(
         error: Error | null,
         user: AuthenticatedUser | false | null,
         info: AuthInfo | undefined) => {

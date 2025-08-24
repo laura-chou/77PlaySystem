@@ -22,7 +22,7 @@ describe("User API", () => {
 
   describe(`POST ${ROUTE.LOGIN}`, () => {
     describe("Success Cases", () => {
-      test("should login successfully and return a token", async () => {
+      test("should login successfully and return a token", async() => {
         mockUserFindOne();
 
         const response = await createRequest.post(
@@ -38,7 +38,7 @@ describe("User API", () => {
     });
 
     describe("Authentication Error Cases", () => {
-      test("should fail if user does not exist", async () => {
+      test("should fail if user does not exist", async() => {
         mockUserFindOne(null);
         
         const response = await createRequest.post(
@@ -50,7 +50,7 @@ describe("User API", () => {
         expectResponse.unauthorized(response);
       });
 
-      it("should fail if password is incorrect", async () => {
+      it("should fail if password is incorrect", async() => {
         mockUserFindOne(MOCK_USER_ADMIN);
 
         const response = await createRequest.post(
@@ -105,7 +105,7 @@ describe("User API", () => {
     );
 
     describe("Success Cases", () => {
-      test("should create user successfully", async () => {
+      test("should create user successfully", async() => {
         (User.findOne as jest.Mock)
           .mockImplementationOnce(() => Promise.resolve(MOCK_USER_ADMIN)) // 第一次
           .mockImplementationOnce(() => Promise.resolve(null));

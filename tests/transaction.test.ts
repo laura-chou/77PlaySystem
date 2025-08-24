@@ -72,7 +72,7 @@ describe("Transaction API", () => {
     );
 
     describe("Success Cases", () => {
-      test("should create transaction successfully", async () => {
+      test("should create transaction successfully", async() => {
         mockStartSession();
         mockUserFindOne();
         mockTransactionFindOne();
@@ -89,7 +89,7 @@ describe("Transaction API", () => {
         expect(mockSession.endSession).toHaveBeenCalled();
       });
 
-      test("should call getDateAfterMonths with 3 months when refill is true", async () => {
+      test("should call getDateAfterMonths with 3 months when refill is true", async() => {
         mockStartSession();
         mockUserFindOne();
         mockTransactionFindOne();
@@ -104,7 +104,7 @@ describe("Transaction API", () => {
         expect(spy).toHaveBeenCalledTimes(1);
       });
 
-      test("should call getDateAfterMonths with 1 month when extend is true", async () => {
+      test("should call getDateAfterMonths with 1 month when extend is true", async() => {
         mockStartSession();
         mockUserFindOne();
         mockTransactionFindOne("expiry");
@@ -120,7 +120,7 @@ describe("Transaction API", () => {
         expect(spy).toHaveBeenCalledTimes(1);
       });
 
-      test("should not call getDateAfterMonths when both refill and extend are false", async () => {
+      test("should not call getDateAfterMonths when both refill and extend are false", async() => {
         mockStartSession();
         mockUserFindOne();
         mockTransactionFindOne();
@@ -136,7 +136,7 @@ describe("Transaction API", () => {
     });
     
     describe("Validate Customer Extension", () => {
-      test("should return conflict if customer extendedTimes more than 3", async () => {
+      test("should return conflict if customer extendedTimes more than 3", async() => {
         mockStartSession();
         mockUserFindOne();
         mockTransactionFindOne("expiry");
@@ -153,7 +153,7 @@ describe("Transaction API", () => {
     });
 
     describe("Not Found Cases", () => {
-      test("should return not found when customer does not exist", async () => {
+      test("should return not found when customer does not exist", async() => {
         mockStartSession();
         mockUserFindOne();
         mockTransactionFindOne("null");

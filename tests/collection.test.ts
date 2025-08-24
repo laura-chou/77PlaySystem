@@ -29,7 +29,7 @@ describe("Collection API", () => {
     );
 
     describe("Success Cases", () => {
-      test("should clear collection if it exists", async () => {
+      test("should clear collection if it exists", async() => {
         mockUserFindOne();
 
         const mockCollections = [{ name: "testCollection" }];
@@ -53,7 +53,7 @@ describe("Collection API", () => {
     });
 
     describe("Not Found Cases", () => {
-      it("should return notFound if collection does not exist", async () => {
+      it("should return notFound if collection does not exist", async() => {
         const mockCollections = [{ name: "otherCollection" }];
 
         (mongoose.connection.db as unknown) = {

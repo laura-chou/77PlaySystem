@@ -9,7 +9,7 @@ if (isNullOrEmpty(process.env.DBURL)) {
   throw new Error(RESPONSE_MESSAGE.ENV_ERROR);
 }
 
-export const connectDB = async (): Promise<void> => {
+export const connectDB = async(): Promise<void> => {
   try {
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     await mongoose.connect(process.env.DBURL!);
@@ -75,6 +75,11 @@ export const getCustomerListPipeline = (): PipelineStage[] => [
           in: dateToString({ $arrayElemAt: ["$$sortedTx.expiryDate", 0] }),
         }
       }
+    }
+  },
+  {
+    $sort: {
+      expiryDate: -1
     }
   }
 ];

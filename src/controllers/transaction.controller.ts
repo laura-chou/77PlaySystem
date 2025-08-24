@@ -5,20 +5,20 @@ import { RESPONSE_MESSAGE } from "../common/constants";
 import { responseHandler } from "../common/response";
 import { getNowDate, getDateAfterMonths, isNegative, isNullOrEmpty, setFunctionName, isExpiry } from "../common/utils";
 import { toObjectId } from "../core/db";
-import { LOG_LEVEL, LOG_MESSAGE , setLog } from "../core/logger";
+import { LOG_LEVEL, LOG_MESSAGE, setLog } from "../core/logger";
 import Customer from "../models/customer.model";
 import Transaction, { ITransaction } from "../models/transaction.model";
 
 import * as baseController from "./base.controller";
 
 export const createTransaction = setFunctionName(
-  async (request: Request, response: Response): Promise<void> => {
+  async(request: Request, response: Response): Promise<void> => {
     const custId = request.params.custId;
     if (!baseController.validateCustId(custId, response, createTransaction.name)) {
       return;
     }
 
-    if(!baseController.validateContentType(request, response, createTransaction.name)){
+    if (!baseController.validateContentType(request, response, createTransaction.name)){
       return;
     }
 

@@ -31,7 +31,7 @@ const createJwtStrategy = (requiredRole?: UserRole): JwtStrategy =>
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       secretOrKey: process.env.JWT_SECRET!
     },
-    async (jwtPayload: JWTPayload, done: passportJWT.VerifiedCallback) => {
+    async(jwtPayload: JWTPayload, done: passportJWT.VerifiedCallback) => {
       try {
         const query: UserQuery = { userName: jwtPayload.user };
         if (requiredRole) {
@@ -62,7 +62,7 @@ passport.use(
       usernameField: "password",
       passwordField: "password"
     },
-    async (_, password: string, done) => {
+    async(_, password: string, done) => {
       try {
         const user = await User.findOne({ userName: password });
 

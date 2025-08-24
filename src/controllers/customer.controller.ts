@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import { responseHandler } from "../common/response";
 import { getNowDate, getDateAfterMonths, isNullOrEmpty, setFunctionName } from "../common/utils";
 import { getCustomerListPipeline, getCustomerDetailPipeline } from "../core/db";
-import { LOG_LEVEL, LOG_MESSAGE , setLog } from "../core/logger";
+import { LOG_LEVEL, LOG_MESSAGE, setLog } from "../core/logger";
 import Customer, { ICustomer } from "../models/customer.model";
 import ServiceType from "../models/serviceType.model";
 import Transaction, { ITransaction } from "../models/transaction.model";
@@ -12,17 +12,12 @@ import Transaction, { ITransaction } from "../models/transaction.model";
 import * as baseController from "./base.controller";
 
 export const getCustList = setFunctionName(
-  async (_request: Request, response: Response): Promise<void> => {
+  async(_request: Request, response: Response): Promise<void> => {
     try {
       const customers = await Customer.aggregate(getCustomerListPipeline());
 
       setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, getCustList.name);
-
-      if (customers.length > 0) {
-        responseHandler.success(response, customers);
-      } else {
-        responseHandler.noData(response);
-      }
+      responseHandler.success(response, customers);
     } catch (error) {
       baseController.errorHandler(response, error, getCustList.name);
     }
@@ -31,7 +26,7 @@ export const getCustList = setFunctionName(
 );
 
 export const getCustomer = setFunctionName(
-  async (request: Request, response: Response): Promise<void> => {
+  async(request: Request, response: Response): Promise<void> => {
     try {
       const custId = request.params.custId;
 
@@ -44,7 +39,7 @@ export const getCustomer = setFunctionName(
 
         if (customer.length > 0) {
           setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, getCustomer.name);
-          responseHandler.success(response, customer);
+          responseHandler.success(response, customer.at(0));
         } else {
           setLog(LOG_LEVEL.ERROR, LOG_MESSAGE.ERROR.NOTFOUND, getCustomer.name);
           responseHandler.notFound(response);
@@ -58,7 +53,7 @@ export const getCustomer = setFunctionName(
 );
 
 export const createCustomer = setFunctionName(
-  async (request: Request, response: Response): Promise<void> => {
+  async(request: Request, response: Response): Promise<void> => {
     const session = await mongoose.startSession();
     session.startTransaction();
 
@@ -125,7 +120,7 @@ export const createCustomer = setFunctionName(
 );
 
 export const updateCustInfo = setFunctionName(
-  async (request: Request, response: Response): Promise<void> => {
+  async(request: Request, response: Response): Promise<void> => {
     try {
       const custId = request.params.custId;
 
@@ -133,7 +128,7 @@ export const updateCustInfo = setFunctionName(
         return;
       }
 
-      if(!baseController.validateContentType(request, response, updateCustInfo.name)){
+      if (!baseController.validateContentType(request, response, updateCustInfo.name)){
         return;
       }
 
