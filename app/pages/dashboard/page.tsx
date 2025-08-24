@@ -2,7 +2,7 @@
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-
+import { env } from '../../config/env';
 import styles from '@/styles/modules/dashboard.module.scss';
 
 interface User {
@@ -36,7 +36,8 @@ export default function Dashboard() {
                         'Authorization': `Bearer ${token}`
                     }
                 };
-                const response = await axios.get('https://json-placeholder.mock.beeceptor.com/users', request);
+                const response = await axios.get(`${env.apiBaseUrl}customer`, request);
+                console.log('resonse', response);
                 setUsers(response.data);
             } catch (error) {
                 console.error('Failed to fetch users:', error);
@@ -48,7 +49,7 @@ export default function Dashboard() {
         fetchUsers();
     }, [router]);
 
-    const filteredUsers = users.filter(user => 
+    const filteredUsers = users.filter(user =>
         user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         user.phone.includes(searchTerm)
     );
@@ -62,7 +63,7 @@ export default function Dashboard() {
                     新增客戶
                 </button>
             </div>
-            
+
             <div className="row mb-4">
                 <div className="col-md-6">
                     <div className={`input-group ${styles.searchGroup}`}>
@@ -95,7 +96,7 @@ export default function Dashboard() {
                                 <td>{maskPhoneNumber(user.phone)}</td>
                                 <td>{user.name}</td>
                                 <td>
-                                    <button 
+                                    <button
                                         className="btn btn-sm btn-primary"
                                         onClick={() => router.push(`/pages/customer/${user.id}`)}
                                     >
@@ -109,4 +110,4 @@ export default function Dashboard() {
             </div>
         </div>
     );
-} 
+}
