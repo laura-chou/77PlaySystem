@@ -1,0 +1,12 @@
+@use '@/styles/base/mixins' as *;
+
+.defaultBackground {
+    @include background;
+    opacity: 0.4;
+    filter: blur(1px) grayscale(50%);
+}
+
+.loginBackground {
+    @include background;
+}
+

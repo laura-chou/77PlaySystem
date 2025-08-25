@@ -3,14 +3,14 @@ import axios from 'axios';
 import { useRouter, useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import styles from '@/styles//customer.module.scss';
+import styles from '@/styles/modules/customer.module.scss';
 
 interface Customer {
-        id: number;
-        name: string;
-        joinDate: string;
-        balance: number;
-        balanceExpiryDate: string;
+    id: number;
+    name: string;
+    joinDate: string;
+    balance: number;
+    balanceExpiryDate: string;
 }
 
 export default function CustomerPage() {
@@ -272,7 +272,7 @@ export default function CustomerPage() {
                                                         else if (value === 'charge') setBalanceAmount(200);
                                                     }}
                                                 >
-                                                    <option value="name">改LINE ID</option>
+                                                    <option value="name">改客戶 LINE</option>
                                                     <option value="refill">充值</option>
                                                     <option value="extend">延長到期日</option>
                                                     <option value="charge">增加費用</option>

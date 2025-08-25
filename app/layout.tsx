@@ -1,7 +1,7 @@
-import '@/styles/_globals.scss';
+import '@/styles/base/_globals.scss';
 import Script from 'next/script';
 
-import PlayfulDoodle from './components/PlayfulDoodle';
+import PlayfulDoodle from '@/components/PlayfulDoodle';
 
 export default function RootLayout({
     children,
@@ -9,7 +9,7 @@ export default function RootLayout({
     children: React.ReactNode
 }) {
     return (
-        <html lang="en">
+        <html lang="en" data-scroll-behavior="smooth">
             <head>
                 <link rel="icon" type="image/png" href="/icon/favicon-96x96.png" sizes="96x96" />
                 <link rel="icon" type="image/svg+xml" href="/icon/favicon.svg" />

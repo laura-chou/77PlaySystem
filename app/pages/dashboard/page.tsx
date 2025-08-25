@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import styles from '@/styles/dashboard.module.scss';
+import styles from '@/styles/modules/dashboard.module.scss';
 
 interface User {
     id: number;

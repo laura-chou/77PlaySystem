@@ -2,7 +2,7 @@
 import { usePathname } from 'next/navigation';
 
 import CssDoodle from '@/components/CssDoodle';
-import styles from '@/styles/base.module.scss';
+import styles from '@/styles/modules/background.module.scss';
 
 const doodleCode = `
     :doodle {

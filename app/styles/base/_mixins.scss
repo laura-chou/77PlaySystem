@@ -1,0 +1,47 @@
+@use '@/styles/base/variables' as *;
+
+@mixin input-style {
+    border-radius: $border-radius;
+    background-color: #f9f9f9;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    padding: 0.5rem;
+    font-size: 1rem;
+    transition: box-shadow 0.3s ease;
+
+    &:focus {
+        outline: 2px solid $primary-color;
+        box-shadow: 0 0 0 2px rgba(67, 170, 139, 0.3);
+    }
+
+    &:disabled {
+        background-color: #eee;
+        color: #888;
+        cursor: not-allowed;
+    }
+}
+
+@mixin button-style {
+    width: 100%;
+    padding: 0.75rem;
+    background: $primary-color;
+    color: white;
+    border: none;
+    border-radius: $border-radius;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.3s ease;
+
+    &:hover {
+        background: $hover-color;
+    }
+}
+
+@mixin background {
+    position: fixed;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: -1;
+    pointer-events: none;
+    filter: grayscale(50%);
+}

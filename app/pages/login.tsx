@@ -4,7 +4,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
-import styles from '@/styles/login.module.scss';
+import styles from '@/styles/modules/login.module.scss';
 
 export default function Login() {
     const [passCode, setPassCode] = useState('');
