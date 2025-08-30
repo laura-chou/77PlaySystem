@@ -11,7 +11,6 @@ export default function Login() {
     const router = useRouter();
 
     const handleLogin = async(e: React.FormEvent) => {
-        console.log('start login');
         e.preventDefault();
         try {
             const request = { "password": password };
