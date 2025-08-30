@@ -2,27 +2,38 @@
 import axios from 'axios';
 import { useRouter, useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-
+import { env } from '../../../config/env';
 import styles from '@/styles/modules/customer.module.scss';
 
 interface Customer {
-    id: number;
-    name: string;
-    joinDate: string;
+    custId: string;
+    custName: string;
+    createDate: string;
     balance: number;
     balanceExpiryDate: string;
+    history: ICustomerHistory[]
 }
 
-export default function CustomerPage() {
+interface ICustomerHistory {
+    amount: number;
+    currentBalance: number;
+    expiryDate: string;
+    serviceName: string;
+    spendDate: string;
+}
+
+
+export default function CustomerEdit() {
     const router = useRouter();
     const params = useParams();
     const customerId = params.id;
-    
+
     const [customer, setCustomer] = useState<Customer | null>(null);
     const [loading, setLoading] = useState(true);
     const [formData, setFormData] = useState({
-        name: '',
-        joinDate: '',
+        custId: '',
+        custName: '',
+        createDate: '',
         balance: 0,
         balanceExpiryDate: ''
     });
@@ -40,19 +51,23 @@ export default function CustomerPage() {
 
             try {
                 setLoading(true);
-                const response = await axios.get(`https://json-placeholder.mock.beeceptor.com/users/${customerId}`, {
+                const response = await axios.get(`${env.apiBaseUrl}customer/${customerId}`, {
                     headers: {
                         'Authorization': `Bearer ${token}`
                     }
                 });
-                
-                const customerData = response.data;
+
+                const customerData = response.data.data;
+                console.log(customerData);
+                console.log('createDate', customerData.createDate);
                 setCustomer(customerData);
+                const today = new Date().toISOString().split('T')[0];
                 setFormData({
-                    name: customerData.name,
-                    joinDate: customerData.joinDate || '2025-08-02',
-                    balance: customerData.balance || 1200,
-                    balanceExpiryDate: customerData.balanceExpiryDate || '2025-10-02'
+                    custId: customerData.custId,
+                    custName: customerData.custName,
+                    createDate: customerData.createDate || today,
+                    balance: customerData.history[0].currentBalance || 0,
+                    balanceExpiryDate: customerData.history[0].balanceExpiryDate || today
                 });
             } catch (error) {
                 console.error('Failed to fetch customer:', error);
@@ -89,11 +104,11 @@ export default function CustomerPage() {
         try {
             // Prepare the data to send
             const dataToSend = { ...formData };
-            
+
             // Apply balance operations if amount is provided
             if (balanceAmount > 0 || balanceAction === 'refill' || balanceAction === 'extend' || balanceAction === 'name') {
                 const amountToUse = balanceAction === 'refill' ? 1500 : balanceAction === 'extend' ? 200 : balanceAction === 'name' ? 0 : balanceAmount;
-                
+
                 switch (balanceAction) {
 
                     case 'charge':
@@ -121,7 +136,7 @@ export default function CustomerPage() {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            
+
             // Update local state
             setCustomer(prev => prev ? { ...prev, ...dataToSend } : null);
             setFormData(dataToSend);
@@ -136,12 +151,14 @@ export default function CustomerPage() {
     };
 
     const handleCancel = () => {
+        const today = new Date().toISOString().split('T')[0];
         if (customer) {
             setFormData({
-                name: customer.name,
-                joinDate: customer.joinDate || '',
-                balance: customer.balance || 0,
-                balanceExpiryDate: customer.balanceExpiryDate || ''
+                custId: customer.custId,
+                custName: customer.custName,
+                createDate: customer.createDate || today,
+                balance: customer.history[0].currentBalance || 0,
+                balanceExpiryDate: customer.history[0].expiryDate || today
             });
         }
         setIsEditing(false);
@@ -167,7 +184,7 @@ export default function CustomerPage() {
                 <div className="alert alert-danger">
                     找不到客戶資料
                 </div>
-                <button 
+                <button
                     className="btn btn-secondary"
                     onClick={() => router.push('/pages/dashboard')}
                 >
@@ -184,7 +201,7 @@ export default function CustomerPage() {
                     <div className={`card ${styles.customerDetail}`}>
                         <div className="card-header d-flex justify-content-between align-items-center">
                             <h3 className="mb-0 page-title">客戶資料</h3>
-                            <button 
+                            <button
                                 className="btn btn-secondary"
                                 onClick={() => router.push('/pages/dashboard')}
                             >
@@ -196,36 +213,36 @@ export default function CustomerPage() {
                             <div className="row mb-3">
                                 <label className="col-sm-3 col-form-label">客戶 LINE:</label>
                                 <div className="col-sm-9">
-                                    <input 
-                                        type="text" 
+                                    <input
+                                        type="text"
                                         className="form-control"
                                         name="name"
-                                        value={formData.name}
+                                        value={formData.custName}
                                         onChange={handleInputChange}
                                         disabled={!isEditing || (isEditing && balanceAction !== 'name')}
                                     />
                                 </div>
                             </div>
-                            
+
                             <div className="row mb-3">
                                 <label className="col-sm-3 col-form-label">加入日期:</label>
                                 <div className="col-sm-9">
-                                    <input 
-                                        type="date" 
+                                    <input
+                                        type="date"
                                         className="form-control"
-                                        name="joinDate"
-                                        value={formData.joinDate}
+                                        name="createDate"
+                                        value={formData.createDate}
                                         onChange={handleInputChange}
                                         disabled={true}
                                     />
                                 </div>
                             </div>
-                            
+
                             <div className="row mb-3">
                                 <label className="col-sm-3 col-form-label">當前餘額:</label>
                                 <div className="col-sm-9">
-                                    <input 
-                                        type="number" 
+                                    <input
+                                        type="number"
                                         className="form-control"
                                         name="balance"
                                         value={formData.balance}
@@ -236,12 +253,12 @@ export default function CustomerPage() {
                                     />
                                 </div>
                             </div>
-                            
+
                             <div className="row mb-3">
                                 <label className="col-sm-3 col-form-label">餘額到期日:</label>
                                 <div className="col-sm-9">
-                                    <input 
-                                        type="date" 
+                                    <input
+                                        type="date"
                                         className="form-control"
                                         name="balanceExpiryDate"
                                         value={formData.balanceExpiryDate}
@@ -250,12 +267,12 @@ export default function CustomerPage() {
                                     />
                                 </div>
                             </div>
-                            
+
                             {isEditing && (
                                 <>
                                     <hr className="my-4" />
                                     <h5 className="mb-3">操作</h5>
-                                    
+
                                     <div className="row mb-3">
                                         <label className="col-sm-3 col-form-label">操作類型:</label>
                                         <div className="col-sm-9">
@@ -273,19 +290,19 @@ export default function CustomerPage() {
                                                     }}
                                                 >
                                                     <option value="name">改客戶 LINE</option>
+                                                    <option value="charge">消費</option>
                                                     <option value="refill">充值</option>
                                                     <option value="extend">延長到期日</option>
-                                                    <option value="charge">增加費用</option>
                                                 </select>
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="row mb-3">
                                         <label className="col-sm-3 col-form-label">金額:</label>
                                         <div className="col-sm-9">
-                                            <input 
-                                                type="number" 
+                                            <input
+                                                type="number"
                                                 className="form-control"
                                                 value={balanceAction === 'refill' ? 1500 : balanceAction === 'extend' ? 200 : balanceAction === 'name' ? 0 : balanceAmount}
                                                 onChange={(e) => {
@@ -296,7 +313,7 @@ export default function CustomerPage() {
                                                 }}
                                                 onKeyDown={(e) => {
                                                     // Allow only numbers, backspace, delete, arrow keys, and enter
-                                                    if (!/[0-9]/.test(e.key) && 
+                                                    if (!/[0-9]/.test(e.key) &&
                                                         !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter', 'Tab'].includes(e.key)) {
                                                         e.preventDefault();
                                                     }
@@ -310,10 +327,10 @@ export default function CustomerPage() {
                                     </div>
                                 </>
                             )}
-                            
+
                             <div className="d-flex justify-content-end gap-2">
                                 {!isEditing ? (
-                                    <button 
+                                    <button
                                         className="btn btn-primary"
                                         onClick={() => setIsEditing(true)}
                                     >
@@ -322,14 +339,14 @@ export default function CustomerPage() {
                                     </button>
                                 ) : (
                                     <>
-                                        <button 
+                                        <button
                                             className="btn btn-success"
                                             onClick={handleSave}
                                         >
                                             <i className="bi bi-check me-2"></i>
                                             儲存
                                         </button>
-                                        <button 
+                                        <button
                                             className="btn btn-secondary"
                                             onClick={handleCancel}
                                         >
@@ -345,4 +362,4 @@ export default function CustomerPage() {
             </div>
         </div>
     );
-} 
+}

@@ -6,9 +6,9 @@ import { env } from '../../config/env';
 import styles from '@/styles/modules/dashboard.module.scss';
 
 interface User {
-    id: number;
-    name: string;
-    phone: string;
+    custId: string;
+    custName: string;
+    expiryDate: string;
 }
 
 export default function Dashboard() {
@@ -48,8 +48,8 @@ export default function Dashboard() {
 
                 const response = await axios.get(`${env.apiBaseUrl}customer`, config);
 
-                if (response.data && Array.isArray(response.data)) {
-                    setUsers(response.data);
+                if (response.data.data && Array.isArray(response.data.data)) {
+                    setUsers(response.data.data);
                 }
                 else {
                     setUsers([]);
@@ -73,8 +73,7 @@ export default function Dashboard() {
     }, [router]);
 
     const filteredUsers = (users || []).filter(user =>
-        user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        user.phone.includes(searchTerm)
+        user.custName.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     if (loading) {
@@ -111,7 +110,7 @@ export default function Dashboard() {
         <div className={`container ${styles.customerList}`}>
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h1 className="page-title">客戶清單</h1>
-                <button className="btn btn-success">
+                <button className="btn btn-success" onClick={() => router.push('/pages/customer/new')}>
                     <i className="bi bi-plus-circle me-2"></i>
                     新增客戶
                 </button>
@@ -147,20 +146,20 @@ export default function Dashboard() {
                     <table className={`table table-hover table-bordered ${styles.table}`}>
                         <thead className="table-success">
                             <tr>
-                                <th>電話</th>
-                                <th>姓名</th>
+                                <th>LINE ID</th>
+                                <th>期限</th>
                                 <th>編輯</th>
                             </tr>
                         </thead>
                         <tbody>
                             {filteredUsers.map((user) => (
-                                <tr key={user.id}>
-                                    <td>{maskPhoneNumber(user.phone)}</td>
-                                    <td>{user.name}</td>
+                                <tr key={user.custId}>
+                                    <td>{user.custName}</td>
+                                    <td>{user.expiryDate}</td>
                                     <td>
                                         <button
                                             className="btn btn-sm btn-primary"
-                                            onClick={() => router.push(`/pages/customer/${user.id}`)}
+                                            onClick={() => router.push(`/pages/customer/${user.custId}`)}
                                         >
                                             編輯
                                         </button>
