@@ -22,6 +22,7 @@ export interface INewCustomer {
 }
 
 export interface ICustomerFormData {
+    action: string;
     custId: string;
     custName: string;
     createDate: string;

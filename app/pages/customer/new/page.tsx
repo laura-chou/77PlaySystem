@@ -18,7 +18,7 @@ export default function CreateCustomer() {
     const [newCustomer, setNewCustomer] = useState<INewCustomer>({
         custName: '',
         createDate: today,
-        amount: 0
+        amount: 1500
     });
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -44,7 +44,7 @@ export default function CreateCustomer() {
 
         const token = localStorage.getItem('token');
         if (!token) {
-            router.push('/login');
+            router.push('/');
             return;
         }
 
@@ -73,7 +73,7 @@ export default function CreateCustomer() {
     return (
         <div className={`container ${styles.customerForm}`}>
             <div className="d-flex justify-content-between align-items-center mb-4">
-                <h1 className="page-title">客戶資料</h1>
+                <h1 className="page-title">新增客戶</h1>
                 <button className="btn btn-secondary" onClick={handleCancel}>
                     <i className="bi bi-arrow-left me-2"></i>
                     返回清單
@@ -97,18 +97,6 @@ export default function CreateCustomer() {
                                 />
                             </div>
                             <div className="mb-3">
-                                <label htmlFor="createDate" className="form-label">加入日期</label>
-                                <input
-                                    type="date"
-                                    className="form-control"
-                                    id="createDate"
-                                    name="createDate"
-                                    value={newCustomer.createDate}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                            </div>
-                            <div className="mb-3">
                                 <label htmlFor="amount" className="form-label">金額</label>
                                 <input
                                     type="number"
@@ -121,7 +109,18 @@ export default function CreateCustomer() {
                                     step="100"
                                     required
                                 />
-                                <div className="form-text">最小金額: 100，步進: 100</div>
+                            </div>
+                            <div className="mb-3">
+                                <label htmlFor="createDate" className="form-label">加入日期</label>
+                                <input
+                                    type="date"
+                                    className="form-control"
+                                    id="createDate"
+                                    name="createDate"
+                                    value={newCustomer.createDate}
+                                    onChange={handleInputChange}
+                                    required
+                                />
                             </div>
                         </div>
 

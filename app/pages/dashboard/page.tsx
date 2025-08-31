@@ -38,7 +38,7 @@ export default function Dashboard() {
 
                 if (!token) {
                     alert('驗證失敗，請重新登入');
-                    router.push('/login');
+                    router.push('/');
                     return;
                 }
 
@@ -62,7 +62,7 @@ export default function Dashboard() {
                 if (error.response?.status === 401) {
                     alert('驗證失效，請重新登入');
                     localStorage.removeItem('token');
-                    router.push('/login');
+                    router.push('/');
                 } else {
                     setError(error.message || 'Failed to fetch users');
                     setUsers([]);

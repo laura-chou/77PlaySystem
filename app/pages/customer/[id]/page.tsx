@@ -18,6 +18,7 @@ export default function CustomerEdit() {
     const [customer, setCustomer] = useState<ICustomer | null>(null);
     const [loading, setLoading] = useState(true);
     const [formData, setFormData] = useState<ICustomerFormData>({
+        action: '',
         custId: '',
         custName: '',
         createDate: '',
@@ -25,14 +26,14 @@ export default function CustomerEdit() {
         balanceExpiryDate: ''
     });
     const [isEditing, setIsEditing] = useState(false);
-    const [balanceAction, setBalanceAction] = useState<'refill' | 'extend' | 'charge' | 'name'>('refill');
+    const [action, setAction] = useState<'refill' | 'extend' | 'charge' | 'name'>('refill');
     const [balanceAmount, setBalanceAmount] = useState(0);
 
     useEffect(() => {
         const fetchCustomer = async() => {
             const token = localStorage.getItem('token');
             if (!token) {
-                router.push('/login');
+                router.push('/');
                 return;
             }
 
@@ -55,6 +56,7 @@ export default function CustomerEdit() {
                     new Date(customerData.history[0].expiryDate).toISOString().split('T')[0] : today;
 
                 const newFormData = {
+                    action: action,
                     custId: customerData.custId,
                     custName: customerData.custName,
                     createDate: createDate,
@@ -62,14 +64,12 @@ export default function CustomerEdit() {
                     balanceExpiryDate: balanceExpiryDate
                 };
 
-                console.log('Setting form data:', newFormData);
                 setFormData(newFormData);
             } catch (error) {
-                console.error('Failed to fetch customer:', error);
                 // If token is invalid, redirect to login
                 if (axios.isAxiosError(error) && error.response?.status === 401) {
                     localStorage.removeItem('token');
-                    router.push('/login');
+                    router.push('/');
                 }
             } finally {
                 setLoading(false);
@@ -92,7 +92,7 @@ export default function CustomerEdit() {
     const handleSave = async() => {
         const token = localStorage.getItem('token');
         if (!token) {
-            router.push('/login');
+            router.push('/');
             return;
         }
 
@@ -101,10 +101,10 @@ export default function CustomerEdit() {
             const dataToSend = { ...formData };
 
             // Apply balance operations if amount is provided
-            if (balanceAmount > 0 || balanceAction === 'refill' || balanceAction === 'extend' || balanceAction === 'name') {
-                const amountToUse = balanceAction === 'refill' ? 1500 : balanceAction === 'extend' ? 200 : balanceAction === 'name' ? 0 : balanceAmount;
+            if (balanceAmount > 0 || action === 'refill' || action === 'extend' || action === 'name') {
+                const amountToUse = action === 'name' ? 0 : balanceAmount;
 
-                switch (balanceAction) {
+                switch (action) {
 
                     case 'charge':
                         dataToSend.balance = formData.balance - amountToUse;
@@ -119,7 +119,9 @@ export default function CustomerEdit() {
                         // For extend, we'll add the amount as days to the expiry date
                         if (formData.balanceExpiryDate) {
                             const currentExpiry = new Date(formData.balanceExpiryDate);
-                            currentExpiry.setDate(currentExpiry.getDate() + Math.floor(amountToUse));
+                            // Convert amount to days (assuming amount represents days)
+                            const daysToAdd = Math.floor(amountToUse);
+                            currentExpiry.setDate(currentExpiry.getDate() + daysToAdd);
                             dataToSend.balanceExpiryDate = currentExpiry.toISOString().split('T')[0];
                         }
                         break;
@@ -137,7 +139,7 @@ export default function CustomerEdit() {
             setFormData(dataToSend);
             setIsEditing(false);
             setBalanceAmount(0);
-            setBalanceAction('refill');
+            setAction('refill');
             alert('客戶資料已更新！');
         } catch (error) {
             console.error('Failed to update customer:', error);
@@ -158,7 +160,7 @@ export default function CustomerEdit() {
         }
         setIsEditing(false);
         setBalanceAmount(0);
-        setBalanceAction('refill');
+        setAction('refill');
     };
 
     if (loading) {
@@ -217,7 +219,7 @@ export default function CustomerEdit() {
                                         name="custName"
                                         value={formData.custName}
                                         onChange={handleInputChange}
-                                        disabled={!isEditing || (isEditing && balanceAction !== 'name')}
+                                        disabled={!isEditing || (isEditing && action !== 'name')}
                                     />
                                 </div>
                             </div>
@@ -277,10 +279,10 @@ export default function CustomerEdit() {
                                             <div className="col-sm-9">
                                                 <select
                                                     className="form-select"
-                                                    value={balanceAction}
+                                                    value={action}
                                                     onChange={(e) => {
                                                         const value = e.target.value as 'refill' | 'extend' | 'charge' | 'name';
-                                                        setBalanceAction(value);
+                                                        setAction(value);
                                                         if (value === 'name') setBalanceAmount(0);
                                                         else if (value === 'refill') setBalanceAmount(1500);
                                                         else if (value === 'extend') setBalanceAmount(200);
@@ -302,12 +304,17 @@ export default function CustomerEdit() {
                                             <input
                                                 type="number"
                                                 className="form-control"
-                                                value={balanceAction === 'refill' ? 1500 : balanceAction === 'extend' ? 200 : balanceAction === 'name' ? 0 : balanceAmount}
+                                                value={action === 'name' ? 0 : balanceAmount}
                                                 onChange={(e) => {
                                                     const value = parseFloat(e.target.value) || 0;
-                                                    // Round to nearest 100
-                                                    const roundedValue = Math.round(value / 100) * 100;
-                                                    setBalanceAmount(roundedValue);
+                                                    if (action === 'extend') {
+                                                        // For extend, allow any positive number (days)
+                                                        setBalanceAmount(Math.max(0, value));
+                                                    } else {
+                                                        // For other actions, round to nearest 100
+                                                        const roundedValue = Math.round(value / 100) * 100;
+                                                        setBalanceAmount(roundedValue);
+                                                    }
                                                 }}
                                                 onKeyDown={(e) => {
                                                     // Allow only numbers, backspace, delete, arrow keys, and enter
@@ -316,10 +323,10 @@ export default function CustomerEdit() {
                                                         e.preventDefault();
                                                     }
                                                 }}
-                                                step="100"
-                                                min="0"
-                                                placeholder="請輸入金額 (100的倍數)"
-                                                disabled={balanceAction !== 'charge'}
+                                                step={100}
+                                                min="100"
+                                                placeholder={'請輸入金額 (100的倍數)'}
+                                                disabled={action === 'name' || action === 'extend'}
                                             />
                                         </div>
                                     </div>
