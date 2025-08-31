@@ -1,9 +1,13 @@
 'use client';
-import { useState } from 'react';
+
 import axios from 'axios';
-import { env } from '../../../config/env';
 import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+
 import styles from '@/styles/modules/customer.module.scss';
+
+import { env } from '../../../config/env';
+import { INewCustomer } from '../../../lib/models/customer';
 
 export default function CreateCustomer() {
     const router = useRouter();
@@ -11,7 +15,7 @@ export default function CreateCustomer() {
     // Get today's date in YYYY-MM-DD format for the date input
     const today = new Date().toISOString().split('T')[0];
 
-    const [newCustomer, setNewCustomer] = useState({
+    const [newCustomer, setNewCustomer] = useState<INewCustomer>({
         custName: '',
         createDate: today,
         amount: 0
@@ -35,7 +39,7 @@ export default function CreateCustomer() {
         }
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async(e: React.FormEvent) => {
         e.preventDefault();
 
         const token = localStorage.getItem('token');

@@ -1,9 +1,12 @@
 'use client';
+
 import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { env } from '../../config/env';
+
 import styles from '@/styles/modules/dashboard.module.scss';
+
+import { env } from '../../config/env';
 
 interface User {
     custId: string;

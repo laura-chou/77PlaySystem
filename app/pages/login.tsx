@@ -1,10 +1,13 @@
 'use client';
+
 import axios from 'axios';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-import { env } from '../config/env';
+
 import styles from '@/styles/modules/login.module.scss';
+
+import { env } from '../config/env';
 
 export default function Login() {
     const [password, setPassword] = useState('');

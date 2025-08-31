@@ -1,26 +1,13 @@
 'use client';
+
 import axios from 'axios';
 import { useRouter, useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
-import { env } from '../../../config/env';
+
 import styles from '@/styles/modules/customer.module.scss';
 
-interface Customer {
-    custId: string;
-    custName: string;
-    createDate: string;
-    balance: number;
-    balanceExpiryDate: string;
-    history: ICustomerHistory[]
-}
-
-interface ICustomerHistory {
-    amount: number;
-    currentBalance: number;
-    expiryDate: string;
-    serviceName: string;
-    spendDate: string;
-}
+import { env } from '../../../config/env';
+import { ICustomer, ICustomerHistory, ICustomerFormData } from '../../../lib/models/customer';
 
 
 export default function CustomerEdit() {
@@ -28,9 +15,9 @@ export default function CustomerEdit() {
     const params = useParams();
     const customerId = params.id;
 
-    const [customer, setCustomer] = useState<Customer | null>(null);
+    const [customer, setCustomer] = useState<ICustomer | null>(null);
     const [loading, setLoading] = useState(true);
-    const [formData, setFormData] = useState({
+    const [formData, setFormData] = useState<ICustomerFormData>({
         custId: '',
         custName: '',
         createDate: '',
@@ -58,17 +45,25 @@ export default function CustomerEdit() {
                 });
 
                 const customerData = response.data.data;
-                console.log(customerData);
-                console.log('createDate', customerData.createDate);
                 setCustomer(customerData);
                 const today = new Date().toISOString().split('T')[0];
-                setFormData({
+
+                // Ensure dates are properly formatted
+                const createDate = customerData.createDate ?
+                    new Date(customerData.createDate).toISOString().split('T')[0] : today;
+                const balanceExpiryDate = customerData.history?.[0]?.expiryDate ?
+                    new Date(customerData.history[0].expiryDate).toISOString().split('T')[0] : today;
+
+                const newFormData = {
                     custId: customerData.custId,
                     custName: customerData.custName,
-                    createDate: customerData.createDate || today,
-                    balance: customerData.history[0].currentBalance || 0,
-                    balanceExpiryDate: customerData.history[0].balanceExpiryDate || today
-                });
+                    createDate: createDate,
+                    balance: customerData.history?.[0]?.currentBalance || 0,
+                    balanceExpiryDate: balanceExpiryDate
+                };
+
+                console.log('Setting form data:', newFormData);
+                setFormData(newFormData);
             } catch (error) {
                 console.error('Failed to fetch customer:', error);
                 // If token is invalid, redirect to login
@@ -194,6 +189,9 @@ export default function CustomerEdit() {
         );
     }
 
+    // Debug: Log current form data
+    console.log('Current formData:', formData);
+
     return (
         <div className="container mt-5">
             <div className="row">
@@ -216,7 +214,7 @@ export default function CustomerEdit() {
                                     <input
                                         type="text"
                                         className="form-control"
-                                        name="name"
+                                        name="custName"
                                         value={formData.custName}
                                         onChange={handleInputChange}
                                         disabled={!isEditing || (isEditing && balanceAction !== 'name')}
