@@ -7,75 +7,27 @@ import { useEffect, useState } from 'react';
 import styles from '@/styles/modules/customer.module.scss';
 
 import { env } from '../../../config/env';
-import { ICustomer, ICustomerHistory, ICustomerFormData } from '../../../lib/models/customer';
+import { ICustomer, ICustomerHistory, ICustomerFormData, ActionEnum } from '../../../lib/models/customer';
 
 
 export default function CustomerEdit() {
     const router = useRouter();
     const params = useParams();
-    const customerId = params.id;
+    const customerId = params.id as string;
 
     const [customer, setCustomer] = useState<ICustomer | null>(null);
     const [loading, setLoading] = useState(true);
     const [formData, setFormData] = useState<ICustomerFormData>({
-        action: '',
-        custId: '',
+        action: ActionEnum.CHARGE,
+        custId: customerId,
         custName: '',
-        createDate: '',
-        balance: 0,
-        balanceExpiryDate: ''
+        amount: 0
     });
     const [isEditing, setIsEditing] = useState(false);
-    const [action, setAction] = useState<'refill' | 'extend' | 'charge' | 'name'>('refill');
+    const [action, setAction] = useState<ActionEnum>(ActionEnum.NAME);
     const [balanceAmount, setBalanceAmount] = useState(0);
 
     useEffect(() => {
-        const fetchCustomer = async() => {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                router.push('/');
-                return;
-            }
-
-            try {
-                setLoading(true);
-                const response = await axios.get(`${env.apiBaseUrl}customer/${customerId}`, {
-                    headers: {
-                        'Authorization': `Bearer ${token}`
-                    }
-                });
-
-                const customerData = response.data.data;
-                setCustomer(customerData);
-                const today = new Date().toISOString().split('T')[0];
-
-                // Ensure dates are properly formatted
-                const createDate = customerData.createDate ?
-                    new Date(customerData.createDate).toISOString().split('T')[0] : today;
-                const balanceExpiryDate = customerData.history?.[0]?.expiryDate ?
-                    new Date(customerData.history[0].expiryDate).toISOString().split('T')[0] : today;
-
-                const newFormData = {
-                    action: action,
-                    custId: customerData.custId,
-                    custName: customerData.custName,
-                    createDate: createDate,
-                    balance: customerData.history?.[0]?.currentBalance || 0,
-                    balanceExpiryDate: balanceExpiryDate
-                };
-
-                setFormData(newFormData);
-            } catch (error) {
-                // If token is invalid, redirect to login
-                if (axios.isAxiosError(error) && error.response?.status === 401) {
-                    localStorage.removeItem('token');
-                    router.push('/');
-                }
-            } finally {
-                setLoading(false);
-            }
-        };
-
         if (customerId) {
             fetchCustomer();
         }
@@ -83,10 +35,64 @@ export default function CustomerEdit() {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
+
+        // only name is editable in upper block
+        if (action === ActionEnum.NAME) {
+            setFormData(prev => ({
+                ...prev,
+                [name]: value
+            }));
+        }
+    };
+
+    const fetchCustomer = async() => {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            router.push('/');
+            return;
+        }
+
+        try {
+            setLoading(true);
+            const response = await axios.get(`${env.apiBaseUrl}customer/${customerId}`, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+
+            const responseData = response.data.data;
+
+            // Ensure dates are properly formatted
+            const today = new Date().toISOString().split('T')[0];
+            const createDate = responseData.createDate ? new Date(responseData.createDate).toISOString().split('T')[0] : today;
+            const expiryDate = responseData.history[0].expiryDate ? new Date(responseData.history[0].expiryDate).toISOString().split('T')[0] : today;
+            const customerData = {
+                custId: customerId,
+                custName: responseData.custName,
+                createDate: createDate,
+                balance: responseData.history[0].currentBalance,
+                balanceExpiryDate: expiryDate,
+                history: responseData.history
+            };
+            setCustomer(customerData);
+
+            const newFormData = {
+                action: action,
+                custId: customerData.custId,
+                custName: customerData.custName,
+                amount: 0
+            };
+
+            setFormData(newFormData);
+        } catch (error) {
+            // If token is invalid, redirect to login
+            if (axios.isAxiosError(error) && error.response?.status === 401) {
+                localStorage.removeItem('token');
+                router.push('/');
+            }
+        } finally {
+            setLoading(false);
+        }
     };
 
     const handleSave = async() => {
@@ -99,6 +105,8 @@ export default function CustomerEdit() {
         try {
             // Prepare the data to send
             const dataToSend = { ...formData };
+            setAction(action);
+            dataToSend.action = action;
 
             // Apply balance operations if amount is provided
             if (balanceAmount > 0 || action === 'refill' || action === 'extend' || action === 'name') {
@@ -107,39 +115,30 @@ export default function CustomerEdit() {
                 switch (action) {
 
                     case 'charge':
-                        dataToSend.balance = formData.balance - amountToUse;
-                        break;
                     case 'refill':
-                        dataToSend.balance = formData.balance + amountToUse;
+                    case 'extend':
+                        dataToSend.amount = amountToUse;
                         break;
                     case 'name':
                         // For name action, no balance change is made
-                        break;
-                    case 'extend':
-                        // For extend, we'll add the amount as days to the expiry date
-                        if (formData.balanceExpiryDate) {
-                            const currentExpiry = new Date(formData.balanceExpiryDate);
-                            // Convert amount to days (assuming amount represents days)
-                            const daysToAdd = Math.floor(amountToUse);
-                            currentExpiry.setDate(currentExpiry.getDate() + daysToAdd);
-                            dataToSend.balanceExpiryDate = currentExpiry.toISOString().split('T')[0];
-                        }
+                        dataToSend.custName = formData.custName;
+                        dataToSend.amount = 0;
                         break;
                 }
             }
 
-            await axios.put(`https://json-placeholder.mock.beeceptor.com/users/${customerId}`, dataToSend, {
+            console.log('prior to send dataToSend', dataToSend);
+            await axios.patch(`${env.apiBaseUrl}customer/update/${customerId}`, dataToSend, {
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 }
             });
 
-            // Update local state
-            setCustomer(prev => prev ? { ...prev, ...dataToSend } : null);
-            setFormData(dataToSend);
+            // Fetch updated customer data after successful update
+            await fetchCustomer();
             setIsEditing(false);
             setBalanceAmount(0);
-            setAction('refill');
             alert('客戶資料已更新！');
         } catch (error) {
             console.error('Failed to update customer:', error);
@@ -151,16 +150,15 @@ export default function CustomerEdit() {
         const today = new Date().toISOString().split('T')[0];
         if (customer) {
             setFormData({
+                action: ActionEnum.CHARGE,
                 custId: customer.custId,
                 custName: customer.custName,
-                createDate: customer.createDate || today,
-                balance: customer.history[0].currentBalance || 0,
-                balanceExpiryDate: customer.history[0].expiryDate || today
+                amount: customer.history[0].currentBalance || 0
             });
         }
         setIsEditing(false);
         setBalanceAmount(0);
-        setAction('refill');
+        setAction(ActionEnum.CHARGE);
     };
 
     if (loading) {
@@ -231,8 +229,7 @@ export default function CustomerEdit() {
                                         type="date"
                                         className="form-control"
                                         name="createDate"
-                                        value={formData.createDate}
-                                        onChange={handleInputChange}
+                                        value={customer.createDate}
                                         disabled={true}
                                     />
                                 </div>
@@ -244,12 +241,9 @@ export default function CustomerEdit() {
                                     <input
                                         type="number"
                                         className="form-control"
-                                        name="balance"
-                                        value={formData.balance}
-                                        onChange={handleInputChange}
+                                        name="amount"
+                                        value={customer.balance}
                                         disabled={true}
-                                        step="0.01"
-                                        min="0"
                                     />
                                 </div>
                             </div>
@@ -260,9 +254,8 @@ export default function CustomerEdit() {
                                     <input
                                         type="date"
                                         className="form-control"
-                                        name="balanceExpiryDate"
-                                        value={formData.balanceExpiryDate}
-                                        onChange={handleInputChange}
+                                        name="expiryDate"
+                                        value={customer.balanceExpiryDate}
                                         disabled={true}
                                     />
                                 </div>
@@ -281,12 +274,19 @@ export default function CustomerEdit() {
                                                     className="form-select"
                                                     value={action}
                                                     onChange={(e) => {
-                                                        const value = e.target.value as 'refill' | 'extend' | 'charge' | 'name';
-                                                        setAction(value);
-                                                        if (value === 'name') setBalanceAmount(0);
-                                                        else if (value === 'refill') setBalanceAmount(1500);
-                                                        else if (value === 'extend') setBalanceAmount(200);
-                                                        else if (value === 'charge') setBalanceAmount(200);
+                                                        const selectedAction = e.target.value as ActionEnum;
+                                                        const defaultAmount = 0;
+                                                        setAction(selectedAction as ActionEnum);
+
+                                                        if (selectedAction === ActionEnum.REFILL) setBalanceAmount(1500);
+                                                        else if (selectedAction === ActionEnum.EXTEND) setBalanceAmount(200);
+                                                        else if (selectedAction === ActionEnum.CHARGE) setBalanceAmount(200);
+
+                                                        setFormData(prev => ({
+                                                            ...prev,
+                                                            action: selectedAction,
+                                                            amount: defaultAmount
+                                                        }));
                                                     }}
                                                 >
                                                     <option value="name">改客戶 LINE</option>

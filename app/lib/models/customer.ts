@@ -1,3 +1,10 @@
+export enum ActionEnum {
+    REFILL = 'refill',
+    EXTEND = 'extend',
+    CHARGE = 'charge',
+    NAME = 'name'
+}
+
 export interface ICustomer {
     custId: string;
     custName: string;
@@ -22,10 +29,8 @@ export interface INewCustomer {
 }
 
 export interface ICustomerFormData {
-    action: string;
+    action: ActionEnum;
     custId: string;
     custName: string;
-    createDate: string;
-    balance: number;
-    balanceExpiryDate: string;
+    amount: number;
 }
