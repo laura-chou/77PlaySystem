@@ -10,6 +10,7 @@ import ServiceType from "../models/serviceType.model";
 import Transaction, { ITransaction } from "../models/transaction.model";
 
 import * as baseController from "./base.controller";
+import * as txnController from "./transaction.controller";
 
 export const getCustList = setFunctionName(
   async(_request: Request, response: Response): Promise<void> => {
@@ -122,33 +123,51 @@ export const createCustomer = setFunctionName(
 export const updateCustInfo = setFunctionName(
   async(request: Request, response: Response): Promise<void> => {
     try {
-      const custId = request.params.custId;
-
-      if (!baseController.validateCustId(custId, response, updateCustInfo.name)) {
-        return;
-      }
-
       if (!baseController.validateContentType(request, response, updateCustInfo.name)){
         return;
       }
 
       const fields = [
-        { key: "custName", type: "string" }
+        { key: "action", type: "string" },
+        { key: "custId", type: "string" },
+        { key: "custName", type: "string" },
+        { key: "amount", type: "integer" }
       ];
+      const createDate = request.body.createDate;
+      if (!isNullOrEmpty(createDate)) {
+        fields.push({ key: "createDate", type: "date" });
+      }
       if (!baseController.validateBodyFields(request, response, updateCustInfo.name, fields)) {
         return;
       }
 
-      const custName = request.body.custName.trim();
-      if (custId) {
-        await Customer.findByIdAndUpdate(
-          custId,
-          { custName }
-        );
-        setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, updateCustInfo.name);
-        responseHandler.success(response);
+      switch (request.body.action) {
+        case "name":
+          await Customer.findByIdAndUpdate(
+            request.body.custId,
+            { custName: request.body.custName }
+          );
+          setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, updateCustInfo.name);
+          responseHandler.success(response);
+          break;
+        case "extend":
+          txnController.extendExpiryDate(request, response);
+          break;
+        case "charge":
+          break;
+        case "refill":
+          break;
       }
+      // if (custId) {
+      //   await Customer.findByIdAndUpdate(
+      //     custId,
+      //     { custName }
+      //   );
+      //   setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, updateCustInfo.name);
+      //   responseHandler.success(response);
+      // }
     } catch (error) {
+      console.log("bbbbb");
       baseController.errorHandler(response, error, updateCustInfo.name);
     }
   },

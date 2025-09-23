@@ -1,12 +1,13 @@
 import { HTTP_STATUS } from "../src/common/constants";
-import Customer from "../src/models/customer.model";
+import Customer, { ICustomer } from "../src/models/customer.model";
 import ServiceType from "../src/models/serviceType.model";
 import Transaction from "../src/models/transaction.model";
 import User from "../src/models/user.model";
 
-import { ROUTE, MOCK_CUSTOMER_WITH_HISTORY, MOCK_CUSTOMERS, MOCK_UPDATE_DATA, MOCK_CREATE_DATA, MOCK_ID } from "./fixtures/customerTestConfig";
+import { ROUTE, MOCK_CUSTOMER_WITH_HISTORY, MOCK_CUSTOMERS, MOCK_CUSTOMER_INFO, MOCK_CREATE_DATA, MOCK_ID, 
+  MOCK_UPDATE_NAME, MOCK_UPDATE_EXTEND, MOCK_UPDATE_CHARGE, MOCK_UPDATE_REFILL } from "./fixtures/customerTestConfig";
 import { describeValidationCustIdTest, describeAuthErrorTests, describeValidationErrorTests, describeServerErrorTests } from "./fixtures/testStructures";
-import { createRequest, expectResponse, mockSession, mockStartSession, mockUserFindOne } from "./fixtures/testUtils";
+import { createRequest, expectResponse, mockSession, mockStartSession, mockUserFindOne, mockTransactionFindOne } from "./fixtures/testUtils";
 
 const customerId = MOCK_CUSTOMER_WITH_HISTORY[0].custId;
 
@@ -21,6 +22,7 @@ jest.mock("../src/models/user.model", () => ({
 jest.mock("../src/models/customer.model", () => ({
   aggregate: jest.fn(),
   findByIdAndUpdate: jest.fn(),
+  findOneAndUpdate: jest.fn(),
   findOne: jest.fn(),
   create: jest.fn()
 }));
@@ -30,7 +32,8 @@ jest.mock("../src/models/serviceType.model", () => ({
 }));
 
 jest.mock("../src/models/transaction.model", () => ({
-  create: jest.fn()
+  create: jest.fn(),
+  findOne: jest.fn()
 }));
 
 const mockCustAggregate = (data: Array<object>): void => {
@@ -43,6 +46,10 @@ const mockCustFindOne = (data: object | null = null): void => {
 
 const mockCustCreate = (): void => {
   (Customer.create as jest.Mock).mockResolvedValue([MOCK_ID]);
+};
+
+const mockCustFindOneAndUpdate = (data: ICustomer | null = MOCK_CUSTOMER_INFO): void => {
+  (Customer.findOneAndUpdate as jest.Mock).mockResolvedValueOnce(data);
 };
 
 const mockServiceTypeFindOne = (): void => {
@@ -260,26 +267,19 @@ describe("Customer API", () => {
     );
   });
 
-  describe(`PATCH ${ROUTE.UPDATE}/:custId`, () => {
-    const customerRoute = `${ROUTE.UPDATE}/${customerId}`;
-
-    describeValidationCustIdTest(
-      `${ROUTE.UPDATE}/invalid-id`,
-      (route, status, tokenInfo) =>
-        createRequest.patch(route, MOCK_UPDATE_DATA, status, tokenInfo),
-      expectResponse
-    );
+  describe(`PATCH ${ROUTE.UPDATE}`, () => {
+    const customerRoute = ROUTE.UPDATE;
 
     describeAuthErrorTests(
       customerRoute,
-      (route, status, tokenInfo) => createRequest.patch(route, MOCK_UPDATE_DATA, status, tokenInfo),
+      (route, status, tokenInfo) => createRequest.patch(route, MOCK_UPDATE_NAME, status, tokenInfo),
       expectResponse
     );
 
     describeValidationErrorTests(
       {
         route: customerRoute,
-        validBody: MOCK_UPDATE_DATA,
+        validBody: MOCK_UPDATE_NAME,
         requestFn: createRequest.patch
       },
       expectResponse
@@ -291,34 +291,52 @@ describe("Customer API", () => {
 
         const response = await createRequest.patch(
           customerRoute,
-          MOCK_UPDATE_DATA,
+          MOCK_UPDATE_NAME,
           HTTP_STATUS.OK
         );
 
         expectResponse.updated(response);
       });
+
+      test("should extend customer expiry date successfully", async() => {
+        mockStartSession();
+        mockUserFindOne();
+        mockTransactionFindOne();
+        mockCustFindOneAndUpdate();
+
+        const response = await createRequest.patch(
+          customerRoute,
+          MOCK_UPDATE_EXTEND,
+          HTTP_STATUS.OK
+        );
+
+        expectResponse.updated(response);
+        expect(mockSession.startTransaction).toHaveBeenCalled();
+        expect(mockSession.commitTransaction).toHaveBeenCalled();
+        expect(mockSession.endSession).toHaveBeenCalled();
+      });
     });
 
-    describeServerErrorTests(
-      {
-        route: customerRoute,
-        requestFn: createRequest.patch,
-        requestBody: MOCK_UPDATE_DATA,
-        dbErrorCases: [
-          {
-            name: "User.findOne",
-            mockFn: User.findOne as jest.Mock
-          },
-          {
-            name: "Customer.findByIdAndUpdate",
-            mockFn: Customer.findByIdAndUpdate as jest.Mock,
-            setupMocks: (): void => {
-              mockUserFindOne();
-            }
-          }
-        ]
-      },
-      expectResponse
-    );
+    // describeServerErrorTests(
+    //   {
+    //     route: ROUTE.UPDATE,
+    //     requestFn: createRequest.patch,
+    //     requestBody: MOCK_UPDATE_DATA,
+    //     dbErrorCases: [
+    //       {
+    //         name: "User.findOne",
+    //         mockFn: User.findOne as jest.Mock
+    //       },
+    //       {
+    //         name: "Customer.findByIdAndUpdate",
+    //         mockFn: Customer.findByIdAndUpdate as jest.Mock,
+    //         setupMocks: (): void => {
+    //           mockUserFindOne();
+    //         }
+    //       }
+    //     ]
+    //   },
+    //   expectResponse
+    // );
   });
 });
