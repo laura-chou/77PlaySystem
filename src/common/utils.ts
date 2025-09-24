@@ -50,8 +50,6 @@ export const isTypeDate = (value: string): boolean => {
   return moment(value).isValid();
 };
 
-export const isNegative = (num: number): boolean => num < 0;
-
 export const setFunctionName = <T extends (
   request: Request,
   response: Response,

@@ -66,22 +66,22 @@ export const MOCK_UPDATE_NAME: UpdateCustModel = {
 export const MOCK_UPDATE_EXTEND: UpdateCustModel = { 
   action: ActionType.Extend,
   custId: "507f1f77bcf86cd799439011",
-  custName: "updateName",
+  custName: "custName",
   amount: 2000
 };
 
 export const MOCK_UPDATE_CHARGE: UpdateCustModel = { 
   action: ActionType.Charge,
   custId: "507f1f77bcf86cd799439011",
-  custName: "updateName",
+  custName: "custName",
   amount: 2000
 };
 
 export const MOCK_UPDATE_REFILL: UpdateCustModel = { 
   action: ActionType.Refill,
   custId: "507f1f77bcf86cd799439011",
-  custName: "updateName",
-  amount: 2000
+  custName: "custName",
+  amount: 1500
 };
 
 export const MOCK_CREATE_DATA: CreateCustModel = { 

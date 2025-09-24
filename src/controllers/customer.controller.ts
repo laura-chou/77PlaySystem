@@ -154,20 +154,13 @@ export const updateCustInfo = setFunctionName(
           txnController.extendExpiryDate(request, response);
           break;
         case "charge":
+          txnController.processPayment(request, response);
           break;
         case "refill":
+          txnController.topUpAccount(request, response);
           break;
       }
-      // if (custId) {
-      //   await Customer.findByIdAndUpdate(
-      //     custId,
-      //     { custName }
-      //   );
-      //   setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, updateCustInfo.name);
-      //   responseHandler.success(response);
-      // }
     } catch (error) {
-      console.log("bbbbb");
       baseController.errorHandler(response, error, updateCustInfo.name);
     }
   },
