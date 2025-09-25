@@ -1,6 +1,6 @@
 import { Response } from "express";
 
-import { LOG_MESSAGE } from "../core/logger";
+import { LogMessage } from "../core/logger";
 
 import { HTTP_STATUS, RESPONSE_MESSAGE } from "./constants";
 
@@ -44,14 +44,14 @@ export const responseHandler = {
 
   badRequest(
     res: Response,
-    type: "CONTENT_TYPE" | "JSON_KEY" | "JSON_FORMAT" | "CUST_ID" | "LOGIC"
+    type: "CONTENT_TYPE" | "JSON_KEY" | "JSON_FORMAT" | "CUST_ID" | "CUSTNOTDUE"
   ): void {
     const messageMap = {
       CONTENT_TYPE: RESPONSE_MESSAGE.INVALID_CONTENT_TYPE,
       JSON_KEY: RESPONSE_MESSAGE.INVALID_JSON_KEY,
       JSON_FORMAT: RESPONSE_MESSAGE.INVALID_JSON_FORMAT,
       CUST_ID: RESPONSE_MESSAGE.INVALID_CUSTID,
-      LOGIC: RESPONSE_MESSAGE.INVALID_LOGIC
+      CUSTNOTDUE: RESPONSE_MESSAGE.CUSTNOTDUE
     };
 
     sendResponse(
@@ -61,7 +61,7 @@ export const responseHandler = {
     );
   },
 
-  unauthorized(res: Response, message: string = LOG_MESSAGE.ERROR.UNKNOWN): void {
+  unauthorized(res: Response, message: string = LogMessage.ERROR.UNKNOWN): void {
     sendResponse(
       res,
       HTTP_STATUS.UNAUTHORIZED,
@@ -101,4 +101,3 @@ export const responseHandler = {
     );
   }
 };
-  

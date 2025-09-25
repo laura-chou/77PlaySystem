@@ -8,7 +8,7 @@ import morgan from "morgan";
 import { responseHandler } from "./common/response";
 import { isJestTest, isNullOrEmpty } from "./common/utils";
 import { connectDB } from "./core/db";
-import { LOG_LEVEL, setLog } from "./core/logger";
+import { LogLevel, setLog } from "./core/logger";
 import protectedRoutes from "./routes/protected.routes";
 import publicRoutes from "./routes/public.routes";
 
@@ -21,7 +21,7 @@ app.use(morgan(":apiPath", {
   immediate: true,
   stream: {
     write: (message: string) => {
-      setLog(LOG_LEVEL.HTTP, message.trim());
+      setLog(LogLevel.HTTP, message.trim());
     }
   }
 }));
@@ -43,7 +43,7 @@ const corsOptions: CorsOptions = {
       const hostName: string = new URL(origin!).hostname;
 
       if (!loggedOrigins.has(hostName)) {
-        setLog(LOG_LEVEL.INFO, `origin: ${origin}`);
+        setLog(LogLevel.INFO, `origin: ${origin}`);
         loggedOrigins.add(hostName);
       }
 
@@ -57,10 +57,10 @@ app.use(cors(corsOptions));
 
 app.use((error: Error, _request: Request, response: Response, _next: NextFunction) => {
   if (!isNullOrEmpty(error.message)) {
-    setLog(LOG_LEVEL.ERROR, error.message);
+    setLog(LogLevel.ERROR, error.message);
     responseHandler.forbidden(response);
   } else {
-    setLog(LOG_LEVEL.ERROR, `Unhandled error:\n ${error}`);
+    setLog(LogLevel.ERROR, `Unhandled error:\n ${error}`);
     responseHandler.serverError(response);
   }
 });

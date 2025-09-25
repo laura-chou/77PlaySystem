@@ -220,7 +220,7 @@ export const describeServerErrorTests = (
           setupMocks();
         }
 
-        mockFn.mockRejectedValue(new Error("DB Error"));
+        mockFn.mockRejectedValueOnce(new Error("DB Error"));
 
         const isModifyRequest = config.requestBody !== undefined;
 

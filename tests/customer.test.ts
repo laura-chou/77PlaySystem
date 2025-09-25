@@ -1,14 +1,17 @@
-import { HTTP_STATUS } from "../src/common/constants";
-import Customer from "../src/models/customer.model";
+import { HTTP_STATUS, RESPONSE_MESSAGE } from "../src/common/constants";
+import * as utils from "../src/common/utils";
+import Customer, { ICustomer } from "../src/models/customer.model";
 import ServiceType from "../src/models/serviceType.model";
 import Transaction from "../src/models/transaction.model";
 import User from "../src/models/user.model";
 
-import { ROUTE, MOCK_CUSTOMER_WITH_HISTORY, MOCK_CUSTOMERS, MOCK_UPDATE_DATA, MOCK_CREATE_DATA, MOCK_ID } from "./fixtures/customerTestConfig";
+import { ROUTE, MOCK_CUSTOMER_WITH_HISTORY, MOCK_CUSTOMERS, MOCK_CUSTOMER_INFO, MOCK_CREATE_DATA, MOCK_ID, 
+  MOCK_UPDATE_NAME, MOCK_UPDATE_EXTEND, MOCK_UPDATE_CHARGE, MOCK_UPDATE_REFILL } from "./fixtures/customerTestConfig";
 import { describeValidationCustIdTest, describeAuthErrorTests, describeValidationErrorTests, describeServerErrorTests } from "./fixtures/testStructures";
-import { createRequest, expectResponse, mockSession, mockStartSession, mockUserFindOne } from "./fixtures/testUtils";
+import { createRequest, expectResponse, mockSession, mockStartSession, mockUserFindOne, mockTransactionFindOne } from "./fixtures/testUtils";
 
 const customerId = MOCK_CUSTOMER_WITH_HISTORY[0].custId;
+let spy: jest.SpyInstance;
 
 jest.mock("../src/models/user.model", () => ({
   findOne: jest.fn(),
@@ -20,7 +23,7 @@ jest.mock("../src/models/user.model", () => ({
 
 jest.mock("../src/models/customer.model", () => ({
   aggregate: jest.fn(),
-  findByIdAndUpdate: jest.fn(),
+  findOneAndUpdate: jest.fn(),
   findOne: jest.fn(),
   create: jest.fn()
 }));
@@ -30,7 +33,8 @@ jest.mock("../src/models/serviceType.model", () => ({
 }));
 
 jest.mock("../src/models/transaction.model", () => ({
-  create: jest.fn()
+  create: jest.fn(),
+  findOne: jest.fn()
 }));
 
 const mockCustAggregate = (data: Array<object>): void => {
@@ -45,6 +49,10 @@ const mockCustCreate = (): void => {
   (Customer.create as jest.Mock).mockResolvedValue([MOCK_ID]);
 };
 
+const mockCustFindOneAndUpdate = (data: ICustomer | null = MOCK_CUSTOMER_INFO): void => {
+  (Customer.findOneAndUpdate as jest.Mock).mockResolvedValueOnce(data);
+};
+
 const mockServiceTypeFindOne = (): void => {
   (ServiceType.findOne as jest.Mock).mockResolvedValue(MOCK_ID);
 };
@@ -52,7 +60,13 @@ const mockServiceTypeFindOne = (): void => {
 describe("Customer API", () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.resetAllMocks();
     mockStartSession();
+    spy = jest.spyOn(utils, "getDateAfterMonths").mockReturnValue(new Date("2025-08-12T16:47:39"));
+  });
+
+  afterEach(() => {
+    spy.mockRestore();
   });
 
   describe(`GET ${ROUTE.CUSTOMER}`, () => {
@@ -260,61 +274,193 @@ describe("Customer API", () => {
     );
   });
 
-  describe(`PATCH ${ROUTE.UPDATE}/:custId`, () => {
-    const customerRoute = `${ROUTE.UPDATE}/${customerId}`;
-
-    describeValidationCustIdTest(
-      `${ROUTE.UPDATE}/invalid-id`,
-      (route, status, tokenInfo) =>
-        createRequest.patch(route, MOCK_UPDATE_DATA, status, tokenInfo),
-      expectResponse
-    );
+  describe(`PATCH ${ROUTE.UPDATE}`, () => {
+    const customerRoute = ROUTE.UPDATE;
 
     describeAuthErrorTests(
       customerRoute,
-      (route, status, tokenInfo) => createRequest.patch(route, MOCK_UPDATE_DATA, status, tokenInfo),
+      (route, status, tokenInfo) => createRequest.patch(route, MOCK_UPDATE_NAME, status, tokenInfo),
       expectResponse
     );
 
     describeValidationErrorTests(
       {
         route: customerRoute,
-        validBody: MOCK_UPDATE_DATA,
+        validBody: MOCK_UPDATE_NAME,
         requestFn: createRequest.patch
       },
       expectResponse
     );
 
     describe("Success Cases", () => {
-      test("should update customer information successfully", async() => {
+      test("should succeed when the action is 'name'", async() => {
         mockUserFindOne();
+        mockCustFindOneAndUpdate();
 
         const response = await createRequest.patch(
           customerRoute,
-          MOCK_UPDATE_DATA,
+          MOCK_UPDATE_NAME,
           HTTP_STATUS.OK
         );
 
         expectResponse.updated(response);
       });
+
+      test("should succeed when the action is 'extend'", async() => {
+        mockUserFindOne();
+        mockTransactionFindOne("expiry");
+        mockCustFindOneAndUpdate();
+
+        const response = await createRequest.patch(
+          customerRoute,
+          MOCK_UPDATE_EXTEND,
+          HTTP_STATUS.OK
+        );
+
+        expectResponse.updated(response);
+        expect(mockSession.startTransaction).toHaveBeenCalled();
+        expect(mockSession.commitTransaction).toHaveBeenCalled();
+        expect(mockSession.endSession).toHaveBeenCalled();
+      });
+
+      test("should succeed when the action is 'charge'", async() => {
+        mockUserFindOne();
+        mockTransactionFindOne();
+
+        const response = await createRequest.patch(
+          customerRoute,
+          MOCK_UPDATE_CHARGE,
+          HTTP_STATUS.OK
+        );
+
+        expectResponse.updated(response);
+      });
+
+      test("should succeed when the action is 'refill'", async() => {
+        mockUserFindOne();
+        mockTransactionFindOne();
+
+        const response = await createRequest.patch(
+          customerRoute,
+          MOCK_UPDATE_REFILL,
+          HTTP_STATUS.OK
+        );
+
+        expectResponse.updated(response);
+      });
+
+      test("should call getDateAfterMonths with 3 month when amount reaches 1500", async() => {
+        mockUserFindOne();
+        mockTransactionFindOne("expiry");
+
+        await createRequest.patch(
+          customerRoute,
+          MOCK_UPDATE_REFILL,
+          HTTP_STATUS.OK
+        );
+
+        expect(spy).toHaveBeenCalledWith(expect.any(Date), 3);
+        expect(spy).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    describe("Validate Customer Extension", () => {
+      test("should return conflict if customer extendedTimes more than 3", async() => {
+        mockUserFindOne();
+        mockTransactionFindOne("expiry");
+        mockCustFindOneAndUpdate(null);
+
+        const response = await createRequest.patch(
+          customerRoute,
+          MOCK_UPDATE_EXTEND,
+          HTTP_STATUS.CONFLICT
+        );
+
+        expectResponse.conflict(response, RESPONSE_MESSAGE.EXTENSION_LIMIT);
+      });
+    });
+
+    describe("Not Found Cases", () => {
+      test("should return 404 when customer does not exist and action is 'name'", async() => {
+        mockUserFindOne();
+        mockCustFindOneAndUpdate(null);
+
+        const response = await createRequest.patch(
+          customerRoute,
+          MOCK_UPDATE_NAME,
+          HTTP_STATUS.NOT_FOUND
+        );
+
+        expectResponse.notFound(response);
+      });
+
+      test("should return 404 when customer does not exist and action is 'extend'", async() => {
+        mockUserFindOne();
+        mockTransactionFindOne("null");
+
+        const response = await createRequest.patch(
+          customerRoute,
+          MOCK_UPDATE_EXTEND,
+          HTTP_STATUS.NOT_FOUND
+        );
+
+        expectResponse.notFound(response);
+      });
+
+      test("should return 404 when customer does not exist and action is 'charge'", async() => {
+        mockUserFindOne();
+        mockTransactionFindOne("null");
+
+        const response = await createRequest.patch(
+          customerRoute,
+          MOCK_UPDATE_CHARGE,
+          HTTP_STATUS.NOT_FOUND
+        );
+
+        expectResponse.notFound(response);
+      });
+
+      test("should return 404 when customer does not exist and action is 'refill'", async() => {
+        mockUserFindOne();
+        mockTransactionFindOne("null");
+
+        const response = await createRequest.patch(
+          customerRoute,
+          MOCK_UPDATE_REFILL,
+          HTTP_STATUS.NOT_FOUND
+        );
+
+        expectResponse.notFound(response);
+      });
     });
 
     describeServerErrorTests(
       {
-        route: customerRoute,
+        route: ROUTE.UPDATE,
         requestFn: createRequest.patch,
-        requestBody: MOCK_UPDATE_DATA,
+        requestBody: MOCK_UPDATE_EXTEND,
         dbErrorCases: [
           {
             name: "User.findOne",
             mockFn: User.findOne as jest.Mock
           },
           {
-            name: "Customer.findByIdAndUpdate",
-            mockFn: Customer.findByIdAndUpdate as jest.Mock,
+            name: "Transaction.findOne",
+            mockFn: Transaction.findOne as jest.Mock,
             setupMocks: (): void => {
               mockUserFindOne();
-            }
+              mockTransactionFindOne("error");
+            },
+            includeAbortTransactionTest: true
+          },
+          {
+            name: "Customer.findOneAndUpdate",
+            mockFn: Customer.findOneAndUpdate as jest.Mock,
+            setupMocks: (): void => {
+              mockUserFindOne();
+              mockTransactionFindOne("expiry");
+            },
+            includeAbortTransactionTest: true
           }
         ]
       },

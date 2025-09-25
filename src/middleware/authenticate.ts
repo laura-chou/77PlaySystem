@@ -3,7 +3,7 @@ import jwt from "jsonwebtoken";
 import passport from "passport";
 
 import { responseHandler } from "../common/response";
-import { LOG_LEVEL, LOG_MESSAGE, setLog } from "../core/logger";
+import { LogLevel, LogMessage, setLog } from "../core/logger";
 import User from "../models/user.model";
 
 interface AuthenticatedUser extends Document {
@@ -36,7 +36,7 @@ export default (strategy: string) => {
         user: AuthenticatedUser | false | null,
         info: AuthInfo | undefined) => {
       if (error) {
-        setLog(LOG_LEVEL.ERROR, `authenticate: ${error.message}`);
+        setLog(LogLevel.ERROR, `authenticate: ${error.message}`);
         return responseHandler.serverError(response);
       }
       if (!user) {
@@ -55,10 +55,10 @@ export default (strategy: string) => {
             }
           }
         }
-        setLog(LOG_LEVEL.ERROR, `authenticate: ${info?.message}`);
+        setLog(LogLevel.ERROR, `authenticate: ${info?.message}`);
         return responseHandler.unauthorized(response, info?.message);
       }
-      setLog(LOG_LEVEL.INFO, `authenticate: ${LOG_MESSAGE.SUCCESS}`);
+      setLog(LogLevel.INFO, `authenticate: ${LogMessage.SUCCESS}`);
       request.user = user;
       next();
     })(request, response, next);

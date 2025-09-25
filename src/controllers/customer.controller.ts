@@ -4,19 +4,20 @@ import mongoose from "mongoose";
 import { responseHandler } from "../common/response";
 import { getNowDate, getDateAfterMonths, isNullOrEmpty, setFunctionName } from "../common/utils";
 import { getCustomerListPipeline, getCustomerDetailPipeline } from "../core/db";
-import { LOG_LEVEL, LOG_MESSAGE, setLog } from "../core/logger";
+import { LogLevel, LogMessage, setLog } from "../core/logger";
 import Customer, { ICustomer } from "../models/customer.model";
 import ServiceType from "../models/serviceType.model";
 import Transaction, { ITransaction } from "../models/transaction.model";
 
 import * as baseController from "./base.controller";
+import * as txnController from "./transaction.controller";
 
 export const getCustList = setFunctionName(
   async(_request: Request, response: Response): Promise<void> => {
     try {
       const customers = await Customer.aggregate(getCustomerListPipeline());
 
-      setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, getCustList.name);
+      setLog(LogLevel.INFO, LogMessage.SUCCESS, getCustList.name);
       responseHandler.success(response, customers);
     } catch (error) {
       baseController.errorHandler(response, error, getCustList.name);
@@ -38,10 +39,10 @@ export const getCustomer = setFunctionName(
         const customer = await Customer.aggregate(getCustomerDetailPipeline(custId));
 
         if (customer.length > 0) {
-          setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, getCustomer.name);
+          setLog(LogLevel.INFO, LogMessage.SUCCESS, getCustomer.name);
           responseHandler.success(response, customer.at(0));
         } else {
-          setLog(LOG_LEVEL.ERROR, LOG_MESSAGE.ERROR.NOTFOUND, getCustomer.name);
+          setLog(LogLevel.ERROR, LogMessage.ERROR.NOTFOUND, getCustomer.name);
           responseHandler.notFound(response);
         }
       }
@@ -78,8 +79,8 @@ export const createCustomer = setFunctionName(
       const amount = request.body.amount;
       const isCustExist = await Customer.findOne({ custName });
       if (isCustExist) {
-        const logMsg = `${LOG_MESSAGE.ERROR.CUSTEXISTS}, custName: ${custName}`;
-        setLog(LOG_LEVEL.ERROR, logMsg, createCustomer.name);
+        const logMsg = `${LogMessage.ERROR.CUSTEXISTS}, custName: ${custName}`;
+        setLog(LogLevel.ERROR, logMsg, createCustomer.name);
         responseHandler.conflict(response);
         return;
       }
@@ -106,7 +107,7 @@ export const createCustomer = setFunctionName(
         await Transaction.create([txnData], { session });
 
         await session.commitTransaction();
-        setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, createCustomer.name);
+        setLog(LogLevel.INFO, LogMessage.SUCCESS, createCustomer.name);
         responseHandler.created(response);
       }
     } catch (error) {
@@ -122,31 +123,55 @@ export const createCustomer = setFunctionName(
 export const updateCustInfo = setFunctionName(
   async(request: Request, response: Response): Promise<void> => {
     try {
-      const custId = request.params.custId;
-
-      if (!baseController.validateCustId(custId, response, updateCustInfo.name)) {
-        return;
-      }
-
       if (!baseController.validateContentType(request, response, updateCustInfo.name)){
         return;
       }
 
       const fields = [
-        { key: "custName", type: "string" }
+        { key: "action", type: "string" },
+        { key: "custId", type: "string" },
+        { key: "custName", type: "string" },
+        { key: "amount", type: "integer" }
       ];
+      const { custId, createDate } = request.body;
+      if (!isNullOrEmpty(createDate)) {
+        fields.push({ key: "createDate", type: "date" });
+      }
       if (!baseController.validateBodyFields(request, response, updateCustInfo.name, fields)) {
         return;
       }
 
-      const custName = request.body.custName.trim();
-      if (custId) {
-        await Customer.findByIdAndUpdate(
-          custId,
-          { custName }
-        );
-        setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, updateCustInfo.name);
-        responseHandler.success(response);
+      if (!baseController.validateCustId(custId, response, updateCustInfo.name)) {
+        return;
+      }
+
+      switch (request.body.action) {
+        case "name": {
+          const result = await Customer.findOneAndUpdate(
+            { _id: request.body.custId },
+            { custName: request.body.custName }
+          );
+          if (!result) {
+            setLog(LogLevel.ERROR, LogMessage.ERROR.NOTFOUND, updateCustInfo.name);
+            responseHandler.notFound(response);
+            return;
+          }
+          setLog(LogLevel.INFO, LogMessage.SUCCESS, updateCustInfo.name);
+          responseHandler.success(response);
+          break;
+        }
+        case "extend": {
+          txnController.extendExpiryDate(request, response);
+          break;
+        }
+        case "charge": {
+          txnController.processPayment(request, response);
+          break;
+        }
+        case "refill": {
+          txnController.topUpAccount(request, response);
+          break;
+        }
       }
     } catch (error) {
       baseController.errorHandler(response, error, updateCustInfo.name);

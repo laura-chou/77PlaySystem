@@ -5,22 +5,22 @@ import { isNullOrEmpty } from "../common/utils";
 
 const { combine, timestamp, printf } = winston.format;
 
-export const enum LOG_LEVEL {
+export const enum LogLevel {
   INFO = "info",
   ERROR = "error",
   WARN = "warn",
   HTTP = "http"
 }
 
-export const LOG_MESSAGE = {
+export const LogMessage = {
   SUCCESS: "success",
   ERROR: {
     UNKNOWN: "unknown error",
-    LOGIC: "logical inconsistency found",
     CUSTEXISTS: "customer already exists",
     USEREXISTS: "user already exists",
     NOTFOUND: "no data found",
-    EXTENSIONLIMIT: "extension limit reached."
+    EXTENSIONLIMIT: "extension limit reached.",
+    CUSTNOTDUE: "customer is not due yet."
   }
 } as const;
 
@@ -39,7 +39,7 @@ const formatSetting : winston.Logform.Format = combine(
   printf((info) => `${info.timestamp} [${info.level}] ${info.message}`)
 );
 
-const getDailyRotateFile = (level: LOG_LEVEL, fileName: string): DailyRotateFileOption => {
+const getDailyRotateFile = (level: LogLevel, fileName: string): DailyRotateFileOption => {
   return {
     level: level,
     filename: `${fileName}.log`,
@@ -65,14 +65,14 @@ const logger: winston.Logger = winston.createLogger({
   levels: customLevels,
   format: formatSetting,
   transports: [
-    new DailyRotateFile(getDailyRotateFile(LOG_LEVEL.INFO, "log")),
-    new DailyRotateFile(getDailyRotateFile(LOG_LEVEL.ERROR, "errorLog")),
+    new DailyRotateFile(getDailyRotateFile(LogLevel.INFO, "log")),
+    new DailyRotateFile(getDailyRotateFile(LogLevel.ERROR, "errorLog")),
     new winston.transports.Console()
   ]
 });
 
 export const setLog = (
-  level: LOG_LEVEL,
+  level: LogLevel,
   message: string,
   functionName: string = ""
 ) : void => {
@@ -81,16 +81,16 @@ export const setLog = (
   }
   
   switch (level) {
-    case LOG_LEVEL.INFO:
+    case LogLevel.INFO:
       logger.info(message);
       break;
-    case LOG_LEVEL.ERROR:
+    case LogLevel.ERROR:
       logger.error(message);
       break;
-    case LOG_LEVEL.WARN:
+    case LogLevel.WARN:
       logger.warn(message);
       break;
-    case LOG_LEVEL.HTTP:
+    case LogLevel.HTTP:
       logger.http(message);
       break;
   }

@@ -10,8 +10,19 @@ export const ROUTE = {
   UPDATE: `${base}/update`
 } as const;
 
+enum ActionType {
+  Name = "name",
+  Extend = "extend",
+  Charge = "charge",
+  Refill = "refill"
+}
+
 type UpdateCustModel = {
-  custName?: string;
+  action: ActionType;
+  custId: string;
+  custName: string;
+  amount: number;
+  createDate?: string;
 };
 
 type CreateCustModel = {
@@ -46,8 +57,35 @@ interface IdOnlyItem {
   _id: string;
 }
 
-export const MOCK_UPDATE_DATA: UpdateCustModel = { 
-  custName: "updateName"
+export const MOCK_UPDATE_NAME: UpdateCustModel = { 
+  action: ActionType.Name,
+  custId: "507f1f77bcf86cd799439011",
+  custName: "updateName",
+  amount: 2000,
+  createDate: "2025-07-02 19:00"
+};
+
+export const MOCK_UPDATE_EXTEND: UpdateCustModel = { 
+  action: ActionType.Extend,
+  custId: "507f1f77bcf86cd799439011",
+  custName: "custName",
+  amount: 200,
+  createDate: "2025-07-02 19:00"
+};
+
+export const MOCK_UPDATE_CHARGE: UpdateCustModel = { 
+  action: ActionType.Charge,
+  custId: "507f1f77bcf86cd799439011",
+  custName: "custName",
+  amount: -200,
+  createDate: "2025-07-02 19:00"
+};
+
+export const MOCK_UPDATE_REFILL: UpdateCustModel = { 
+  action: ActionType.Refill,
+  custId: "507f1f77bcf86cd799439011",
+  custName: "custName",
+  amount: 1500
 };
 
 export const MOCK_CREATE_DATA: CreateCustModel = { 
