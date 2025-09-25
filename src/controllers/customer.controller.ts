@@ -133,7 +133,7 @@ export const updateCustInfo = setFunctionName(
         { key: "custName", type: "string" },
         { key: "amount", type: "integer" }
       ];
-      const createDate = request.body.createDate;
+      const { custId, createDate } = request.body;
       if (!isNullOrEmpty(createDate)) {
         fields.push({ key: "createDate", type: "date" });
       }
@@ -141,24 +141,37 @@ export const updateCustInfo = setFunctionName(
         return;
       }
 
+      if (!baseController.validateCustId(custId, response, updateCustInfo.name)) {
+        return;
+      }
+
       switch (request.body.action) {
-        case "name":
-          await Customer.findByIdAndUpdate(
-            request.body.custId,
+        case "name": {
+          const result = await Customer.findOneAndUpdate(
+            { _id: request.body.custId },
             { custName: request.body.custName }
           );
+          if (!result) {
+            setLog(LogLevel.ERROR, LogMessage.ERROR.NOTFOUND, updateCustInfo.name);
+            responseHandler.notFound(response);
+            return;
+          }
           setLog(LogLevel.INFO, LogMessage.SUCCESS, updateCustInfo.name);
           responseHandler.success(response);
           break;
-        case "extend":
+        }
+        case "extend": {
           txnController.extendExpiryDate(request, response);
           break;
-        case "charge":
+        }
+        case "charge": {
           txnController.processPayment(request, response);
           break;
-        case "refill":
+        }
+        case "refill": {
           txnController.topUpAccount(request, response);
           break;
+        }
       }
     } catch (error) {
       baseController.errorHandler(response, error, updateCustInfo.name);

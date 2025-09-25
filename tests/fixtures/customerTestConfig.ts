@@ -22,6 +22,7 @@ type UpdateCustModel = {
   custId: string;
   custName: string;
   amount: number;
+  createDate?: string;
 };
 
 type CreateCustModel = {
@@ -60,21 +61,24 @@ export const MOCK_UPDATE_NAME: UpdateCustModel = {
   action: ActionType.Name,
   custId: "507f1f77bcf86cd799439011",
   custName: "updateName",
-  amount: 2000
+  amount: 2000,
+  createDate: "2025-07-02 19:00"
 };
 
 export const MOCK_UPDATE_EXTEND: UpdateCustModel = { 
   action: ActionType.Extend,
   custId: "507f1f77bcf86cd799439011",
   custName: "custName",
-  amount: 2000
+  amount: 200,
+  createDate: "2025-07-02 19:00"
 };
 
 export const MOCK_UPDATE_CHARGE: UpdateCustModel = { 
   action: ActionType.Charge,
   custId: "507f1f77bcf86cd799439011",
   custName: "custName",
-  amount: 2000
+  amount: -200,
+  createDate: "2025-07-02 19:00"
 };
 
 export const MOCK_UPDATE_REFILL: UpdateCustModel = { 

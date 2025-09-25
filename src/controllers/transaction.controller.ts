@@ -49,24 +49,27 @@ const createTransactionData = ({
 export const processPayment = setFunctionName(
   async(request: Request, response: Response): Promise<void> => {
     try {
-      const { createDate, custId } = request.body;
-      const amount = -Math.abs(request.body.amount);
+      const { createDate, custId, amount } = request.body;
+      
       const lastTransaction = await getLastTransaction(custId);
-
-      if (lastTransaction) {
-        const transactionData = createTransactionData({
-          custId,
-          amount: -Math.abs(amount),
-          createDate,
-          serviceTypeId: lastTransaction.serviceTypeId,
-          currentBalance: lastTransaction.currentBalance - Math.abs(amount),
-          expiryDate: lastTransaction.expiryDate
-        });
-
-        await Transaction.create(transactionData);
-        setLog(LogLevel.INFO, LogMessage.SUCCESS, processPayment.name);
-        responseHandler.success(response);
+      if (!lastTransaction) {
+        setLog(LogLevel.ERROR, LogMessage.ERROR.NOTFOUND, processPayment.name);
+        responseHandler.notFound(response);
+        return;
       }
+
+      const transactionData = createTransactionData({
+        custId,
+        amount: -Math.abs(amount),
+        createDate,
+        serviceTypeId: lastTransaction.serviceTypeId,
+        currentBalance: lastTransaction.currentBalance - Math.abs(amount),
+        expiryDate: lastTransaction.expiryDate
+      });
+
+      await Transaction.create(transactionData);
+      setLog(LogLevel.INFO, LogMessage.SUCCESS, processPayment.name);
+      responseHandler.success(response);
     } catch (error) {
       baseController.errorHandler(response, error, processPayment.name);
     }
@@ -78,26 +81,29 @@ export const topUpAccount = setFunctionName(
   async(request: Request, response: Response): Promise<void> => {
     try {
       const { createDate, custId, amount } = request.body;
+
       const lastTransaction = await getLastTransaction(custId);
-
-      if (lastTransaction) {
-        const currentBalance = lastTransaction?.currentBalance + amount;
-        const nowDate = getNowDate(createDate);
-        const expiryDate = isExtendThreeMonths(amount) ? getDateAfterMonths(nowDate, 3) : lastTransaction?.expiryDate;
-
-        const data: ITransaction = {
-          customerId: toObjectId(custId),
-          amount: amount,
-          serviceTypeId: lastTransaction?.serviceTypeId,
-          currentBalance: currentBalance,
-          spendDate: nowDate,
-          expiryDate: expiryDate
-        };
-
-        await Transaction.create(data);
-        setLog(LogLevel.INFO, LogMessage.SUCCESS, topUpAccount.name);
-        responseHandler.success(response);
+      if (!lastTransaction) {
+        setLog(LogLevel.ERROR, LogMessage.ERROR.NOTFOUND, topUpAccount.name);
+        responseHandler.notFound(response);
+        return;
       }
+
+      const nowDate = getNowDate(createDate);
+      const expiryDate = isExtendThreeMonths(amount) ? getDateAfterMonths(nowDate, 3) : lastTransaction?.expiryDate;
+
+      const transactionData = createTransactionData({
+        custId,
+        amount,
+        createDate,
+        serviceTypeId: lastTransaction.serviceTypeId,
+        currentBalance: lastTransaction.currentBalance + amount,
+        expiryDate: expiryDate
+      });
+
+      await Transaction.create(transactionData);
+      setLog(LogLevel.INFO, LogMessage.SUCCESS, topUpAccount.name);
+      responseHandler.success(response);
     } catch (error) {
       baseController.errorHandler(response, error, topUpAccount.name);
     }
@@ -110,11 +116,9 @@ export const extendExpiryDate = setFunctionName(
     const session = await mongoose.startSession();
     session.startTransaction();
     
-    const { custId, createDate } = request.body;
+    const { custId, createDate, amount } = request.body;
 
     try {  
-      const amount = -Math.abs(request.body.amount);
-
       const lastTransaction = await getLastTransaction(custId);
       if (!lastTransaction) {
         setLog(LogLevel.ERROR, LogMessage.ERROR.NOTFOUND, extendExpiryDate.name);
@@ -131,10 +135,10 @@ export const extendExpiryDate = setFunctionName(
 
       const transactionData = createTransactionData({
         custId,
-        amount: -Math.abs(amount),
+        amount,
         createDate,
         serviceTypeId: lastTransaction.serviceTypeId,
-        currentBalance: lastTransaction.currentBalance - Math.abs(amount),
+        currentBalance: lastTransaction.currentBalance + amount,
         expiryDate: getDateAfterMonths(getNowDate(createDate), 1)
       });
 

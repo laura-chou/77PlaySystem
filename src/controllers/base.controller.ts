@@ -59,10 +59,11 @@ export const validateBodyFields = (
 export const validateCustId = (custId: string, response: Response, functionName: string): boolean => {
   if (Types.ObjectId.isValid(custId)) {
     return true;
+  } else {
+    setLog(LogLevel.ERROR, RESPONSE_MESSAGE.INVALID_CUSTID, functionName);
+    responseHandler.badRequest(response, "CUST_ID");
+    return false;
   }
-  setLog(LogLevel.ERROR, RESPONSE_MESSAGE.INVALID_CUSTID, functionName);
-  responseHandler.badRequest(response, "CUST_ID");
-  return false;
 };
 
 

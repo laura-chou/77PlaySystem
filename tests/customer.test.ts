@@ -23,7 +23,6 @@ jest.mock("../src/models/user.model", () => ({
 
 jest.mock("../src/models/customer.model", () => ({
   aggregate: jest.fn(),
-  findByIdAndUpdate: jest.fn(),
   findOneAndUpdate: jest.fn(),
   findOne: jest.fn(),
   create: jest.fn()
@@ -296,6 +295,7 @@ describe("Customer API", () => {
     describe("Success Cases", () => {
       test("should succeed when the action is 'name'", async() => {
         mockUserFindOne();
+        mockCustFindOneAndUpdate();
 
         const response = await createRequest.patch(
           customerRoute,
@@ -381,13 +381,52 @@ describe("Customer API", () => {
     });
 
     describe("Not Found Cases", () => {
-      test("should return not found when customer does not exist", async() => {
+      test("should return 404 when customer does not exist and action is 'name'", async() => {
+        mockUserFindOne();
+        mockCustFindOneAndUpdate(null);
+
+        const response = await createRequest.patch(
+          customerRoute,
+          MOCK_UPDATE_NAME,
+          HTTP_STATUS.NOT_FOUND
+        );
+
+        expectResponse.notFound(response);
+      });
+
+      test("should return 404 when customer does not exist and action is 'extend'", async() => {
         mockUserFindOne();
         mockTransactionFindOne("null");
 
         const response = await createRequest.patch(
           customerRoute,
           MOCK_UPDATE_EXTEND,
+          HTTP_STATUS.NOT_FOUND
+        );
+
+        expectResponse.notFound(response);
+      });
+
+      test("should return 404 when customer does not exist and action is 'charge'", async() => {
+        mockUserFindOne();
+        mockTransactionFindOne("null");
+
+        const response = await createRequest.patch(
+          customerRoute,
+          MOCK_UPDATE_CHARGE,
+          HTTP_STATUS.NOT_FOUND
+        );
+
+        expectResponse.notFound(response);
+      });
+
+      test("should return 404 when customer does not exist and action is 'refill'", async() => {
+        mockUserFindOne();
+        mockTransactionFindOne("null");
+
+        const response = await createRequest.patch(
+          customerRoute,
+          MOCK_UPDATE_REFILL,
           HTTP_STATUS.NOT_FOUND
         );
 
