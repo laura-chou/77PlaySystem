@@ -3,7 +3,7 @@ import mongoose from "mongoose";
 
 import { responseHandler } from "../common/response";
 import { setFunctionName } from "../common/utils";
-import { LOG_LEVEL, LOG_MESSAGE, setLog } from "../core/logger";
+import { LogLevel, LogMessage, setLog } from "../core/logger";
 
 import * as baseController from "./base.controller";
 
@@ -16,7 +16,7 @@ export const clearCollection = setFunctionName(
       const exists = collections?.some(col => col.name === collectionName);
 
       if (!exists) {
-        setLog(LOG_LEVEL.ERROR, LOG_MESSAGE.ERROR.NOTFOUND, clearCollection.name);
+        setLog(LogLevel.ERROR, LogMessage.ERROR.NOTFOUND, clearCollection.name);
         responseHandler.notFound(response);
         return;
       }

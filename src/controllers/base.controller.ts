@@ -6,13 +6,13 @@ import { responseHandler } from "../common/response";
 import {
   isNullOrEmpty, isTypeBoolean, isTypeDate, isTypeInteger, isTypeString
 } from "../common/utils";
-import { LOG_LEVEL, LOG_MESSAGE, setLog } from "../core/logger";
+import { LogLevel, LogMessage, setLog } from "../core/logger";
 
 
 export const validateContentType = (request: Request, response: Response, functionName: string): boolean => {
   const contentType: string | undefined = request.headers["content-type"];
   if (contentType !== "application/json") {
-    setLog(LOG_LEVEL.ERROR, RESPONSE_MESSAGE.INVALID_CONTENT_TYPE, functionName);
+    setLog(LogLevel.ERROR, RESPONSE_MESSAGE.INVALID_CONTENT_TYPE, functionName);
     responseHandler.badRequest(response, "CONTENT_TYPE");
     return false;
   }
@@ -42,13 +42,13 @@ export const validateBodyFields = (
 ): boolean => {
   for (const field of fields) {
     if (isNullOrEmpty(request.body[field.key])) {
-      setLog(LOG_LEVEL.ERROR, RESPONSE_MESSAGE.INVALID_JSON_KEY, functionName);
+      setLog(LogLevel.ERROR, RESPONSE_MESSAGE.INVALID_JSON_KEY, functionName);
       responseHandler.badRequest(response, "JSON_KEY");
       return false;
     }
     
     if (!validateFieldType(request.body[field.key], field.type)) {
-      setLog(LOG_LEVEL.ERROR, RESPONSE_MESSAGE.INVALID_JSON_FORMAT, functionName);
+      setLog(LogLevel.ERROR, RESPONSE_MESSAGE.INVALID_JSON_FORMAT, functionName);
       responseHandler.badRequest(response, "JSON_FORMAT");
       return false;
     }
@@ -60,7 +60,7 @@ export const validateCustId = (custId: string, response: Response, functionName:
   if (Types.ObjectId.isValid(custId)) {
     return true;
   }
-  setLog(LOG_LEVEL.ERROR, RESPONSE_MESSAGE.INVALID_CUSTID, functionName);
+  setLog(LogLevel.ERROR, RESPONSE_MESSAGE.INVALID_CUSTID, functionName);
   responseHandler.badRequest(response, "CUST_ID");
   return false;
 };
@@ -72,8 +72,8 @@ export const errorHandler = (
   functionName: string
 ): void => {
   setLog(
-    LOG_LEVEL.ERROR,
-    error instanceof Error ? error.message : LOG_MESSAGE.ERROR.UNKNOWN, 
+    LogLevel.ERROR,
+    error instanceof Error ? error.message : LogMessage.ERROR.UNKNOWN, 
     functionName
   );
   responseHandler.serverError(response);

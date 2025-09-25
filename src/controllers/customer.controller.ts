@@ -4,7 +4,7 @@ import mongoose from "mongoose";
 import { responseHandler } from "../common/response";
 import { getNowDate, getDateAfterMonths, isNullOrEmpty, setFunctionName } from "../common/utils";
 import { getCustomerListPipeline, getCustomerDetailPipeline } from "../core/db";
-import { LOG_LEVEL, LOG_MESSAGE, setLog } from "../core/logger";
+import { LogLevel, LogMessage, setLog } from "../core/logger";
 import Customer, { ICustomer } from "../models/customer.model";
 import ServiceType from "../models/serviceType.model";
 import Transaction, { ITransaction } from "../models/transaction.model";
@@ -17,7 +17,7 @@ export const getCustList = setFunctionName(
     try {
       const customers = await Customer.aggregate(getCustomerListPipeline());
 
-      setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, getCustList.name);
+      setLog(LogLevel.INFO, LogMessage.SUCCESS, getCustList.name);
       responseHandler.success(response, customers);
     } catch (error) {
       baseController.errorHandler(response, error, getCustList.name);
@@ -39,10 +39,10 @@ export const getCustomer = setFunctionName(
         const customer = await Customer.aggregate(getCustomerDetailPipeline(custId));
 
         if (customer.length > 0) {
-          setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, getCustomer.name);
+          setLog(LogLevel.INFO, LogMessage.SUCCESS, getCustomer.name);
           responseHandler.success(response, customer.at(0));
         } else {
-          setLog(LOG_LEVEL.ERROR, LOG_MESSAGE.ERROR.NOTFOUND, getCustomer.name);
+          setLog(LogLevel.ERROR, LogMessage.ERROR.NOTFOUND, getCustomer.name);
           responseHandler.notFound(response);
         }
       }
@@ -79,8 +79,8 @@ export const createCustomer = setFunctionName(
       const amount = request.body.amount;
       const isCustExist = await Customer.findOne({ custName });
       if (isCustExist) {
-        const logMsg = `${LOG_MESSAGE.ERROR.CUSTEXISTS}, custName: ${custName}`;
-        setLog(LOG_LEVEL.ERROR, logMsg, createCustomer.name);
+        const logMsg = `${LogMessage.ERROR.CUSTEXISTS}, custName: ${custName}`;
+        setLog(LogLevel.ERROR, logMsg, createCustomer.name);
         responseHandler.conflict(response);
         return;
       }
@@ -107,7 +107,7 @@ export const createCustomer = setFunctionName(
         await Transaction.create([txnData], { session });
 
         await session.commitTransaction();
-        setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, createCustomer.name);
+        setLog(LogLevel.INFO, LogMessage.SUCCESS, createCustomer.name);
         responseHandler.created(response);
       }
     } catch (error) {
@@ -147,7 +147,7 @@ export const updateCustInfo = setFunctionName(
             request.body.custId,
             { custName: request.body.custName }
           );
-          setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, updateCustInfo.name);
+          setLog(LogLevel.INFO, LogMessage.SUCCESS, updateCustInfo.name);
           responseHandler.success(response);
           break;
         case "extend":

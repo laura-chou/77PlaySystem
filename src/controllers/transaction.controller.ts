@@ -5,7 +5,7 @@ import { RESPONSE_MESSAGE } from "../common/constants";
 import { responseHandler } from "../common/response";
 import { getNowDate, getDateAfterMonths, setFunctionName, isExpiry } from "../common/utils";
 import { toObjectId } from "../core/db";
-import { LOG_LEVEL, LOG_MESSAGE, setLog } from "../core/logger";
+import { LogLevel, LogMessage, setLog } from "../core/logger";
 import Customer from "../models/customer.model";
 import Transaction, { ITransaction } from "../models/transaction.model";
 
@@ -64,7 +64,7 @@ export const processPayment = setFunctionName(
         });
 
         await Transaction.create(transactionData);
-        setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, processPayment.name);
+        setLog(LogLevel.INFO, LogMessage.SUCCESS, processPayment.name);
         responseHandler.success(response);
       }
     } catch (error) {
@@ -95,7 +95,7 @@ export const topUpAccount = setFunctionName(
         };
 
         await Transaction.create(data);
-        setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, topUpAccount.name);
+        setLog(LogLevel.INFO, LogMessage.SUCCESS, topUpAccount.name);
         responseHandler.success(response);
       }
     } catch (error) {
@@ -117,14 +117,14 @@ export const extendExpiryDate = setFunctionName(
 
       const lastTransaction = await getLastTransaction(custId);
       if (!lastTransaction) {
-        setLog(LOG_LEVEL.ERROR, LOG_MESSAGE.ERROR.NOTFOUND, extendExpiryDate.name);
+        setLog(LogLevel.ERROR, LogMessage.ERROR.NOTFOUND, extendExpiryDate.name);
         responseHandler.notFound(response);
         return;
       }
 
       if (!isExpiry(lastTransaction.expiryDate)) {
-        const logMsg = `${LOG_MESSAGE.ERROR.CUSTNOTDUE} custId: ${custId}`;
-        setLog(LOG_LEVEL.ERROR, logMsg, extendExpiryDate.name);
+        const logMsg = `${LogMessage.ERROR.CUSTNOTDUE} custId: ${custId}`;
+        setLog(LogLevel.ERROR, logMsg, extendExpiryDate.name);
         responseHandler.badRequest(response, "CUSTNOTDUE");
         return;
       }
@@ -151,13 +151,13 @@ export const extendExpiryDate = setFunctionName(
       }
 
       await session.commitTransaction();
-      setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, extendExpiryDate.name);
+      setLog(LogLevel.INFO, LogMessage.SUCCESS, extendExpiryDate.name);
       responseHandler.success(response);
     } catch (error) {
       await session.abortTransaction();
       if (error instanceof Error && error.message.includes("invalid extended")) {
-        const logMsg = `${LOG_MESSAGE.ERROR.EXTENSIONLIMIT} custId: ${custId}`;
-        setLog(LOG_LEVEL.ERROR, logMsg, extendExpiryDate.name);
+        const logMsg = `${LogMessage.ERROR.EXTENSIONLIMIT} custId: ${custId}`;
+        setLog(LogLevel.ERROR, logMsg, extendExpiryDate.name);
         responseHandler.conflict(response, RESPONSE_MESSAGE.EXTENSION_LIMIT);
       } else {
         baseController.errorHandler(response, error, extendExpiryDate.name);

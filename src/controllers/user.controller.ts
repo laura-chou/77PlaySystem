@@ -4,7 +4,7 @@ import jwt from "jsonwebtoken";
 
 import { responseHandler } from "../common/response";
 import { getNowDate, setFunctionName } from "../common/utils";
-import { LOG_LEVEL, LOG_MESSAGE, setLog } from "../core/logger";
+import { LogLevel, LogMessage, setLog } from "../core/logger";
 import User, { IUser, UserRole } from "../models/user.model";
 
 import * as baseController from "./base.controller";
@@ -25,7 +25,7 @@ export const userLogin = setFunctionName(
         user._id,
         { token }
       );
-      setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, userLogin.name);
+      setLog(LogLevel.INFO, LogMessage.SUCCESS, userLogin.name);
       responseHandler.success(response, { token });
     } catch (error) {
       baseController.errorHandler(response, error, userLogin.name);
@@ -56,8 +56,8 @@ export const userCreate = setFunctionName(
       const role = userRole ? UserRole.ADMIN : UserRole.USER;
       const isUserExist = await User.findOne({ userName });
       if (isUserExist) {
-        const logMsg = `${LOG_MESSAGE.ERROR.USEREXISTS}, userName: ${userName}`;
-        setLog(LOG_LEVEL.ERROR, logMsg, userCreate.name);
+        const logMsg = `${LogMessage.ERROR.USEREXISTS}, userName: ${userName}`;
+        setLog(LogLevel.ERROR, logMsg, userCreate.name);
         responseHandler.conflict(response);
         return;
       }
@@ -69,7 +69,7 @@ export const userCreate = setFunctionName(
         createDate: getNowDate()
       };
       await User.create(data);
-      setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, userCreate.name);
+      setLog(LogLevel.INFO, LogMessage.SUCCESS, userCreate.name);
       responseHandler.created(response);
     } catch (error) {
       baseController.errorHandler(response, error, userCreate.name);

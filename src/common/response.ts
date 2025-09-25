@@ -1,6 +1,6 @@
 import { Response } from "express";
 
-import { LOG_MESSAGE } from "../core/logger";
+import { LogMessage } from "../core/logger";
 
 import { HTTP_STATUS, RESPONSE_MESSAGE } from "./constants";
 
@@ -61,7 +61,7 @@ export const responseHandler = {
     );
   },
 
-  unauthorized(res: Response, message: string = LOG_MESSAGE.ERROR.UNKNOWN): void {
+  unauthorized(res: Response, message: string = LogMessage.ERROR.UNKNOWN): void {
     sendResponse(
       res,
       HTTP_STATUS.UNAUTHORIZED,
