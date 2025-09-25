@@ -308,7 +308,7 @@ describe("Customer API", () => {
 
       test("should succeed when the action is 'extend'", async() => {
         mockUserFindOne();
-        mockTransactionFindOne();
+        mockTransactionFindOne("expiry");
         mockCustFindOneAndUpdate();
 
         const response = await createRequest.patch(
@@ -367,7 +367,7 @@ describe("Customer API", () => {
     describe("Validate Customer Extension", () => {
       test("should return conflict if customer extendedTimes more than 3", async() => {
         mockUserFindOne();
-        mockTransactionFindOne();
+        mockTransactionFindOne("expiry");
         mockCustFindOneAndUpdate(null);
 
         const response = await createRequest.patch(
@@ -419,7 +419,7 @@ describe("Customer API", () => {
             mockFn: Customer.findOneAndUpdate as jest.Mock,
             setupMocks: (): void => {
               mockUserFindOne();
-              mockTransactionFindOne();
+              mockTransactionFindOne("expiry");
             },
             includeAbortTransactionTest: true
           }

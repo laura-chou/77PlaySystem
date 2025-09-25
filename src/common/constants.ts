@@ -33,5 +33,6 @@ export const RESPONSE_MESSAGE = {
   INVALID_CUSTID: "Invalid Customer ID format.",
   INVALID_LOGIC: "Invalid logic in request.",
   DATA_ALREADY_EXISTS: "This record already exists.",
-  EXTENSION_LIMIT: "The maximum number of extensions has been reached."
+  EXTENSION_LIMIT: "The maximum number of extensions has been reached.",
+  CUSTNOTDUE: "Customer is not due yet."
 } as const;

@@ -16,11 +16,11 @@ export const LOG_MESSAGE = {
   SUCCESS: "success",
   ERROR: {
     UNKNOWN: "unknown error",
-    LOGIC: "logical inconsistency found",
     CUSTEXISTS: "customer already exists",
     USEREXISTS: "user already exists",
     NOTFOUND: "no data found",
-    EXTENSIONLIMIT: "extension limit reached."
+    EXTENSIONLIMIT: "extension limit reached.",
+    CUSTNOTDUE: "customer is not due yet"
   }
 } as const;
 

@@ -11,35 +11,62 @@ import Transaction, { ITransaction } from "../models/transaction.model";
 
 import * as baseController from "./base.controller";
 
+interface TransactionData {
+  custId: string;
+  amount: number;
+  createDate: string;
+  serviceTypeId: mongoose.Types.ObjectId;
+  currentBalance: number;
+  expiryDate: Date;
+}
+
 const isExtendThreeMonths = (amount: number): boolean => {
   return amount === 1500;
+};
+
+const getLastTransaction = async(custId: string): Promise<ITransaction | null> => {
+  return await Transaction.findOne({ customerId: custId }).sort({ spendDate: -1 });
+};
+
+const createTransactionData = ({
+  custId,
+  amount,
+  createDate,
+  serviceTypeId,
+  currentBalance,
+  expiryDate
+}: TransactionData): ITransaction => {
+  return {
+    customerId: toObjectId(custId),
+    amount,
+    serviceTypeId,
+    currentBalance,
+    spendDate: getNowDate(createDate),
+    expiryDate
+  };
 };
 
 export const processPayment = setFunctionName(
   async(request: Request, response: Response): Promise<void> => {
     try {
-      const createDate = request.body.createDate;
-      const custId = request.body.custId;
+      const { createDate, custId } = request.body;
       const amount = -Math.abs(request.body.amount);
-      const lastTransaction = await Transaction.findOne({ customerId: custId }).sort({ spendDate: -1 });
+      const lastTransaction = await getLastTransaction(custId);
+
       if (lastTransaction) {
-        const currentBalance = lastTransaction?.currentBalance + amount;
-        const nowDate = getNowDate(createDate);
-        const expiryDate = lastTransaction?.expiryDate;
+        const transactionData = createTransactionData({
+          custId,
+          amount: -Math.abs(amount),
+          createDate,
+          serviceTypeId: lastTransaction.serviceTypeId,
+          currentBalance: lastTransaction.currentBalance - Math.abs(amount),
+          expiryDate: lastTransaction.expiryDate
+        });
 
-        const data: ITransaction = {
-          customerId: toObjectId(custId),
-          amount: amount,
-          serviceTypeId: lastTransaction?.serviceTypeId,
-          currentBalance: currentBalance,
-          spendDate: nowDate,
-          expiryDate: expiryDate
-        };
-
-        await Transaction.create(data);
+        await Transaction.create(transactionData);
+        setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, processPayment.name);
+        responseHandler.success(response);
       }
-      setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, processPayment.name);
-      responseHandler.success(response);
     } catch (error) {
       baseController.errorHandler(response, error, processPayment.name);
     }
@@ -50,10 +77,9 @@ export const processPayment = setFunctionName(
 export const topUpAccount = setFunctionName(
   async(request: Request, response: Response): Promise<void> => {
     try {
-      const createDate = request.body.createDate;
-      const custId = request.body.custId;
-      const amount = request.body.amount;
-      const lastTransaction = await Transaction.findOne({ customerId: custId }).sort({ spendDate: -1 });
+      const { createDate, custId, amount } = request.body;
+      const lastTransaction = await getLastTransaction(custId);
+
       if (lastTransaction) {
         const currentBalance = lastTransaction?.currentBalance + amount;
         const nowDate = getNowDate(createDate);
@@ -69,7 +95,6 @@ export const topUpAccount = setFunctionName(
         };
 
         await Transaction.create(data);
-
         setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, topUpAccount.name);
         responseHandler.success(response);
       }
@@ -82,58 +107,56 @@ export const topUpAccount = setFunctionName(
 
 export const extendExpiryDate = setFunctionName(
   async(request: Request, response: Response): Promise<void> => {
-    const custId = request.body.custId;
-    const createDate = request.body.createDate;
-    const amount = -Math.abs(request.body.amount);
-
     const session = await mongoose.startSession();
     session.startTransaction();
+    
+    const { custId, createDate } = request.body;
 
-    try {
-      const lastTransaction = await Transaction.findOne({ customerId: custId }).sort({ spendDate: -1 });
-      if (lastTransaction) {
-        if (isExpiry(lastTransaction.expiryDate)) {
-          setLog(LOG_LEVEL.ERROR, LOG_MESSAGE.ERROR.LOGIC, extendExpiryDate.name);
-          responseHandler.badRequest(response, "LOGIC");
-          return;
-        }
+    try {  
+      const amount = -Math.abs(request.body.amount);
 
-        const currentBalance = lastTransaction?.currentBalance + amount;
-        const nowDate = getNowDate(createDate);
-        const expiryDate = getDateAfterMonths(nowDate, 1);
-
-        const data: ITransaction = {
-          customerId: toObjectId(custId),
-          amount: amount,
-          serviceTypeId: lastTransaction?.serviceTypeId,
-          currentBalance: currentBalance,
-          spendDate: nowDate,
-          expiryDate: expiryDate
-        };
-
-        await Transaction.create([data], { session });
-
-        const updated = await Customer.findOneAndUpdate(
-          { _id: custId, extendedTimes: { $lt: 3 } },
-          { $inc: { extendedTimes: 1 } },
-          { session }
-        );
-
-        if (!updated) {
-          throw new Error("invalid extended");
-        }
-
-        await session.commitTransaction();
-        setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, extendExpiryDate.name);
-        responseHandler.success(response);
-      } else {
+      const lastTransaction = await getLastTransaction(custId);
+      if (!lastTransaction) {
         setLog(LOG_LEVEL.ERROR, LOG_MESSAGE.ERROR.NOTFOUND, extendExpiryDate.name);
         responseHandler.notFound(response);
+        return;
       }
+
+      if (!isExpiry(lastTransaction.expiryDate)) {
+        const logMsg = `${LOG_MESSAGE.ERROR.CUSTNOTDUE} custId: ${custId}`;
+        setLog(LOG_LEVEL.ERROR, logMsg, extendExpiryDate.name);
+        responseHandler.badRequest(response, "CUSTNOTDUE");
+        return;
+      }
+
+      const transactionData = createTransactionData({
+        custId,
+        amount: -Math.abs(amount),
+        createDate,
+        serviceTypeId: lastTransaction.serviceTypeId,
+        currentBalance: lastTransaction.currentBalance - Math.abs(amount),
+        expiryDate: getDateAfterMonths(getNowDate(createDate), 1)
+      });
+
+      await Transaction.create([transactionData], { session });
+
+      const updated = await Customer.findOneAndUpdate(
+        { _id: custId, extendedTimes: { $lt: 3 } },
+        { $inc: { extendedTimes: 1 } },
+        { session }
+      );
+
+      if (!updated) {
+        throw new Error("invalid extended");
+      }
+
+      await session.commitTransaction();
+      setLog(LOG_LEVEL.INFO, LOG_MESSAGE.SUCCESS, extendExpiryDate.name);
+      responseHandler.success(response);
     } catch (error) {
       await session.abortTransaction();
       if (error instanceof Error && error.message.includes("invalid extended")) {
-        const logMsg = `${LOG_MESSAGE.ERROR.EXTENSIONLIMIT}, custId: ${custId}`;
+        const logMsg = `${LOG_MESSAGE.ERROR.EXTENSIONLIMIT} custId: ${custId}`;
         setLog(LOG_LEVEL.ERROR, logMsg, extendExpiryDate.name);
         responseHandler.conflict(response, RESPONSE_MESSAGE.EXTENSION_LIMIT);
       } else {
