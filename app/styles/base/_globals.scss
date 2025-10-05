@@ -6,6 +6,7 @@
 html {
     box-sizing: border-box;
     font-family: $font-family-default;
+    height: 100%;
 }
 
 *, *::before, *::after {
@@ -15,6 +16,7 @@ html {
 body {
     margin: 0;
     padding: 0;
+    height: 100%;
     background-color: #fff;
     color: #333;
 }

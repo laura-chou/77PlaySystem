@@ -71,73 +71,64 @@ export default function CreateCustomer() {
     };
 
     return (
-        <div className={`container ${styles.customerForm}`}>
-            <div className="d-flex justify-content-between align-items-center mb-4">
-                <h1 className="page-title">新增客戶</h1>
-                <button className="btn btn-secondary" onClick={handleCancel}>
-                    <i className="bi bi-arrow-left me-2"></i>
-                    返回清單
-                </button>
-            </div>
+        <div className={`${styles.container}`}>
+            <div className={`row mx-3 ${styles.customerDetail}`}>
+                <div className="d-flex justify-content-between align-items-center mb-3 px-0">
+                    <h3 className="page-title">新增客戶</h3>
+                    <button
+                        className="btn btn-secondary"
+                        onClick={handleCancel}
+                    >
+                        <i className="bi bi-arrow-left me-2"></i>
+                        返回清單
+                    </button>
+                </div>
+                <div className="row mb-3">
+                    <label htmlFor="custName" className="col-form-label px-1">客戶 LINE：</label>
+                    <input
+                        type="text"
+                        className="form-control"
+                        id="custName"
+                        name="custName"
+                        value={newCustomer.custName}
+                        onChange={handleInputChange}
+                        required
+                    />
+                </div>
 
-            <div className="row justify-content-center">
-                <div className="col-md-8 col-lg-6">
-                    <form onSubmit={handleSubmit}>
-                        <div className="border rounded p-4">
-                            <div className="mb-3">
-                                <label htmlFor="custName" className="form-label">客戶 LINE</label>
-                                <input
-                                    type="text"
-                                    className="form-control"
-                                    id="custName"
-                                    name="custName"
-                                    value={newCustomer.custName}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                            </div>
-                            <div className="mb-3">
-                                <label htmlFor="amount" className="form-label">金額</label>
-                                <input
-                                    type="number"
-                                    className="form-control"
-                                    id="amount"
-                                    name="amount"
-                                    value={newCustomer.amount}
-                                    onChange={handleInputChange}
-                                    min="100"
-                                    step="100"
-                                    required
-                                />
-                            </div>
-                            <div className="mb-3">
-                                <label htmlFor="createDate" className="form-label">加入日期</label>
-                                <input
-                                    type="date"
-                                    className="form-control"
-                                    id="createDate"
-                                    name="createDate"
-                                    value={newCustomer.createDate}
-                                    onChange={handleInputChange}
-                                    required
-                                />
-                            </div>
-                        </div>
+                <div className="row mb-3">
+                    <label htmlFor="amount" className="col-form-label px-1">金額：</label>
+                    <input
+                        type="number"
+                        className="form-control"
+                        id="amount"
+                        name="amount"
+                        value={newCustomer.amount}
+                        onChange={handleInputChange}
+                        min="100"
+                        step="100"
+                        required
+                    />
+                </div>
 
-                        <div className="d-flex justify-content-end gap-2 mt-3">
-                            <button
-                                type="button"
-                                className="btn btn-secondary"
-                                onClick={handleCancel}
-                            >
-                                取消
-                            </button>
-                            <button type="submit" className="btn btn-primary">
-                                <i className="bi bi-check-circle me-2"></i>
-                                儲存
-                            </button>
-                        </div>
-                    </form>
+                <div className="row mb-3">
+                    <label htmlFor="createDate" className="col-form-label px-1">加入日期：</label>
+                    <input
+                        type="date"
+                        className="form-control"
+                        id="createDate"
+                        name="createDate"
+                        value={newCustomer.createDate}
+                        onChange={handleInputChange}
+                        required
+                    />
+                </div>
+
+                <div className="d-flex justify-content-end mt-2">
+                    <button className="btn btn-primary" onClick={handleSubmit}>
+                        <i className="bi bi-check-circle me-2"></i>
+                        儲存
+                    </button>
                 </div>
             </div>
         </div>
