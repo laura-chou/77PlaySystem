@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 
 import styles from '@/styles/modules/customer.module.scss';
 
-import { env } from '../../../config/env';
+import { env } from '@/config/env';
 import { ICustomer, ICustomerHistory, ICustomerFormData, ActionEnum } from '../../../lib/models/customer';
 
 
@@ -194,7 +194,7 @@ export default function CustomerEdit() {
 
     return (
         <div className={`${styles.container}`}>
-            <div className={`row mx-3 ${styles.customerDetail}`}>
+            <div className={`row m-3 ${styles.customerDetail}`}>
                 <div className="d-flex justify-content-between align-items-center mb-3 px-0">
                     <h3 className="page-title">客戶資料</h3>
                     <button
