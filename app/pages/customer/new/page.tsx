@@ -42,21 +42,14 @@ export default function CreateCustomer() {
     const handleSubmit = async(e: React.FormEvent) => {
         e.preventDefault();
 
-        const token = localStorage.getItem('token');
-        if (!token) {
-            router.push('/');
-            return;
-        }
-
         try {
             const dataToSend = { ...newCustomer };
 
-            const response = await axios.post(`${env.apiBaseUrl}customer/create`, dataToSend, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+            const response = await axios.post(
+                `${env.apiBaseUrl}customer/create`,
+                dataToSend,
+                { withCredentials: true }
+            );
 
             // Handle successful creation
             alert('客戶新增成功');

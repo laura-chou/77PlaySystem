@@ -46,19 +46,12 @@ export default function CustomerEdit() {
     };
 
     const fetchCustomer = async() => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            router.push('/');
-            return;
-        }
-
         try {
             setLoading(true);
-            const response = await axios.get(`${env.apiBaseUrl}customer/${customerId}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await axios.get(
+                `${env.apiBaseUrl}customer/${customerId}`,
+                { withCredentials: true }
+            );
 
             const responseData = response.data.data;
 
@@ -128,12 +121,11 @@ export default function CustomerEdit() {
             }
 
             console.log('prior to send dataToSend', dataToSend);
-            await axios.patch(`${env.apiBaseUrl}customer/update/${customerId}`, dataToSend, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
-            });
+            await axios.patch(
+                `${env.apiBaseUrl}customer/update/${customerId}`,
+                dataToSend,
+                { withCredentials: true }
+            );
 
             // Fetch updated customer data after successful update
             await fetchCustomer();

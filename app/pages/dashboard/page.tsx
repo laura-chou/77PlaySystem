@@ -34,22 +34,10 @@ export default function Dashboard() {
                 setLoading(true);
                 setError(null);
 
-                const token = localStorage.getItem('token');
-
-                if (!token) {
-                    alert('驗證失敗，請重新登入');
-                    router.push('/');
-                    return;
-                }
-
-                const config = {
-                    headers: {
-                        'Authorization': `Bearer ${token}`,
-                        'Content-Type': 'application/json'
-                    }
-                };
-
-                const response = await axios.get(`${env.apiBaseUrl}customer`, config);
+                const response = await axios.get(
+                    `${env.apiBaseUrl}customer`,
+                    { withCredentials: true }
+                );
 
                 if (response.data.data && Array.isArray(response.data.data)) {
                     setUsers(response.data.data);
@@ -58,10 +46,8 @@ export default function Dashboard() {
                     setUsers([]);
                 }
             } catch (error: any) {
-
                 if (error.response?.status === 401) {
                     alert('驗證失效，請重新登入');
-                    localStorage.removeItem('token');
                     router.push('/');
                 } else {
                     setError(error.message || 'Failed to fetch users');

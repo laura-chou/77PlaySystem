@@ -17,10 +17,11 @@ export default function Login() {
         e.preventDefault();
         try {
             const request = { "password": password };
-            const response = await axios.post(`${env.apiBaseUrl}user/login`, request);
-            const token = response.data.data.token;
-            localStorage.setItem('token', token);
-            axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+            await axios.post(
+                `${env.apiBaseUrl}user/login`,
+                request,
+                { withCredentials: true }
+            );
             router.push('/pages/dashboard');
         } catch (error) {
             alert((error as any).response.data.message);
