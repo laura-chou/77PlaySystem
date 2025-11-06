@@ -1,6 +1,7 @@
 import "dotenv/config";
 import "./middleware/passport";
 
+import cookieParser from "cookie-parser";
 import cors, { CorsOptions } from "cors";
 import express, { Express, NextFunction, Request, Response } from "express";
 import morgan from "morgan";
@@ -28,6 +29,7 @@ app.use(morgan(":apiPath", {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 publicRoutes.forEach(route => {
   app.use(route.prefix, route.router);

@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 import mongoose from "mongoose";
-import request, { Response } from "supertest";
+import request, { Response, Request } from "supertest";
 
 import app from "../../src/app";
 import { CONTENT_TYPE, HTTP_STATUS, RESPONSE_MESSAGE } from "../../src/common/constants";
@@ -11,18 +11,39 @@ import User from "../../src/models/user.model";
 import { MOCK_LATEST_TRANSACTION_EXPIRED, MOCK_LATEST_TRANSACTION_NOT_EXPIRED } from "./transactionTestConfig";
 import { MOCK_USER_ADMIN } from "./userTestConfig";
 
-interface TokenInfo {
+interface TokenOptions {
   showToken: boolean;
   isExpired: boolean;
   isInvalid: boolean;
   existUser: boolean;
 }
 
-const defaultTokenInfo: Required<TokenInfo> = {
+const defaultTokenOptions: Required<TokenOptions> = {
   showToken: true,
   existUser: true,
   isExpired: false,
   isInvalid: false
+};
+
+const attachTokenCookie = (req: Request, options: TokenOptions): void => {
+  if (!options.showToken) return;
+
+  const payload = {
+    user: options.existUser ? "testuser" : "notExistUser",
+  };
+
+  const expiresIn = options.isExpired ? -1 : "1h";
+
+  const validToken = jwt.sign(
+    payload,
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    process.env.JWT_SECRET!,
+    { expiresIn }
+  );
+
+  const token = options.isInvalid ? "invalidtoken" : validToken;
+
+  req.set("Cookie", [`token=${token}`]);
 };
 
 export const mockUserFindOne = (data: object | null = MOCK_USER_ADMIN): void => {
@@ -74,23 +95,14 @@ export const createRequest = {
   get: (
     route: string,
     status: number,
-    tokenInfo?: Partial<TokenInfo>,    
+    TokenOptions?: Partial<TokenOptions>,    
     isExpectJson: boolean = true
   ): request.Test => {
-    const mergedTokenInfo = { ...defaultTokenInfo, ...tokenInfo };
+    const mergedTokenOptions = { ...defaultTokenOptions, ...TokenOptions };
     const expectContentType = isExpectJson ? CONTENT_TYPE.JSON_WITH_CHARSET : CONTENT_TYPE.TEXT_WITH_CHARSET;
     const req = request(app).get(route);
 
-    if (mergedTokenInfo.showToken) {
-      const validToken = jwt.sign(
-        { user: mergedTokenInfo.existUser ? "testuser" : "notExistUser" },
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        process.env.JWT_SECRET!,
-        { expiresIn: mergedTokenInfo.isExpired ? -1 : "1h" }
-      );
-      const token = mergedTokenInfo.isInvalid ? "invalidtoken" : validToken;
-      req.set("Authorization", `Bearer ${token}`);
-    }
+    attachTokenCookie(req, mergedTokenOptions);
 
     return req
       .expect("Content-Type", expectContentType)
@@ -101,27 +113,19 @@ export const createRequest = {
     route: string,
     body: string | object,
     status: number,
-    tokenInfo?: Partial<TokenInfo>,
+    TokenOptions?: Partial<TokenOptions>,
     isSetJson: boolean = true,
     isExpectJson: boolean = true
   ): request.Test => {
-    const mergedTokenInfo = { ...defaultTokenInfo, ...tokenInfo };
+    const mergedTokenOptions = { ...defaultTokenOptions, ...TokenOptions };
     const setContentType = isSetJson ? CONTENT_TYPE.JSON : CONTENT_TYPE.FORM_URLENCODED;
     const expectContentType = isExpectJson ? CONTENT_TYPE.JSON_WITH_CHARSET : CONTENT_TYPE.TEXT_WITH_CHARSET;
     const req = request(app)
       .post(route)
       .set("Content-Type", setContentType)
       .send(body);
-    if (mergedTokenInfo.showToken) {
-      const validToken = jwt.sign(
-        { user: mergedTokenInfo.existUser ? "testuser" : "notExistUser" },
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        process.env.JWT_SECRET!,
-        { expiresIn: mergedTokenInfo.isExpired ? -1 : "1h" }
-      );
-      const token = mergedTokenInfo.isInvalid ? "invalidtoken" : validToken;
-      req.set("Authorization", `Bearer ${token}`);
-    }
+
+    attachTokenCookie(req, mergedTokenOptions);
 
     return req
       .expect("Content-Type", expectContentType)
@@ -132,11 +136,11 @@ export const createRequest = {
     route: string,
     body: string | object,
     status: number,
-    tokenInfo?: Partial<TokenInfo>,
+    TokenOptions?: Partial<TokenOptions>,
     isSetJson: boolean = true,
     isExpectJson: boolean = true
   ): request.Test => {
-    const mergedTokenInfo = { ...defaultTokenInfo, ...tokenInfo };
+    const mergedTokenOptions = { ...defaultTokenOptions, ...TokenOptions };
     const setContentType = isSetJson ? CONTENT_TYPE.JSON : CONTENT_TYPE.FORM_URLENCODED;
     const expectContentType = isExpectJson ? CONTENT_TYPE.JSON_WITH_CHARSET : CONTENT_TYPE.TEXT_WITH_CHARSET;
     const req = request(app)
@@ -144,16 +148,7 @@ export const createRequest = {
       .set("Content-Type", setContentType)
       .send(body);
 
-    if (mergedTokenInfo.showToken) {
-      const validToken = jwt.sign(
-        { user: mergedTokenInfo.existUser ? "testuser" : "notExistUser" },
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        process.env.JWT_SECRET!,
-        { expiresIn: mergedTokenInfo.isExpired ? -1 : "1h" }
-      );
-      const token = mergedTokenInfo.isInvalid ? "invalidtoken" : validToken;
-      req.set("Authorization", `Bearer ${token}`);
-    }
+    attachTokenCookie(req, mergedTokenOptions);
     
     return req
       .expect("Content-Type", expectContentType)
@@ -163,23 +158,14 @@ export const createRequest = {
   delete: (
     route: string,
     status: number,
-    tokenInfo?: Partial<TokenInfo>,    
+    TokenOptions?: Partial<TokenOptions>,    
     isExpectJson: boolean = true
   ): request.Test => {
-    const mergedTokenInfo = { ...defaultTokenInfo, ...tokenInfo };
+    const mergedTokenOptions = { ...defaultTokenOptions, ...TokenOptions };
     const expectContentType = isExpectJson ? CONTENT_TYPE.JSON_WITH_CHARSET : CONTENT_TYPE.TEXT_WITH_CHARSET;
     const req = request(app).delete(route);
 
-    if (mergedTokenInfo.showToken) {
-      const validToken = jwt.sign(
-        { user: mergedTokenInfo.existUser ? "testuser" : "notExistUser" },
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        process.env.JWT_SECRET!,
-        { expiresIn: mergedTokenInfo.isExpired ? -1 : "1h" }
-      );
-      const token = mergedTokenInfo.isInvalid ? "invalidtoken" : validToken;
-      req.set("Authorization", `Bearer ${token}`);
-    }
+    attachTokenCookie(req, mergedTokenOptions);
 
     return req
       .expect("Content-Type", expectContentType)

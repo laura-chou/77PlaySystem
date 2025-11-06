@@ -33,7 +33,11 @@ describe("User API", () => {
           HTTP_STATUS.OK
         );
         expect(response.statusCode).toBe(200);
-        expect(response.body.data).toHaveProperty("token");
+        expect(response.headers["set-cookie"]).toEqual(
+          expect.arrayContaining([
+            expect.stringMatching(/^token=.*$/)
+          ])
+        );
       });
     });
 

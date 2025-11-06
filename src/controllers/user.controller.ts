@@ -3,7 +3,7 @@ import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
 import { responseHandler } from "../common/response";
-import { getNowDate, setFunctionName } from "../common/utils";
+import { getNowDate, isProductionEnv, setFunctionName } from "../common/utils";
 import { LogLevel, LogMessage, setLog } from "../core/logger";
 import User, { IUser, UserRole } from "../models/user.model";
 
@@ -25,8 +25,16 @@ export const userLogin = setFunctionName(
         user._id,
         { token }
       );
+
+      response.cookie("token", token, {
+        httpOnly: true,
+        secure: isProductionEnv(),
+        sameSite: isProductionEnv() ? "none" : "lax",
+        maxAge: 60 * 60 * 1000
+      });
+
       setLog(LogLevel.INFO, LogMessage.SUCCESS, userLogin.name);
-      responseHandler.success(response, { token });
+      responseHandler.success(response);
     } catch (error) {
       baseController.errorHandler(response, error, userLogin.name);
     }
