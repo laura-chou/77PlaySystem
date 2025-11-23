@@ -81,7 +81,7 @@ export default function CustomerEdit() {
         } catch (error) {
             // If token is invalid, redirect to login
             if (axios.isAxiosError(error) && error.response?.status === 401) {
-                localStorage.removeItem('token');
+                alert('驗證失效，請重新登入');
                 router.push('/');
             }
         } finally {
@@ -89,11 +89,9 @@ export default function CustomerEdit() {
         }
     };
 
-    const handleSave = async() => {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            router.push('/');
-            return;
+    const handleSave = async(e?: React.MouseEvent<HTMLButtonElement>) => {
+        if (e) {
+            e.preventDefault();
         }
 
         try {
@@ -134,12 +132,17 @@ export default function CustomerEdit() {
             alert('客戶資料已更新！');
         } catch (error) {
             console.error('Failed to update customer:', error);
+            // Handle 401 error specifically
+            if (axios.isAxiosError(error) && error.response?.status === 401) {
+                alert('驗證失效，請重新登入');
+                router.push('/');
+                return;
+            }
             alert('更新失敗，請重試');
         }
     };
 
     const handleCancel = () => {
-        const today = new Date().toISOString().split('T')[0];
         if (customer) {
             setFormData({
                 action: ActionEnum.CHARGE,
@@ -308,6 +311,7 @@ export default function CustomerEdit() {
                 <div className="d-flex justify-content-end mt-2 gap-2">
                     {!isEditing ? (
                         <button
+                            type="button"
                             className="btn btn-primary"
                             onClick={() => setIsEditing(true)}
                         >
@@ -317,6 +321,7 @@ export default function CustomerEdit() {
                     ) : (
                         <>
                             <button
+                                type="button"
                                 className="btn btn-success"
                                 onClick={handleSave}
                             >
@@ -324,6 +329,7 @@ export default function CustomerEdit() {
                                 儲存
                             </button>
                             <button
+                                type="button"
                                 className="btn btn-secondary"
                                 onClick={handleCancel}
                             >
