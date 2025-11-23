@@ -54,6 +54,7 @@ export default function CustomerEdit() {
             );
 
             const responseData = response.data.data;
+            console.log('responseData', responseData);
 
             // Ensure dates are properly formatted
             const today = new Date().toISOString().split('T')[0];
@@ -120,9 +121,8 @@ export default function CustomerEdit() {
                 }
             }
 
-            console.log('prior to send dataToSend', dataToSend);
             await axios.patch(
-                `${env.apiBaseUrl}customer/update/${customerId}`,
+                `${env.apiBaseUrl}customer/update`,
                 dataToSend,
                 { withCredentials: true }
             );
@@ -180,9 +180,6 @@ export default function CustomerEdit() {
             </div>
         );
     }
-
-    // Debug: Log current form data
-    console.log('Current formData:', formData);
 
     return (
         <div className={`${styles.container}`}>
@@ -335,6 +332,33 @@ export default function CustomerEdit() {
                             </button>
                         </>
                     )}
+                </div>
+            </div>
+            <div className={`row m-3 ${styles.customerHistory}`}>
+                <div className="d-flex justify-content-between align-items-center mb-3 px-0">
+                    <h3 className="page-title">歷史紀錄</h3>
+                </div>
+                <div className="row mb-3">
+                    <table className={`table table-bordered ${styles.historyTable}`}>
+                        <thead>
+                            <tr>
+                                <th>日期</th>
+                                <th>金額</th>
+                                <th>餘額</th>
+                                <th>到期日</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {customer.history.map((history, index) => (
+                                <tr key={`${history.spendDate}-${index}`}>
+                                    <td>{history.spendDate}</td>
+                                    <td>{history.amount}</td>
+                                    <td>{history.currentBalance}</td>
+                                    <td>{history.expiryDate}</td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
