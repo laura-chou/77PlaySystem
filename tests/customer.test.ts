@@ -7,7 +7,7 @@ import User from "../src/models/user.model";
 
 import { ROUTE, MOCK_CUSTOMER_WITH_HISTORY, MOCK_CUSTOMERS, MOCK_CUSTOMER_INFO, MOCK_CREATE_DATA, MOCK_ID, 
   MOCK_UPDATE_NAME, MOCK_UPDATE_EXTEND, MOCK_UPDATE_CHARGE, MOCK_UPDATE_REFILL } from "./fixtures/customerTestConfig";
-import { describeValidationCustIdTest, describeAuthErrorTests, describeValidationErrorTests, describeServerErrorTests } from "./fixtures/testStructures";
+import { describeValidationCustIdTest, describeAuthErrorTests, describeReqBodyValidationTests, describeServerErrorTests } from "./fixtures/testStructures";
 import { createRequest, expectResponse, mockSession, mockStartSession, mockUserFindOne, mockTransactionFindOne } from "./fixtures/testUtils";
 
 const customerId = MOCK_CUSTOMER_WITH_HISTORY[0].custId;
@@ -16,6 +16,7 @@ let spy: jest.SpyInstance;
 jest.mock("../src/models/user.model", () => ({
   findOne: jest.fn(),
   updateOne: jest.fn(),
+  findByIdAndUpdate: jest.fn(),
   UserRole: {
     ADMIN: "admin"
   }
@@ -186,7 +187,7 @@ describe("Customer API", () => {
       expectResponse
     );
 
-    describeValidationErrorTests(
+    describeReqBodyValidationTests(
       {
         route: ROUTE.CREATE,
         validBody: MOCK_CREATE_DATA,
@@ -283,7 +284,7 @@ describe("Customer API", () => {
       expectResponse
     );
 
-    describeValidationErrorTests(
+    describeReqBodyValidationTests(
       {
         route: customerRoute,
         validBody: MOCK_UPDATE_NAME,

@@ -1,7 +1,7 @@
 import { HTTP_STATUS } from "../src/common/constants";
 import User from "../src/models/user.model";
 
-import { describeAuthErrorTests, describeServerErrorTests, describeValidationErrorTests } from "./fixtures/testStructures";
+import { describeAuthErrorTests, describeServerErrorTests, describeReqBodyValidationTests } from "./fixtures/testStructures";
 import { createRequest, expectResponse, mockUserFindOne } from "./fixtures/testUtils";
 import { ROUTE, MOCK_USER_ADMIN, MOCK_NOTEXIST_USER, MOCK_EXIST_USER } from "./fixtures/userTestConfig";
 
@@ -51,7 +51,7 @@ describe("User API", () => {
           HTTP_STATUS.UNAUTHORIZED
         );
     
-        expectResponse.unauthorized(response);
+        expectResponse.unauthorized(response, "WRONG_PASSWORD");
       });
 
       it("should fail if password is incorrect", async() => {
@@ -63,11 +63,11 @@ describe("User API", () => {
           HTTP_STATUS.UNAUTHORIZED
         );
 
-        expectResponse.unauthorized(response);
+        expectResponse.unauthorized(response, "WRONG_PASSWORD");
       });
     });
 
-    describeValidationErrorTests(
+    describeReqBodyValidationTests(
       {
         route: ROUTE.LOGIN,
         validBody: MOCK_EXIST_USER,
@@ -99,7 +99,7 @@ describe("User API", () => {
       expectResponse
     );
 
-    describeValidationErrorTests(
+    describeReqBodyValidationTests(
       {
         route: ROUTE.CREATE,
         validBody: MOCK_EXIST_USER,
@@ -111,7 +111,7 @@ describe("User API", () => {
     describe("Success Cases", () => {
       test("should create user successfully", async() => {
         (User.findOne as jest.Mock)
-          .mockImplementationOnce(() => Promise.resolve(MOCK_USER_ADMIN)) // 第一次
+          .mockImplementationOnce(() => Promise.resolve(MOCK_USER_ADMIN))
           .mockImplementationOnce(() => Promise.resolve(null));
 
         const response = await createRequest.post(

@@ -8,18 +8,14 @@ import { LogLevel, LogMessage, setLog } from "../core/logger";
 import User, { IUser, UserRole } from "../models/user.model";
 
 import * as baseController from "./base.controller";
+import { signToken } from "../core/jwt";
 
 export const userLogin = setFunctionName(
   async(request: Request, response: Response): Promise<void> => {
     try {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       const user = request.user!;
-      const token = jwt.sign(
-        { user: user.userName },
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        process.env.JWT_SECRET!, 
-        { expiresIn: "1h" }
-      );
+      const token = signToken({ user: user._id });
 
       await User.findByIdAndUpdate(
         user._id,

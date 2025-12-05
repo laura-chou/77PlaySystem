@@ -2,22 +2,20 @@ import request from "supertest";
 
 import { HTTP_STATUS, RESPONSE_MESSAGE } from "../../src/common/constants";
 
-import { expectResponse, mockSession, mockTransactionFindOne, mockUserFindOne } from "./testUtils";
+import { BadRequestType, expectResponse, mockSession, mockTransactionFindOne, mockUserFindOne, TokenOptions, UnAuthorizedType } from "./testUtils";
 
-type TokenInfo = {
-  showToken: boolean;
-  existUser?: boolean;
-  isInvalid?: boolean;
-  isExpired?: boolean;
-};
-
-type AuthTestCase = [string, Partial<TokenInfo>, string, boolean?];
+type AuthTestCase = [
+  description: string, 
+  tokenInfo: Partial<TokenOptions>, 
+  expectedMessage: UnAuthorizedType,
+  isUserNull: boolean
+];
 
 type ValidationTestCase = [
   description: string,
   requestBody: Record<string, unknown>,
   isSetJson: boolean,
-  expectedMessage: string
+  expectedMessage: BadRequestType
 ];
 
 interface ValidationConfig<T extends Record<string, unknown>> {
@@ -27,7 +25,7 @@ interface ValidationConfig<T extends Record<string, unknown>> {
     route: string,
     body: Partial<T> | Record<string, unknown>,
     status: number,
-    tokenInfo?: Partial<TokenInfo>,
+    TokenOptions?: Partial<TokenOptions>,
     isSetJson?: boolean
   ) => Promise<request.Response>;
 }
@@ -35,14 +33,14 @@ interface ValidationConfig<T extends Record<string, unknown>> {
 type GetRequestFunction = (
   route: string,
   status: number,
-  tokenInfo?: Partial<TokenInfo>
+  TokenOptions?: Partial<TokenOptions>
 ) => Promise<request.Response>;
 
 type ModifyRequestFunction = (
   route: string,
   body: string | object,
   status: number,
-  tokenInfo?: Partial<TokenInfo>
+  TokenOptions?: Partial<TokenOptions>
 ) => Promise<request.Response>;
 
 interface ServerErrorConfig {
@@ -90,7 +88,7 @@ export const describeValidationCustIdTest = (
   requestFn: (
     route: string,
     status: number,
-    tokenInfo?: Partial<TokenInfo>
+    TokenOptions?: Partial<TokenOptions>
   ) => Promise<request.Response>,
   expectResponseFn: typeof expectResponse
 ): void => {
@@ -103,7 +101,7 @@ export const describeValidationCustIdTest = (
         HTTP_STATUS.BAD_REQUEST,
         {}
       );
-      expectResponseFn.badRequest(response, RESPONSE_MESSAGE.INVALID_CUSTID);
+      expectResponseFn.badRequest(response, "CUST_ID");
     });
   });
 };
@@ -113,47 +111,42 @@ export const describeAuthErrorTests = (
   requestFn: (
     route: string,
     status: number,
-    tokenInfo?: Partial<TokenInfo>
+    TokenOptions?: Partial<TokenOptions>
   ) => Promise<request.Response>,
   expectResponseFn: typeof expectResponse
 ): void => {
   const authTestCases: AuthTestCase[] = [
-    ["no JWT", { showToken: false }, "No auth token"],
-    ["invalid JWT", { isInvalid: true }, "jwt malformed"],
-    ["expired JWT", { isExpired: true }, "jwt expired"],
-    ["User in JWT does not exist", { existUser: false, showToken: true }, RESPONSE_MESSAGE.USER_NOT_EXIST, true]
+    ["no JWT", { showToken: false }, "INVALID_TOKEN", false],
+    ["invalid JWT", { isInvalid: true }, "INVALID_TOKEN", false],
+    ["expired JWT", { isExpired: true, mockToken: false }, "INVALID_TOKEN", false],
+    ["User in JWT does not exist", { existUser: false, showToken: true }, "WRONG_PASSWORD", true]
   ];
 
   describe("Authentication Error Cases", () => {
     test.each(authTestCases)(
       "should fail if %s",
-      async(
-        _: string,
-        tokenInfo: Partial<TokenInfo>,
-        expectedMessage: string,
-        isUserNull: boolean = false
-      ) => {
+      async(_, TokenOptions, expectedMessage, isUserNull) => {
         if (isUserNull) {
           mockUserFindOne(null);
         } else {
           mockUserFindOne();
         }
-        const response = await requestFn(route, HTTP_STATUS.UNAUTHORIZED, tokenInfo);
+        const response = await requestFn(route, HTTP_STATUS.UNAUTHORIZED, TokenOptions);
         expectResponseFn.unauthorized(response, expectedMessage);
       }
     );
   });
 };
 
-export const describeValidationErrorTests = <T extends ValidationBaseModel>(
+export const describeReqBodyValidationTests = <T extends ValidationBaseModel>(
   config: ValidationConfig<T> & { includeInvalidLogicTest?: boolean },
   expectResponseFn: typeof expectResponse
 ): void => {
-  describe("Validation Error Cases", () => {
+  describe("Validation Request Body Error Cases", () => {
     const validationTestCases: ValidationTestCase[] = [
-      ["invalid Content-Type", config.validBody, false, RESPONSE_MESSAGE.INVALID_CONTENT_TYPE],
-      ["missing key in JSON body", { wrongKey: "value" }, true, RESPONSE_MESSAGE.INVALID_JSON_KEY],
-      ["invalid data type", generateInvalidTypeBody(config.validBody), true, RESPONSE_MESSAGE.INVALID_JSON_FORMAT]
+      ["invalid Content-Type", config.validBody, false, "CONTENT_TYPE"],
+      ["missing key in JSON body", { wrongKey: "value" }, true, "JSON_KEY"],
+      ["invalid data type", generateInvalidTypeBody(config.validBody), true, "JSON_FORMAT"]
     ];
 
     if (config.includeInvalidLogicTest) {
@@ -162,29 +155,28 @@ export const describeValidationErrorTests = <T extends ValidationBaseModel>(
           "invalid logic: refill is true and amount is negative",
           { refill: true, extend: false, amount: -100 },
           true,
-          RESPONSE_MESSAGE.INVALID_LOGIC
+          "INVALID_LOGIC"
         ],
         [
           "invalid logic: extend is true and amount is negative",
           { refill: false, extend: true, amount: -100 },
           true,
-          RESPONSE_MESSAGE.INVALID_LOGIC
+          "INVALID_LOGIC"
         ],
         [
           "invalid logic: refill and extend are both true",
           { refill: true, extend: true, amount: 100 },
           true,
-          RESPONSE_MESSAGE.INVALID_LOGIC
+          "INVALID_LOGIC"
         ],
         [
           "invalid logic: extend is true but expiryDate is not expired",
           { refill: false, extend: true, amount: 100 },
           true,
-          RESPONSE_MESSAGE.INVALID_LOGIC
+          "INVALID_LOGIC"
         ]
       ];
       validationTestCases.push(...logicCases);
-      // mockTransactionFindOne("expiry");
     }
 
     test.each(validationTestCases)(
@@ -199,7 +191,7 @@ export const describeValidationErrorTests = <T extends ValidationBaseModel>(
           config.route,
           requestBody,
           HTTP_STATUS.BAD_REQUEST,
-          {},
+          { mockToken: true },
           isSetJson
         );
         expectResponseFn.badRequest(response, expectedMessage);
