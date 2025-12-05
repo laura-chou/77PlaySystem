@@ -2,7 +2,7 @@ import { HTTP_STATUS } from "../src/common/constants";
 import User from "../src/models/user.model";
 
 import { describeAuthErrorTests, describeServerErrorTests, describeReqBodyValidationTests } from "./fixtures/testStructures";
-import { createRequest, expectResponse, mockUserFindOne } from "./fixtures/testUtils";
+import { createRequest, expectResponse, mockUserFindOne, spyOnGetUserIdFromToken } from "./fixtures/testUtils";
 import { ROUTE, MOCK_USER_ADMIN, MOCK_NOTEXIST_USER, MOCK_EXIST_USER } from "./fixtures/userTestConfig";
 
 jest.mock("../src/models/user.model", () => ({
@@ -32,12 +32,13 @@ describe("User API", () => {
           },
           HTTP_STATUS.OK
         );
-        expect(response.statusCode).toBe(200);
+
         expect(response.headers["set-cookie"]).toEqual(
           expect.arrayContaining([
             expect.stringMatching(/^token=.*$/)
           ])
         );
+        expectResponse.success(response);
       });
     });
 
@@ -148,6 +149,54 @@ describe("User API", () => {
               (User.findOne as jest.Mock)
                 .mockImplementationOnce(() => Promise.resolve(MOCK_USER_ADMIN)) // 第一次
                 .mockImplementationOnce(() => Promise.resolve(null));
+            }
+          }
+        ]
+      },
+      expectResponse
+    );
+  });
+
+  describe(`POST ${ROUTE.LOGOUT}`, () => {
+    describeAuthErrorTests(
+      ROUTE.LOGOUT,
+      (route, status, tokenInfo) => createRequest.post(route, {}, status, tokenInfo),
+      expectResponse
+    );
+
+    describe("Success Cases", () => {
+      it("should clear cookie and logout user when userId exists", async() => {
+        mockUserFindOne();
+        spyOnGetUserIdFromToken();
+
+        const response = await createRequest.post(
+          ROUTE.LOGOUT,
+          {},
+          HTTP_STATUS.OK
+        );
+        
+        expect(response.headers["set-cookie"]).toBeDefined();
+        expect(response.headers["set-cookie"][0]).toContain("token=");
+        expectResponse.success(response);
+      });
+    });
+
+    describeServerErrorTests(
+      {
+        route: ROUTE.LOGOUT,
+        requestFn: createRequest.post,
+        requestBody: {},
+        dbErrorCases: [
+          {
+            name: "first User.findOne",
+            mockFn: User.findOne as jest.Mock
+          },
+          {
+            name: "User.findByIdAndUpdate",
+            mockFn: User.findByIdAndUpdate as jest.Mock,
+            setupMocks: (): void => {
+              mockUserFindOne();
+              spyOnGetUserIdFromToken();
             }
           }
         ]

@@ -8,7 +8,7 @@ import { LogLevel, LogMessage, setLog } from "../core/logger";
 import User, { IUser, UserRole } from "../models/user.model";
 
 import * as baseController from "./base.controller";
-import { signToken } from "../core/jwt";
+import { getUserIdFromToken, signToken } from "../core/jwt";
 
 export const userLogin = setFunctionName(
   async(request: Request, response: Response): Promise<void> => {
@@ -80,4 +80,28 @@ export const userCreate = setFunctionName(
     }
   },
   "userCreate"
+);
+
+export const userLogout = setFunctionName(
+  async(request: Request, response: Response): Promise<void> => {
+    try {
+      const userId = getUserIdFromToken(request);
+      if (userId) {
+        await User.findByIdAndUpdate(
+          userId,
+          { $set: { token: "" } }
+        );
+      }
+      response.clearCookie("token", {
+        httpOnly: true,
+        secure: isProductionEnv(),
+        sameSite: isProductionEnv() ? "none" : "lax",
+      });
+      setLog(LogLevel.INFO, LogMessage.SUCCESS, userLogout.name);
+      responseHandler.success(response);
+    } catch (error) {
+      baseController.errorHandler(response, error, userLogout.name);
+    }
+  },
+  "userLogout"
 );

@@ -7,9 +7,11 @@ import { CONTENT_TYPE, HTTP_STATUS, RESPONSE_MESSAGE } from "../../src/common/co
 import { isTypeString } from "../../src/common/utils";
 import Transaction from "../../src/models/transaction.model";
 import User from "../../src/models/user.model";
+import * as jwtCore from "../../src/core/jwt";
 
 import { MOCK_LATEST_TRANSACTION_EXPIRED, MOCK_LATEST_TRANSACTION_NOT_EXPIRED } from "./transactionTestConfig";
 import { MOCK_USER_ADMIN } from "./userTestConfig";
+import { BADREQUEST_MESSAGE_MAP, BadRequestType, UNAUTHORIZED_MESSAGE_MAP, UnAuthorizedType } from "../../src/common/response";
 
 export interface TokenOptions {
   showToken: boolean;
@@ -26,23 +28,6 @@ const defaultTokenOptions: Required<TokenOptions> = {
   isExpired: false,
   isInvalid: false
 };
-
-export const BADREQUEST_MESSAGE_MAP = {
-  CONTENT_TYPE: RESPONSE_MESSAGE.INVALID_CONTENT_TYPE,
-  JSON_KEY: RESPONSE_MESSAGE.INVALID_JSON_KEY,
-  JSON_FORMAT: RESPONSE_MESSAGE.INVALID_JSON_FORMAT,
-  INVALID_LOGIC: RESPONSE_MESSAGE.INVALID_LOGIC,
-  CUST_ID: RESPONSE_MESSAGE.INVALID_CUSTID,
-  CUSTNOTDUE: RESPONSE_MESSAGE.CUSTNOTDUE
-} as const;
-
-export const UNAUTHORIZED_MESSAGE_MAP = {
-  INVALID_TOKEN: RESPONSE_MESSAGE.INVALID_TOKEN,
-  WRONG_PASSWORD: RESPONSE_MESSAGE.WRONG_PASSWORD
-} as const;
-
-export type BadRequestType = keyof typeof BADREQUEST_MESSAGE_MAP;
-export type UnAuthorizedType = keyof typeof UNAUTHORIZED_MESSAGE_MAP;
 
 const attachTokenCookie = (req: Request, options: TokenOptions): void => {
   if (!options.showToken) return;
@@ -68,6 +53,10 @@ const attachTokenCookie = (req: Request, options: TokenOptions): void => {
 
 export const mockUserFindOne = (data: object | null = MOCK_USER_ADMIN): void => {
   (User.findOne as jest.Mock).mockResolvedValue(data);
+};
+
+export const spyOnGetUserIdFromToken = (data: string | null = MOCK_USER_ADMIN._id): void => {
+  jest.spyOn(jwtCore, "getUserIdFromToken").mockReturnValue(data);
 };
 
 export const mockTransactionFindOne = (type?: "null" | "error" | "expiry"): void => {
@@ -194,7 +183,7 @@ export const createRequest = {
 };
 
 export const expectResponse = {
-  success: (response: Response, data: string | object): void => {
+  success: (response: Response, data?: string | object): void => {
     if (isTypeString(data)) {
       expect(response.text).toBe(data);
     } else {

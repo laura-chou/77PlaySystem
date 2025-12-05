@@ -2,7 +2,8 @@ import request from "supertest";
 
 import { HTTP_STATUS, RESPONSE_MESSAGE } from "../../src/common/constants";
 
-import { BadRequestType, expectResponse, mockSession, mockTransactionFindOne, mockUserFindOne, TokenOptions, UnAuthorizedType } from "./testUtils";
+import { expectResponse, mockSession, mockTransactionFindOne, mockUserFindOne, TokenOptions } from "./testUtils";
+import { BadRequestType, UnAuthorizedType } from "../../src/common/response";
 
 type AuthTestCase = [
   description: string, 
