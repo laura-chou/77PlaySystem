@@ -9,6 +9,10 @@ interface IServiceType{
   serviceName: string;
 }
 
+if (isNullOrEmpty(process.env.COLLECTION_SERVICETYPE)) {
+  throw new Error(RESPONSE_MESSAGE.ENV_ERROR);
+}
+
 const serviceTypeSchema = new Schema<IServiceType>({
   serviceName: { 
     type: String,
@@ -16,13 +20,10 @@ const serviceTypeSchema = new Schema<IServiceType>({
   }
 }, {
   versionKey: false,
-  collection: "serviceType"
+  collection: process.env.COLLECTION_SERVICETYPE
 });
 
-if (isNullOrEmpty(process.env.COLLECTION_SERVICETYPE)) {
-  throw new Error(RESPONSE_MESSAGE.ENV_ERROR);
-}
-
-const ServiceType: Model<IServiceType> = model("ServiceType", serviceTypeSchema);
+// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+const ServiceType: Model<IServiceType> = model(process.env.COLLECTION_SERVICETYPE!, serviceTypeSchema);
 
 export default ServiceType;

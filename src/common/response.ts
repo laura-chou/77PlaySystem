@@ -73,7 +73,10 @@ export const responseHandler = {
     );
   },
 
-  unauthorized(res: Response, type: UnAuthorizedType): void {
+  unauthorized(
+    res: Response,
+    type: UnAuthorizedType
+  ): void {
     sendResponse(
       res,
       HTTP_STATUS.UNAUTHORIZED,
@@ -99,7 +102,10 @@ export const responseHandler = {
     );
   },
 
-  conflict(res: Response, message: string = RESPONSE_MESSAGE.DATA_ALREADY_EXISTS): void {
+  conflict(
+    res: Response,
+    message: string = RESPONSE_MESSAGE.DATA_ALREADY_EXISTS
+  ): void {
     sendResponse(
       res,
       HTTP_STATUS.CONFLICT,

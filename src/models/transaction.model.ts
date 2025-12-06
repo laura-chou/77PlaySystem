@@ -14,6 +14,10 @@ export interface ITransaction {
   expiryDate: Date;
 }
 
+if (isNullOrEmpty(process.env.COLLECTION_TRANSACTION)) {
+  throw new Error(RESPONSE_MESSAGE.ENV_ERROR);
+}
+
 const txnSchema = new Schema<ITransaction>({
   customerId: {
     type: Schema.Types.ObjectId,
@@ -41,12 +45,8 @@ const txnSchema = new Schema<ITransaction>({
   }
 }, {
   versionKey: false,
-  collection: "transaction"
+  collection: process.env.COLLECTION_TRANSACTION
 });
-
-if (isNullOrEmpty(process.env.COLLECTION_TRANSACTION)) {
-  throw new Error(RESPONSE_MESSAGE.ENV_ERROR);
-}
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const Transaction: Model<ITransaction> = model(process.env.COLLECTION_TRANSACTION!, txnSchema);
