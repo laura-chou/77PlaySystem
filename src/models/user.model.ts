@@ -18,6 +18,10 @@ export interface IUser {
   createDate: Date;
 }
 
+if (isNullOrEmpty(process.env.COLLECTION_USER)) {
+  throw new Error(RESPONSE_MESSAGE.ENV_ERROR);
+}
+
 const userSchema = new Schema<IUser>({
   userName: {
     type: String,
@@ -41,12 +45,8 @@ const userSchema = new Schema<IUser>({
   }
 }, {
   versionKey: false,
-  collection: "user"
+  collection: process.env.COLLECTION_USER
 });
-
-if (isNullOrEmpty(process.env.COLLECTION_USER)) {
-  throw new Error(RESPONSE_MESSAGE.ENV_ERROR);
-}
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const User: Model<IUser> = model(process.env.COLLECTION_USER!, userSchema);

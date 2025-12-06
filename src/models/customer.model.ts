@@ -12,6 +12,10 @@ export interface ICustomer {
   extendedTimes?: number;
 }
 
+if (isNullOrEmpty(process.env.COLLECTION_CUSTOMER)) {
+  throw new Error(RESPONSE_MESSAGE.ENV_ERROR);
+}
+
 const custSchema = new Schema<ICustomer>({
   custName: {
     type: String,
@@ -33,12 +37,8 @@ const custSchema = new Schema<ICustomer>({
   }
 }, {
   versionKey: false,
-  collection: "customer"
+  collection: process.env.COLLECTION_CUSTOMER
 });
-
-if (isNullOrEmpty(process.env.COLLECTION_CUSTOMER)) {
-  throw new Error(RESPONSE_MESSAGE.ENV_ERROR);
-}
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 const Customer: Model<ICustomer> = model(process.env.COLLECTION_CUSTOMER!, custSchema);

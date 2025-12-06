@@ -9,6 +9,7 @@ import { createRequest, expectResponse, mockUserFindOne } from "./fixtures/testU
 jest.mock("../src/models/user.model", () => ({
   findOne: jest.fn(),
   updateOne: jest.fn(),
+  findByIdAndUpdate: jest.fn(),
   UserRole: {
     ADMIN: "admin"
   }

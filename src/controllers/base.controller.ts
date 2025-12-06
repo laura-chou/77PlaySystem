@@ -3,13 +3,15 @@ import { Types } from "mongoose";
 
 import { RESPONSE_MESSAGE } from "../common/constants";
 import { responseHandler } from "../common/response";
-import {
-  isNullOrEmpty, isTypeBoolean, isTypeDate, isTypeInteger, isTypeString
-} from "../common/utils";
+import { isNullOrEmpty, isTypeBoolean, isTypeDate,
+  isTypeInteger, isTypeString } from "../common/utils";
 import { LogLevel, LogMessage, setLog } from "../core/logger";
 
-
-export const validateContentType = (request: Request, response: Response, functionName: string): boolean => {
+export const validateContentType = (
+  request: Request,
+  response: Response,
+  functionName: string
+): boolean => {
   const contentType: string | undefined = request.headers["content-type"];
   if (contentType !== "application/json") {
     setLog(LogLevel.ERROR, RESPONSE_MESSAGE.INVALID_CONTENT_TYPE, functionName);
@@ -19,7 +21,10 @@ export const validateContentType = (request: Request, response: Response, functi
   return true;
 };
 
-const validateFieldType = (value: unknown, type: string): boolean => {
+const validateFieldType = (
+  value: unknown,
+  type: string
+): boolean => {
   switch (type) {
     case "string":
       return isTypeString(value);
@@ -56,7 +61,11 @@ export const validateBodyFields = (
   return true;
 };
 
-export const validateCustId = (custId: string, response: Response, functionName: string): boolean => {
+export const validateCustId = (
+  custId: string,
+  response: Response,
+  functionName: string
+): boolean => {
   if (Types.ObjectId.isValid(custId)) {
     return true;
   } else {
@@ -65,7 +74,6 @@ export const validateCustId = (custId: string, response: Response, functionName:
     return false;
   }
 };
-
 
 export const errorHandler = (
   response: Response,

@@ -1,29 +1,46 @@
 import { Response } from "express";
 
-import { LogMessage } from "../core/logger";
-
 import { HTTP_STATUS, RESPONSE_MESSAGE } from "./constants";
+
+export const BADREQUEST_MESSAGE_MAP = {
+  CONTENT_TYPE: RESPONSE_MESSAGE.INVALID_CONTENT_TYPE,
+  JSON_KEY: RESPONSE_MESSAGE.INVALID_JSON_KEY,
+  JSON_FORMAT: RESPONSE_MESSAGE.INVALID_JSON_FORMAT,
+  INVALID_LOGIC: RESPONSE_MESSAGE.INVALID_LOGIC,
+  CUST_ID: RESPONSE_MESSAGE.INVALID_CUSTID,
+  CUST_NOT_DUE: RESPONSE_MESSAGE.CUST_NOT_DUE
+} as const;
+
+export const UNAUTHORIZED_MESSAGE_MAP = {
+  INVALID_TOKEN: RESPONSE_MESSAGE.INVALID_TOKEN,
+  WRONG_PASSWORD: RESPONSE_MESSAGE.WRONG_PASSWORD
+} as const;
+
+export type BadRequestType = keyof typeof BADREQUEST_MESSAGE_MAP;
+export type UnAuthorizedType = keyof typeof UNAUTHORIZED_MESSAGE_MAP;
 
 interface ApiResponse<T> {
   status: number
   message: string
   data?: T
 }
-  
+
 const sendResponse = <T>(
   res: Response,
   status: number,
   message: string,
-  data?: T
+  data?: T,
+  errorType?: string
 ): void => {
   const response: ApiResponse<T> = {
     status,
     message,
+    ...(errorType && { errorType }),
     ...(data !== undefined && { data })
   };
   res.status(status).json(response);
 };
-  
+
 export const responseHandler = {
   success<T>(res: Response, data?: T): void {
     sendResponse(
@@ -42,30 +59,30 @@ export const responseHandler = {
     );
   },
 
-  badRequest(
+  badRequest<T>(
     res: Response,
-    type: "CONTENT_TYPE" | "JSON_KEY" | "JSON_FORMAT" | "CUST_ID" | "CUSTNOTDUE"
+    type: BadRequestType,
+    data?: T
   ): void {
-    const messageMap = {
-      CONTENT_TYPE: RESPONSE_MESSAGE.INVALID_CONTENT_TYPE,
-      JSON_KEY: RESPONSE_MESSAGE.INVALID_JSON_KEY,
-      JSON_FORMAT: RESPONSE_MESSAGE.INVALID_JSON_FORMAT,
-      CUST_ID: RESPONSE_MESSAGE.INVALID_CUSTID,
-      CUSTNOTDUE: RESPONSE_MESSAGE.CUSTNOTDUE
-    };
-
     sendResponse(
       res, 
       HTTP_STATUS.BAD_REQUEST, 
-      messageMap[type]
+      BADREQUEST_MESSAGE_MAP[type],
+      data,
+      type
     );
   },
 
-  unauthorized(res: Response, message: string = LogMessage.ERROR.UNKNOWN): void {
+  unauthorized(
+    res: Response,
+    type: UnAuthorizedType
+  ): void {
     sendResponse(
       res,
       HTTP_STATUS.UNAUTHORIZED,
-      message
+      UNAUTHORIZED_MESSAGE_MAP[type],
+      undefined,
+      type
     );
   },
 
@@ -85,7 +102,10 @@ export const responseHandler = {
     );
   },
 
-  conflict(res: Response, message: string = RESPONSE_MESSAGE.DATA_ALREADY_EXISTS): void {
+  conflict(
+    res: Response,
+    message: string = RESPONSE_MESSAGE.DATA_ALREADY_EXISTS
+  ): void {
     sendResponse(
       res,
       HTTP_STATUS.CONFLICT,

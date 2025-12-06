@@ -21,7 +21,7 @@ interface JWTPayload {
 }
 
 interface UserQuery {
-  userName: string;
+  _id: string;
   userRole?: UserRole;
 }
 
@@ -37,11 +37,12 @@ const createJwtStrategy = (requiredRole?: UserRole): JwtStrategy =>
     {
       jwtFromRequest: cookieExtractor,
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      secretOrKey: process.env.JWT_SECRET!
+      secretOrKey: process.env.JWT_SECRET!,
+      passReqToCallback: true
     },
-    async(jwtPayload: JWTPayload, done: passportJWT.VerifiedCallback) => {
+    async(request: Request, jwtPayload: JWTPayload, done: passportJWT.VerifiedCallback) => {
       try {
-        const query: UserQuery = { userName: jwtPayload.user };
+        const query: UserQuery = { _id: jwtPayload.user };
         if (requiredRole) {
           query.userRole = requiredRole;
         }
@@ -52,8 +53,9 @@ const createJwtStrategy = (requiredRole?: UserRole): JwtStrategy =>
           return done(null, false, { message: RESPONSE_MESSAGE.USER_NOT_EXIST });
         }
 
-        if (isNullOrEmpty(user.token)) {
-          return done(null, false, { message: RESPONSE_MESSAGE.TOKEN_EXPIRED });
+        if (isNullOrEmpty(user.token)
+          || request.cookies.token !== user.token) {
+          return done(null, false, { message: RESPONSE_MESSAGE.INVALID_TOKEN });
         }
 
         return done(null, user);
@@ -75,7 +77,7 @@ passport.use(
         const user = await User.findOne({ userName: password });
 
         if (!user) {
-          return done(null, false, { message: RESPONSE_MESSAGE.WRONG_PASSWORD });
+          return done(null, false, { message: RESPONSE_MESSAGE.USER_NOT_EXIST });
         }
 
         const isMatch = await bcrypt.compare(password, user.password);

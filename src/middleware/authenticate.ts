@@ -1,22 +1,17 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
 import passport from "passport";
 
 import { responseHandler } from "../common/response";
+import { getUserIdFromToken } from "../core/jwt";
 import { LogLevel, LogMessage, setLog } from "../core/logger";
 import User from "../models/user.model";
 
-interface AuthenticatedUser extends Document {
-  userName: string;
-  userType: string;
-  gameType: Array<number>;
-  createDate: Date;
+interface AuthenticatedUser {
   _id: string;
-  tokens?: Array<{ token: string }>;
 }
 
 interface AuthInfo {
-  message?: string;
+  message: string;
 }
 
 declare module "express-serve-static-core" {
@@ -41,22 +36,19 @@ export default (strategy: string) => {
       }
       if (!user) {
         if (info?.message === "jwt expired") {
-          const authHeader = request.header("Authorization");
-          if (authHeader) {
-            const token = authHeader.replace("Bearer ", "");
-            const decoded = jwt.decode(token) as { user?: string };
-            const userName = decoded?.user;
-
-            if (userName) {
-              await User.updateOne(
-                { userName },
-                { $set: { token: "" } }
-              );
-            }
+          const userId = getUserIdFromToken(request);
+          if (userId) {
+            await User.findByIdAndUpdate(
+              userId,
+              { $set: { token: "" } }
+            );
           }
         }
+
+        const type = /jwt|token/i.test(info?.message ?? "") ? "INVALID_TOKEN" : "WRONG_PASSWORD";
+
         setLog(LogLevel.ERROR, `authenticate: ${info?.message}`);
-        return responseHandler.unauthorized(response, info?.message);
+        return responseHandler.unauthorized(response, type);
       }
       setLog(LogLevel.INFO, `authenticate: ${LogMessage.SUCCESS}`);
       request.user = user;

@@ -4,15 +4,18 @@ import request, { Response, Request } from "supertest";
 
 import app from "../../src/app";
 import { CONTENT_TYPE, HTTP_STATUS, RESPONSE_MESSAGE } from "../../src/common/constants";
+import { BADREQUEST_MESSAGE_MAP, BadRequestType, UNAUTHORIZED_MESSAGE_MAP, UnAuthorizedType } from "../../src/common/response";
 import { isTypeString } from "../../src/common/utils";
+import * as jwtCore from "../../src/core/jwt";
 import Transaction from "../../src/models/transaction.model";
 import User from "../../src/models/user.model";
 
 import { MOCK_LATEST_TRANSACTION_EXPIRED, MOCK_LATEST_TRANSACTION_NOT_EXPIRED } from "./transactionTestConfig";
 import { MOCK_USER_ADMIN } from "./userTestConfig";
 
-interface TokenOptions {
+export interface TokenOptions {
   showToken: boolean;
+  mockToken: boolean;
   isExpired: boolean;
   isInvalid: boolean;
   existUser: boolean;
@@ -20,6 +23,7 @@ interface TokenOptions {
 
 const defaultTokenOptions: Required<TokenOptions> = {
   showToken: true,
+  mockToken: true,
   existUser: true,
   isExpired: false,
   isInvalid: false
@@ -29,25 +33,30 @@ const attachTokenCookie = (req: Request, options: TokenOptions): void => {
   if (!options.showToken) return;
 
   const payload = {
-    user: options.existUser ? "testuser" : "notExistUser",
+    user: options.existUser ? MOCK_USER_ADMIN.token : "notExistUser",
   };
 
-  const expiresIn = options.isExpired ? -1 : "1h";
+  const signOptions: jwt.SignOptions = {};
+  if (options.isExpired) signOptions.expiresIn = -1;
 
-  const validToken = jwt.sign(
+  const generateToken = jwt.sign(
     payload,
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     process.env.JWT_SECRET!,
-    { expiresIn }
+    signOptions
   );
 
-  const token = options.isInvalid ? "invalidtoken" : validToken;
+  const token = options.mockToken ? MOCK_USER_ADMIN.token : generateToken;
 
-  req.set("Cookie", [`token=${token}`]);
+  req.set("Cookie", [`token=${options.isInvalid ? "invalidtoken" : token}`]);
 };
 
 export const mockUserFindOne = (data: object | null = MOCK_USER_ADMIN): void => {
   (User.findOne as jest.Mock).mockResolvedValue(data);
+};
+
+export const spyOnGetUserIdFromToken = (data: string | null = MOCK_USER_ADMIN._id): void => {
+  jest.spyOn(jwtCore, "getUserIdFromToken").mockReturnValue(data);
 };
 
 export const mockTransactionFindOne = (type?: "null" | "error" | "expiry"): void => {
@@ -149,7 +158,7 @@ export const createRequest = {
       .send(body);
 
     attachTokenCookie(req, mergedTokenOptions);
-    
+
     return req
       .expect("Content-Type", expectContentType)
       .expect(status);
@@ -158,7 +167,7 @@ export const createRequest = {
   delete: (
     route: string,
     status: number,
-    TokenOptions?: Partial<TokenOptions>,    
+    TokenOptions?: Partial<TokenOptions>,
     isExpectJson: boolean = true
   ): request.Test => {
     const mergedTokenOptions = { ...defaultTokenOptions, ...TokenOptions };
@@ -174,7 +183,7 @@ export const createRequest = {
 };
 
 export const expectResponse = {
-  success: (response: Response, data: string | object): void => {
+  success: (response: Response, data?: string | object): void => {
     if (isTypeString(data)) {
       expect(response.text).toBe(data);
     } else {
@@ -200,10 +209,16 @@ export const expectResponse = {
     });
   },
 
-  badRequest: (response: Response, message: string): void => {
+  badRequest: (
+    response: Response,
+    type: BadRequestType,
+    data?: string | object
+  ): void => {
     expect(response.body).toEqual({
       status: HTTP_STATUS.BAD_REQUEST,
-      message: message
+      message: BADREQUEST_MESSAGE_MAP[type],
+      data,
+      errorType: type
     });
   },
 
@@ -223,10 +238,11 @@ export const expectResponse = {
 
   unauthorized: (
     response: Response,
-    message: string = RESPONSE_MESSAGE.WRONG_PASSWORD): void => {
+    type: UnAuthorizedType): void => {
     expect(response.body).toEqual({
       status: HTTP_STATUS.UNAUTHORIZED,
-      message: message
+      message: UNAUTHORIZED_MESSAGE_MAP[type],
+      errorType: type
     });
   },
 
