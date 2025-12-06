@@ -2,9 +2,9 @@ import { Request, Response, NextFunction } from "express";
 import passport from "passport";
 
 import { responseHandler } from "../common/response";
+import { getUserIdFromToken } from "../core/jwt";
 import { LogLevel, LogMessage, setLog } from "../core/logger";
 import User from "../models/user.model";
-import { getUserIdFromToken } from "../core/jwt";
 
 interface AuthenticatedUser {
   _id: string;

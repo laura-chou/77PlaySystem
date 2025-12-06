@@ -129,7 +129,7 @@ export const extendExpiryDate = setFunctionName(
       if (!isExpiry(lastTransaction.expiryDate)) {
         const logMsg = `${LogMessage.ERROR.CUSTNOTDUE} custId: ${custId}`;
         setLog(LogLevel.ERROR, logMsg, extendExpiryDate.name);
-        responseHandler.badRequest(response, "CUSTNOTDUE");
+        responseHandler.badRequest(response, "CUST_NOT_DUE");
         return;
       }
 

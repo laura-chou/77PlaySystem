@@ -1,14 +1,13 @@
 import bcrypt from "bcrypt";
 import { Request, Response } from "express";
-import jwt from "jsonwebtoken";
 
 import { responseHandler } from "../common/response";
 import { getNowDate, isProductionEnv, setFunctionName } from "../common/utils";
+import { getUserIdFromToken, signToken } from "../core/jwt";
 import { LogLevel, LogMessage, setLog } from "../core/logger";
 import User, { IUser, UserRole } from "../models/user.model";
 
 import * as baseController from "./base.controller";
-import { getUserIdFromToken, signToken } from "../core/jwt";
 
 export const userLogin = setFunctionName(
   async(request: Request, response: Response): Promise<void> => {
