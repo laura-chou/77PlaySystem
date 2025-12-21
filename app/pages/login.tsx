@@ -7,14 +7,20 @@ import { useState } from 'react';
 
 import styles from '@/styles/modules/login.module.scss';
 
-import { env } from '../config/env';
+import { env } from '@/config/env';
 
 export default function Login() {
     const [password, setPassword] = useState('');
+    const [loading, setLoading] = useState(false);
     const router = useRouter();
 
     const handleLogin = async(e: React.FormEvent) => {
         e.preventDefault();
+        if (password.trim() === '') {
+            alert('請輸入密鑰');
+            return;
+        }
+        setLoading(true);
         try {
             const request = { "password": password };
             await axios.post(
@@ -50,7 +56,12 @@ export default function Login() {
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />
-                    <button type="submit">登入</button>
+                    <button type="submit" disabled={loading}>
+                        {loading && (
+                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" ></span>
+                        )}
+                        {loading ? "登入中..." : "登入"}
+                    </button>
                 </form>
             </div>
         </div>

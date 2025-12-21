@@ -39,13 +39,11 @@ export default function CreateCustomer() {
         }
     };
 
-    const handleSubmit = async(e: React.FormEvent) => {
-        e.preventDefault();
-
+    const handleSubmit = async() => {
         try {
             const dataToSend = { ...newCustomer };
 
-            const response = await axios.post(
+            await axios.post(
                 `${env.apiBaseUrl}customer/create`,
                 dataToSend,
                 { withCredentials: true }

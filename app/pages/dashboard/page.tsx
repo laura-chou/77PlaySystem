@@ -21,13 +21,6 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    const maskPhoneNumber = (phone: string) => {
-        if (phone.length <= 3) return phone;
-        const lastThree = phone.slice(-3);
-        const maskedPart = '*'.repeat(phone.length - 3);
-        return maskedPart + lastThree;
-    };
-
     useEffect(() => {
         const fetchUsers = async() => {
             try {
@@ -65,6 +58,20 @@ export default function Dashboard() {
         user.custName.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
+    const logout = async () => {
+        try {
+            await axios.post(
+                `${env.apiBaseUrl}user/logout`,
+                {},
+                { withCredentials: true }
+            );
+        } catch (error) {
+            console.error('logout error:', error);
+        } finally {
+            router.push('/');
+        }
+    }
+
     if (loading) {
         return (
             <div className={`container ${styles.customerList}`}>
@@ -99,10 +106,20 @@ export default function Dashboard() {
         <div className={`container ${styles.customerList}`}>
             <div className="d-flex justify-content-between align-items-center mb-4">
                 <h1 className="page-title">客戶清單</h1>
-                <button className="btn btn-success" onClick={() => router.push('/pages/customer/new')}>
-                    <i className="bi bi-plus-circle me-2"></i>
-                    新增客戶
-                </button>
+                <div>
+                    <button
+                        className="btn btn-success me-2"
+                        onClick={() => router.push('/pages/customer/new')}>
+                            <i className="bi bi-plus-circle me-2"></i>
+                            新增客戶
+                    </button>
+                    <button
+                        type="button"
+                        className="btn btn-danger"
+                        onClick={logout}>
+                            登出
+                    </button>
+                </div>
             </div>
 
             <div className="row mb-4">

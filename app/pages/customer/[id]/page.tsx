@@ -89,11 +89,7 @@ export default function CustomerEdit() {
         }
     };
 
-    const handleSave = async(e?: React.MouseEvent<HTMLButtonElement>) => {
-        if (e) {
-            e.preventDefault();
-        }
-
+    const handleSave = async() => {
         try {
             // Prepare the data to send
             const dataToSend = { ...formData };
