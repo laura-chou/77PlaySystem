@@ -27,3 +27,12 @@ body {
     color: #333;
     margin-bottom: 0;
 }
+
+.nav-link.active {
+    background-color: var(--bs-success) !important;
+}
+
+.nav-link {
+    background-color: var(--bs-gray-300);
+    color: var(--bs-gray-700);
+}

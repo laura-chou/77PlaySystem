@@ -1,4 +1,6 @@
+"use client";
 import '@/styles/base/_globals.scss';
+import { useEffect } from 'react';
 import Script from 'next/script';
 
 import PlayfulDoodle from '@/components/PlayfulDoodle';
@@ -8,6 +10,7 @@ export default function RootLayout({
 }: {
     children: React.ReactNode
 }) {
+    useEffect(() => { import('bootstrap'); }, []);
     return (
         <html lang="en" data-scroll-behavior="smooth">
             <head>

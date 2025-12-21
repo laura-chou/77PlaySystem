@@ -7,7 +7,7 @@ import { useEffect, useState } from 'react';
 import styles from '@/styles/modules/customer.module.scss';
 
 import { env } from '@/config/env';
-import { ICustomer, ICustomerHistory, ICustomerFormData, ActionEnum } from '../../../lib/models/customer';
+import { ICustomer, ICustomerFormData, ActionEnum } from '@/lib/models/customer';
 
 
 export default function CustomerEdit() {
@@ -187,8 +187,7 @@ export default function CustomerEdit() {
     return (
         <div className={`${styles.container}`}>
             <div className={`row m-3 ${styles.customerDetail}`}>
-                <div className="d-flex justify-content-between align-items-center mb-3 px-0">
-                    <h3 className="page-title">客戶資料</h3>
+                <div className='mb-3'>
                     <button
                         className="btn btn-secondary"
                         onClick={() => router.push('/pages/dashboard')}
@@ -197,174 +196,179 @@ export default function CustomerEdit() {
                         返回清單
                     </button>
                 </div>
-                <div className="row mb-3">
-                    <label className="col-form-label px-1">客戶 LINE：</label>
-                    <input
-                        type="text"
-                        className="form-control"
-                        name="custName"
-                        value={formData.custName}
-                        onChange={handleInputChange}
-                        disabled={!isEditing || (isEditing && action !== 'name')}
-                    />
-                </div>
-
-                <div className="row mb-3">
-                    <label className="col-form-label px-1">加入日期：</label>
-                    <input
-                        type="date"
-                        className="form-control"
-                        name="createDate"
-                        value={customer.createDate}
-                        disabled={true}
-                    />
-                </div>
-
-                <div className="row mb-3">
-                    <label className="col-form-label px-1">當前餘額：</label>
-                    <input
-                        type="number"
-                        className="form-control"
-                        name="amount"
-                        value={customer.balance}
-                        disabled={true}
-                    />
-                </div>
-
-                <div className="row mb-3">
-                    <label className="col-form-label px-1">餘額到期日：</label>
-                    <input
-                        type="date"
-                        className="form-control"
-                        name="expiryDate"
-                        value={customer.balanceExpiryDate}
-                        disabled={true}
-                    />
-                </div>
-
-                {isEditing && (
-                    <>
-                        <hr className="my-4" />
-                        <h5 className="fw-bold mb-3 px-1">操作</h5>
-
-                        <div className="row mb-3">
-                            <label className="col-form-label px-1">操作類型：</label>
-                            <select
-                                className="form-select"
-                                value={action}
-                                onChange={(e) => {
-                                    const selectedAction = e.target.value as ActionEnum;
-                                    const defaultAmount = 0;
-                                    setAction(selectedAction as ActionEnum);
-
-                                    if (selectedAction === ActionEnum.REFILL) setBalanceAmount(1500);
-                                    else if (selectedAction === ActionEnum.EXTEND) setBalanceAmount(200);
-                                    else if (selectedAction === ActionEnum.CHARGE) setBalanceAmount(200);
-
-                                    setFormData(prev => ({
-                                        ...prev,
-                                        action: selectedAction,
-                                        amount: defaultAmount
-                                    }));
-                                }}
-                            >
-                                <option value="name">改客戶 LINE</option>
-                                <option value="charge">消費</option>
-                                <option value="refill">充值</option>
-                                <option value="extend">延長到期日</option>
-                            </select>
+                <nav>
+                    <div className="nav nav-pills nav-fill" id="nav-tab" role="tablist">
+                        <button className="nav-link fw-bold active" id="customer-tab" data-bs-toggle="tab" data-bs-target="#nav-customer" type="button" >客戶資料</button>
+                        <button className="nav-link fw-bold" id="history-tab" data-bs-toggle="tab" data-bs-target="#nav-history" type="button">歷史紀錄</button>
+                    </div>
+                </nav>
+                <div className="tab-content" id="nav-tabContent">
+                    <div className="tab-pane fade show active" id="nav-customer" >
+                        <div className="row mt-2">
+                            <label className="col-form-label px-1">客戶 LINE：</label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                name="custName"
+                                value={formData.custName}
+                                onChange={handleInputChange}
+                                disabled={!isEditing || (isEditing && action !== 'name')}
+                            />
                         </div>
 
                         <div className="row mb-3">
-                            <label className="col-form-label px-1">金額：</label>
+                            <label className="col-form-label px-1">加入日期：</label>
+                            <input
+                                type="date"
+                                className="form-control"
+                                name="createDate"
+                                value={customer.createDate}
+                                disabled={true}
+                            />
+                        </div>
+
+                        <div className="row mb-3">
+                            <label className="col-form-label px-1">當前餘額：</label>
                             <input
                                 type="number"
                                 className="form-control"
-                                value={action === 'name' ? 0 : balanceAmount}
-                                onChange={(e) => {
-                                    const value = parseFloat(e.target.value) || 0;
-                                    if (action === 'extend') {
-                                        // For extend, allow any positive number (days)
-                                        setBalanceAmount(Math.max(0, value));
-                                    } else {
-                                        // For other actions, round to nearest 100
-                                        const roundedValue = Math.round(value / 100) * 100;
-                                        setBalanceAmount(roundedValue);
-                                    }
-                                }}
-                                onKeyDown={(e) => {
-                                    // Allow only numbers, backspace, delete, arrow keys, and enter
-                                    if (!/[0-9]/.test(e.key) &&
-                                        !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter', 'Tab'].includes(e.key)) {
-                                        e.preventDefault();
-                                    }
-                                }}
-                                step={100}
-                                min="100"
-                                placeholder={'請輸入金額 (100的倍數)'}
-                                disabled={action === 'name' || action === 'extend'}
+                                name="amount"
+                                value={customer.balance}
+                                disabled={true}
                             />
                         </div>
-                    </>
-                )}
 
-                <div className="d-flex justify-content-end mt-2 gap-2">
-                    {!isEditing ? (
-                        <button
-                            type="button"
-                            className="btn btn-primary"
-                            onClick={() => setIsEditing(true)}
-                        >
-                            <i className="bi bi-pencil me-2"></i>
-                            編輯
-                        </button>
-                    ) : (
-                        <>
-                            <button
-                                type="button"
-                                className="btn btn-success"
-                                onClick={handleSave}
-                            >
-                                <i className="bi bi-check me-2"></i>
-                                儲存
-                            </button>
-                            <button
-                                type="button"
-                                className="btn btn-secondary"
-                                onClick={handleCancel}
-                            >
-                                <i className="bi bi-x me-2"></i>
-                                取消
-                            </button>
-                        </>
-                    )}
-                </div>
-            </div>
-            <div className={`row m-3 ${styles.customerHistory}`}>
-                <div className="d-flex justify-content-between align-items-center mb-3 px-0">
-                    <h3 className="page-title">歷史紀錄</h3>
-                </div>
-                <div className="row mb-3">
-                    <table className={`table table-bordered ${styles.historyTable}`}>
-                        <thead>
-                            <tr>
-                                <th>日期</th>
-                                <th>金額</th>
-                                <th>餘額</th>
-                                <th>到期日</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {customer.history.map((history, index) => (
-                                <tr key={`${history.spendDate}-${index}`}>
-                                    <td>{history.spendDate}</td>
-                                    <td>{history.amount}</td>
-                                    <td>{history.currentBalance}</td>
-                                    <td>{history.expiryDate}</td>
+                        <div className="row mb-3">
+                            <label className="col-form-label px-1">餘額到期日：</label>
+                            <input
+                                type="date"
+                                className="form-control"
+                                name="expiryDate"
+                                value={customer.balanceExpiryDate}
+                                disabled={true}
+                            />
+                        </div>
+
+                        {isEditing && (
+                            <>
+                                <hr className="my-4" />
+                                <h5 className="fw-bold mb-3 px-1">操作</h5>
+
+                                <div className="row mb-3">
+                                    <label className="col-form-label px-1">操作類型：</label>
+                                    <select
+                                        className="form-select"
+                                        value={action}
+                                        onChange={(e) => {
+                                            const selectedAction = e.target.value as ActionEnum;
+                                            const defaultAmount = 0;
+                                            setAction(selectedAction as ActionEnum);
+
+                                            if (selectedAction === ActionEnum.REFILL) setBalanceAmount(1500);
+                                            else if (selectedAction === ActionEnum.EXTEND) setBalanceAmount(200);
+                                            else if (selectedAction === ActionEnum.CHARGE) setBalanceAmount(200);
+
+                                            setFormData(prev => ({
+                                                ...prev,
+                                                action: selectedAction,
+                                                amount: defaultAmount
+                                            }));
+                                        }}
+                                    >
+                                        <option value="name">改客戶 LINE</option>
+                                        <option value="charge">消費</option>
+                                        <option value="refill">充值</option>
+                                        <option value="extend">延長到期日</option>
+                                    </select>
+                                </div>
+
+                                <div className="row mb-3">
+                                    <label className="col-form-label px-1">金額：</label>
+                                    <input
+                                        type="number"
+                                        className="form-control"
+                                        value={action === 'name' ? 0 : balanceAmount}
+                                        onChange={(e) => {
+                                            const value = parseFloat(e.target.value) || 0;
+                                            if (action === 'extend') {
+                                                // For extend, allow any positive number (days)
+                                                setBalanceAmount(Math.max(0, value));
+                                            } else {
+                                                // For other actions, round to nearest 100
+                                                const roundedValue = Math.round(value / 100) * 100;
+                                                setBalanceAmount(roundedValue);
+                                            }
+                                        }}
+                                        onKeyDown={(e) => {
+                                            // Allow only numbers, backspace, delete, arrow keys, and enter
+                                            if (!/[0-9]/.test(e.key) &&
+                                                !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter', 'Tab'].includes(e.key)) {
+                                                e.preventDefault();
+                                            }
+                                        }}
+                                        step={100}
+                                        min="100"
+                                        placeholder={'請輸入金額 (100的倍數)'}
+                                        disabled={action === 'name' || action === 'extend'}
+                                    />
+                                </div>
+                            </>
+                        )}
+
+                        <div className="d-flex justify-content-end mt-2 gap-2">
+                            {!isEditing ? (
+                                <button
+                                    type="button"
+                                    className="btn btn-primary"
+                                    onClick={() => setIsEditing(true)}
+                                >
+                                    <i className="bi bi-pencil me-2"></i>
+                                    編輯
+                                </button>
+                            ) : (
+                                <>
+                                    <button
+                                        type="button"
+                                        className="btn btn-success"
+                                        onClick={handleSave}
+                                    >
+                                        <i className="bi bi-check me-2"></i>
+                                        儲存
+                                    </button>
+                                    <button
+                                        type="button"
+                                        className="btn btn-secondary"
+                                        onClick={handleCancel}
+                                    >
+                                        <i className="bi bi-x me-2"></i>
+                                        取消
+                                    </button>
+                                </>
+                            )}
+                        </div>
+                    </div>
+                    <div className="tab-pane fade" id="nav-history">
+                        <table className={`table table-bordered text-center mt-2`}>
+                            <thead>
+                                <tr className='table-success'>
+                                    <th>日期</th>
+                                    <th>金額</th>
+                                    <th>餘額</th>
+                                    <th>到期日</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
+                            </thead>
+                            <tbody>
+                                {customer.history.map((history, index) => (
+                                    <tr key={`${history.spendDate}-${index}`}>
+                                        <td>{history.spendDate}</td>
+                                        <td className='text-start'>{history.amount}</td>
+                                        <td className='text-start'>{history.currentBalance}</td>
+                                        <td>{history.expiryDate}</td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
