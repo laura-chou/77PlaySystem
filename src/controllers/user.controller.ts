@@ -44,6 +44,7 @@ export const userCreate = setFunctionName(
     }
 
     const fields = [
+      { key: "account", type: "string" },
       { key: "password", type: "string" }
     ];
     const userRole = request.body.userRole;
@@ -55,20 +56,20 @@ export const userCreate = setFunctionName(
     }
 
     try {
-      const userName = request.body.password;
+      const { account, password } = request.body;
       const role = userRole ? UserRole.ADMIN : UserRole.USER;
-      const isUserExist = await User.findOne({ userName });
+      const isUserExist = await User.findOne({ userName: account });
       if (isUserExist) {
-        const logMsg = `${LogMessage.ERROR.USEREXISTS}, userName: ${userName}`;
+        const logMsg = `${LogMessage.ERROR.USEREXISTS}, userName: ${account}`;
         setLog(LogLevel.ERROR, logMsg, userCreate.name);
         responseHandler.conflict(response);
         return;
       }
       const data: IUser = {
-        userName: userName,
+        userName: account,
         userRole: role,
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        password: await bcrypt.hash(userName, parseInt(process.env.BCRYPT_SALT_ROUNDS!)),
+        password: await bcrypt.hash(password, parseInt(process.env.BCRYPT_SALT_ROUNDS!)),
         createDate: getNowDate()
       };
       await User.create(data);

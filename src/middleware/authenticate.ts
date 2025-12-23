@@ -34,6 +34,7 @@ export default (strategy: string) => {
         setLog(LogLevel.ERROR, `authenticate: ${error.message}`);
         return responseHandler.serverError(response);
       }
+
       if (!user) {
         if (info?.message === "jwt expired") {
           const userId = getUserIdFromToken(request);

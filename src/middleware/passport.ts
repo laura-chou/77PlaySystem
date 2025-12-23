@@ -69,12 +69,12 @@ passport.use(
   "login",
   new LocalStrategy(
     {
-      usernameField: "password",
+      usernameField: "account",
       passwordField: "password"
     },
-    async(_, password: string, done) => {
+    async(account: string, password: string, done) => {
       try {
-        const user = await User.findOne({ userName: password });
+        const user = await User.findOne({ userName: account });
 
         if (!user) {
           return done(null, false, { message: RESPONSE_MESSAGE.USER_NOT_EXIST });

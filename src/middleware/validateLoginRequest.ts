@@ -16,13 +16,13 @@ export default function validateLoginRequest(
     return;
   }
 
-  if (isNullOrEmpty(request.body.password)) {
+  if (isNullOrEmpty(request.body.account) || isNullOrEmpty(request.body.password)) {
     setLog(LogLevel.ERROR, RESPONSE_MESSAGE.INVALID_JSON_KEY, validateLoginRequest.name);
     responseHandler.badRequest(response, "JSON_KEY");
     return;
   }
 
-  if (!isTypeString(request.body.password)) {
+  if (!isTypeString(request.body.account) || !isTypeString(request.body.password)) {
     setLog(LogLevel.ERROR, RESPONSE_MESSAGE.INVALID_JSON_FORMAT, validateLoginRequest.name);
     responseHandler.badRequest(response, "JSON_FORMAT");
     return;

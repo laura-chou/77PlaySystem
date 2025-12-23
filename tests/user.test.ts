@@ -27,9 +27,7 @@ describe("User API", () => {
 
         const response = await createRequest.post(
           ROUTE.LOGIN,
-          {
-            password: MOCK_USER_ADMIN.userName
-          },
+          MOCK_EXIST_USER,
           HTTP_STATUS.OK
         );
 
