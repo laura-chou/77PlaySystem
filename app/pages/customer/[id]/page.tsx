@@ -182,7 +182,7 @@ export default function CustomerEdit() {
 
     return (
         <div className={`${styles.container}`}>
-            <div className={`row m-3 ${styles.customerDetail}`}>
+            <div className={`m-3 ${styles.customerDetail}`}>
                 <div className='mb-3'>
                     <button
                         className="btn btn-secondary"
@@ -200,7 +200,7 @@ export default function CustomerEdit() {
                 </nav>
                 <div className="tab-content" id="nav-tabContent">
                     <div className="tab-pane fade show active" id="nav-customer" >
-                        <div className="row mt-2">
+                        <div className="mt-2 mb-2">
                             <label className="col-form-label px-1">客戶 LINE：</label>
                             <input
                                 type="text"
@@ -212,7 +212,7 @@ export default function CustomerEdit() {
                             />
                         </div>
 
-                        <div className="row mb-3">
+                        <div className="mb-2">
                             <label className="col-form-label px-1">加入日期：</label>
                             <input
                                 type="date"
@@ -223,7 +223,7 @@ export default function CustomerEdit() {
                             />
                         </div>
 
-                        <div className="row mb-3">
+                        <div className="mb-2">
                             <label className="col-form-label px-1">當前餘額：</label>
                             <input
                                 type="number"
@@ -234,7 +234,7 @@ export default function CustomerEdit() {
                             />
                         </div>
 
-                        <div className="row mb-3">
+                        <div className="mb-4">
                             <label className="col-form-label px-1">餘額到期日：</label>
                             <input
                                 type="date"
@@ -247,10 +247,8 @@ export default function CustomerEdit() {
 
                         {isEditing && (
                             <>
-                                <hr className="my-4" />
-                                <h5 className="fw-bold mb-3 px-1">操作</h5>
-
-                                <div className="row mb-3">
+                                <div><hr /></div>
+                                <div className="mb-2">
                                     <label className="col-form-label px-1">操作類型：</label>
                                     <select
                                         className="form-select"
@@ -278,7 +276,7 @@ export default function CustomerEdit() {
                                     </select>
                                 </div>
 
-                                <div className="row mb-3">
+                                <div className="mb-4">
                                     <label className="col-form-label px-1">金額：</label>
                                     <input
                                         type="number"
@@ -311,7 +309,7 @@ export default function CustomerEdit() {
                             </>
                         )}
 
-                        <div className="d-flex justify-content-end mt-2 gap-2">
+                        <div className="d-flex justify-content-end gap-2">
                             {!isEditing ? (
                                 <button
                                     type="button"
@@ -344,7 +342,7 @@ export default function CustomerEdit() {
                         </div>
                     </div>
                     <div className="tab-pane fade" id="nav-history">
-                        <table className={`table table-bordered text-center mt-2`}>
+                        <table className={`table table-bordered text-center mt-3 mb-0`}>
                             <thead>
                                 <tr className='table-success'>
                                     <th>日期</th>
@@ -357,8 +355,8 @@ export default function CustomerEdit() {
                                 {customer.history.map((history, index) => (
                                     <tr key={`${history.spendDate}-${index}`}>
                                         <td>{history.spendDate}</td>
-                                        <td className='text-start'>{history.amount}</td>
-                                        <td className='text-start'>{history.currentBalance}</td>
+                                        <td className='text-end'>{history.amount}</td>
+                                        <td className='text-end'>{history.currentBalance}</td>
                                         <td>{history.expiryDate}</td>
                                     </tr>
                                 ))}

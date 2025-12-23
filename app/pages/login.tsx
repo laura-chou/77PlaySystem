@@ -10,19 +10,24 @@ import styles from '@/styles/modules/login.module.scss';
 import { env } from '@/config/env';
 
 export default function Login() {
+    const [account, setAccount] = useState('');
     const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
     const router = useRouter();
 
     const handleLogin = async(e: React.FormEvent) => {
         e.preventDefault();
+        if (account.trim() === '') {
+            alert('請輸入帳號');
+            return;
+        }
         if (password.trim() === '') {
-            alert('請輸入密鑰');
+            alert('請輸入密碼');
             return;
         }
         setLoading(true);
         try {
-            const request = { "password": password };
+            const request = { "account": account, "password": password };
             await axios.post(
                 `${env.apiBaseUrl}user/login`,
                 request,
@@ -30,6 +35,7 @@ export default function Login() {
             );
             router.push('/pages/dashboard');
         } catch (error) {
+            setLoading(false);
             alert((error as any).response.data.message);
         }
     };
@@ -49,10 +55,16 @@ export default function Login() {
 
                 <form className={styles.loginForm} onSubmit={handleLogin}>
                     <input
-                        id="passCode"
+                        className="form-control"
+                        type="text"
+                        placeholder="帳號"
+                        value={account}
+                        onChange={(e) => setAccount(e.target.value)}
+                    />
+                    <input
                         className="form-control"
                         type="password"
-                        placeholder="請輸入密鑰"
+                        placeholder="密碼"
                         value={password}
                         onChange={(e) => setPassword(e.target.value)}
                     />

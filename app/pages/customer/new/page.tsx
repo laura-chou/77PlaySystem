@@ -63,7 +63,7 @@ export default function CreateCustomer() {
 
     return (
         <div className={`${styles.container}`}>
-            <div className={`row m-3 ${styles.customerDetail}`}>
+            <div className={`m-3 ${styles.customerDetail}`}>
                 <div className="d-flex justify-content-between align-items-center mb-3 px-0">
                     <h3 className="page-title">新增客戶</h3>
                     <button
@@ -74,7 +74,7 @@ export default function CreateCustomer() {
                         返回清單
                     </button>
                 </div>
-                <div className="row mb-3">
+                <div className="mb-2">
                     <label htmlFor="custName" className="col-form-label px-1">客戶 LINE：</label>
                     <input
                         type="text"
@@ -87,7 +87,7 @@ export default function CreateCustomer() {
                     />
                 </div>
 
-                <div className="row mb-3">
+                <div className="mb-2">
                     <label htmlFor="amount" className="col-form-label px-1">金額：</label>
                     <input
                         type="number"
@@ -102,7 +102,7 @@ export default function CreateCustomer() {
                     />
                 </div>
 
-                <div className="row mb-3">
+                <div className="mb-4">
                     <label htmlFor="createDate" className="col-form-label px-1">加入日期：</label>
                     <input
                         type="date"
@@ -115,7 +115,7 @@ export default function CreateCustomer() {
                     />
                 </div>
 
-                <div className="d-flex justify-content-end mt-2">
+                <div className="d-flex justify-content-end">
                     <button className="btn btn-primary" onClick={handleSubmit}>
                         <i className="bi bi-check-circle me-2"></i>
                         儲存
