@@ -38,7 +38,7 @@ publicRoutes.forEach(route => {
 const corsOptions: CorsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
     if (isJestTest) {
-      callback(null, true);
+      return callback(null, true);
     }
     if (!isNullOrEmpty(origin)) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion

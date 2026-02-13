@@ -29,7 +29,7 @@ export const getCustList = setFunctionName(
 export const getCustomer = setFunctionName(
   async(request: Request, response: Response): Promise<void> => {
     try {
-      const custId = request.params.custId;
+      const custId  = request.params.custId as string;
 
       if (!baseController.validateCustId(custId, response, getCustomer.name)) {
         return;

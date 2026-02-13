@@ -10,7 +10,7 @@ import * as baseController from "./base.controller";
 export const clearCollection = setFunctionName(
   async(request: Request, response: Response): Promise<void> => {
     try {
-      const collectionName = request.params.name;
+      const collectionName = request.params.name as string;
 
       const collections = await mongoose.connection.db?.listCollections().toArray();
       const exists = collections?.some(col => col.name === collectionName);
