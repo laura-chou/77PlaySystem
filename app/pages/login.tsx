@@ -36,7 +36,8 @@ export default function Login() {
             router.push('/pages/dashboard');
         } catch (error) {
             setLoading(false);
-            alert((error as any).response.data.message);
+            const errorMessage = (error as any).response?.data?.message || '登入失敗，請稍後再試';
+            alert(errorMessage);
         }
     };
 
