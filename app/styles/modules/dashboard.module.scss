@@ -32,5 +32,10 @@
         &:hover {
             transform: scale(1.01);
         }
+
+        &.expired {
+            background-color: #f8d7da;
+            color: #842029;
+        }
     }
 }

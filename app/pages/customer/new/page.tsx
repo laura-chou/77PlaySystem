@@ -40,6 +40,10 @@ export default function CreateCustomer() {
     };
 
     const handleSubmit = async() => {
+        if (!newCustomer.custName.trim()) {
+            alert('請輸入客戶 LINE');
+            return;
+        }
         try {
             const dataToSend = { ...newCustomer };
 

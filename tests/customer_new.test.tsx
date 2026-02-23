@@ -44,6 +44,16 @@ describe('CreateCustomer Page Integration Test', () => {
     });
   });
 
+  it('未輸入客戶 LINE 時應顯示 alert', async () => {
+    const user = userEvent.setup();
+    render(<CreateCustomer />);
+
+    await user.click(screen.getByText('儲存'));
+
+    expect(window.alert).toHaveBeenCalledWith('請輸入客戶 LINE');
+    expect(mockRouter.push).not.toHaveBeenCalled();
+  });
+
   it('點擊返回清單應導回 dashboard', async () => {
     const user = userEvent.setup();
     render(<CreateCustomer />);

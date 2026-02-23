@@ -43,8 +43,8 @@ describe('CustomerEdit Page Integration Test', () => {
 
     expect(screen.getByRole('table')).toBeInTheDocument();
     expect(screen.getByText('2023-01-01')).toBeInTheDocument();
-    // 1500 在表格中出現兩次（金額與餘額）
-    expect(screen.getAllByText('1500').length).toBeGreaterThanOrEqual(2);
+    // 1,500 在表格中出現兩次（金額與餘額）
+    expect(screen.getAllByText('1,500').length).toBeGreaterThanOrEqual(2);
   });
 
   it('進入編輯模式並修改姓名', async () => {
@@ -66,6 +66,22 @@ describe('CustomerEdit Page Integration Test', () => {
     await waitFor(() => {
       expect(window.alert).toHaveBeenCalledWith('客戶資料已更新！');
     });
+  });
+
+  it('未輸入客戶 LINE 時應顯示 alert', async () => {
+    const user = userEvent.setup();
+    render(<CustomerEdit />);
+
+    await waitForElementToBeRemoved(() => screen.queryByText('載入中...'));
+
+    await user.click(screen.getByText('編輯'));
+
+    const nameInput = screen.getByDisplayValue('王小明');
+    await user.clear(nameInput);
+
+    await user.click(screen.getByText('儲存'));
+
+    expect(window.alert).toHaveBeenCalledWith('請輸入客戶 LINE');
   });
 
   it('進行消費操作', async () => {
@@ -114,5 +130,22 @@ describe('CustomerEdit Page Integration Test', () => {
       expect(window.alert).toHaveBeenCalledWith('驗證失效，請重新登入');
       expect(mockRouter.push).toHaveBeenCalledWith('/');
     });
+  });
+
+  it('歷史紀錄日期過濾功能', async () => {
+    const user = userEvent.setup();
+    render(<CustomerEdit />);
+
+    await waitForElementToBeRemoved(() => screen.queryByText('載入中...'));
+
+    await user.click(screen.getByText('歷史紀錄'));
+
+    expect(screen.getByText('2023-01-01')).toBeInTheDocument();
+
+    const startDateInput = screen.getByLabelText('開始日期');
+    await user.type(startDateInput, '2023-01-02');
+
+    expect(screen.queryByText('2023-01-01')).not.toBeInTheDocument();
+    expect(screen.getByText('無符合條件的紀錄')).toBeInTheDocument();
   });
 });

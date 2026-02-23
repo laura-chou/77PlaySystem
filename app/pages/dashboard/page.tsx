@@ -158,8 +158,15 @@ export default function Dashboard() {
                             </tr>
                         </thead>
                         <tbody>
-                            {filteredUsers.map((user) => (
-                                <tr key={user.custId}>
+                            {filteredUsers.map((user) => {
+                                const today = new Date();
+                                today.setHours(0, 0, 0, 0);
+                                const expiryDate = new Date(user.expiryDate);
+                                expiryDate.setHours(0, 0, 0, 0);
+
+                                const isExpired = expiryDate < today;
+                                return (
+                                <tr key={user.custId} className={isExpired ? styles.expired : ''}>
                                     <td>{user.custName}</td>
                                     <td>{user.expiryDate}</td>
                                     <td>
@@ -171,7 +178,8 @@ export default function Dashboard() {
                                         </button>
                                     </td>
                                 </tr>
-                            ))}
+                                );
+                            })}
                         </tbody>
                     </table>
                 </div>

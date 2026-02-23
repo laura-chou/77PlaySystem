@@ -114,4 +114,22 @@ describe('Dashboard Page Integration Test', () => {
     expect(screen.getByText('載入失敗')).toBeInTheDocument();
     expect(screen.getByText(/Network Error/i)).toBeInTheDocument();
   });
+
+  it('過期客戶應顯示紅色背景 (expired class)', async () => {
+    server.use(
+      http.get(`${env.apiBaseUrl}customer`, () => {
+        return HttpResponse.json(
+          { data: [{ custId: '3', custName: '過期人', expiryDate: '2000-01-01' }] },
+          { status: 200 }
+        );
+      })
+    );
+
+    render(<Dashboard />);
+
+    await waitForElementToBeRemoved(() => screen.queryAllByText('載入中...'));
+
+    const row = screen.getByText('過期人').closest('tr');
+    expect(row).toHaveClass('expired');
+  });
 });

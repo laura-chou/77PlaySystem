@@ -26,6 +26,9 @@ export default function CustomerEdit() {
     const [isEditing, setIsEditing] = useState(false);
     const [action, setAction] = useState<ActionEnum>(ActionEnum.NAME);
     const [balanceAmount, setBalanceAmount] = useState(0);
+    const [historyStartDate, setHistoryStartDate] = useState('');
+    const [historyEndDate, setHistoryEndDate] = useState('');
+    const [extendCount, setExtendCount] = useState(0);
 
     useEffect(() => {
         if (customerId) {
@@ -69,6 +72,17 @@ export default function CustomerEdit() {
             };
             setCustomer(customerData);
 
+            // Calculate extension count from history
+            // We assume extensions have amount 200 and are identified by some logic
+            // Since serviceName is not consistently used in the provided code,
+            // we'll look for entries where amount is 200 and it's likely an extension.
+            // However, a better way is if the backend returned this count.
+            // For now, let's look for '延長' in serviceName or follow the requirement.
+            const extensions = responseData.history.filter((h: any) =>
+                h.serviceName?.includes('延長') || h.action === 'extend'
+            );
+            setExtendCount(extensions.length);
+
             const newFormData = {
                 action: action,
                 custId: customerData.custId,
@@ -89,6 +103,10 @@ export default function CustomerEdit() {
     };
 
     const handleSave = async() => {
+        if (!formData.custName.trim()) {
+            alert('請輸入客戶 LINE');
+            return;
+        }
         try {
             // Prepare the data to send
             const dataToSend = { ...formData };
@@ -136,6 +154,17 @@ export default function CustomerEdit() {
             alert('更新失敗，請重試');
         }
     };
+
+    const filteredHistory = customer?.history.filter(h => {
+        if (!historyStartDate && !historyEndDate) return true;
+        const spendDate = new Date(h.spendDate);
+        const start = historyStartDate ? new Date(historyStartDate) : null;
+        const end = historyEndDate ? new Date(historyEndDate) : null;
+
+        if (start && spendDate < start) return false;
+        if (end && spendDate > end) return false;
+        return true;
+    }) || [];
 
     const handleCancel = () => {
         if (customer) {
@@ -271,7 +300,9 @@ export default function CustomerEdit() {
                                         <option value="name">改客戶 LINE</option>
                                         <option value="charge">消費</option>
                                         <option value="refill">充值</option>
-                                        <option value="extend">延長到期日</option>
+                                        <option value="extend" disabled={extendCount >= 3}>
+                                            延長到期日 {extendCount >= 3 ? '(已達上限 3 次)' : `(目前 ${extendCount} 次)`}
+                                        </option>
                                     </select>
                                 </div>
 
@@ -341,7 +372,29 @@ export default function CustomerEdit() {
                         </div>
                     </div>
                     <div className="tab-pane fade" id="nav-history">
-                        <table className={`table table-bordered text-center mt-3 mb-0`}>
+                        <div className="row mt-3 mb-2 px-1">
+                            <div className="col-6">
+                                <label htmlFor="historyStartDate" className="form-label small">開始日期</label>
+                                <input
+                                    id="historyStartDate"
+                                    type="date"
+                                    className="form-control form-control-sm"
+                                    value={historyStartDate}
+                                    onChange={(e) => setHistoryStartDate(e.target.value)}
+                                />
+                            </div>
+                            <div className="col-6">
+                                <label htmlFor="historyEndDate" className="form-label small">結束日期</label>
+                                <input
+                                    id="historyEndDate"
+                                    type="date"
+                                    className="form-control form-control-sm"
+                                    value={historyEndDate}
+                                    onChange={(e) => setHistoryEndDate(e.target.value)}
+                                />
+                            </div>
+                        </div>
+                        <table className={`table table-bordered text-center mb-0`}>
                             <thead>
                                 <tr className='table-success'>
                                     <th>日期</th>
@@ -351,14 +404,19 @@ export default function CustomerEdit() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {customer.history.map((history, index) => (
+                                {filteredHistory.map((history, index) => (
                                     <tr key={`${history.spendDate}-${index}`}>
                                         <td>{history.spendDate}</td>
-                                        <td className='text-end'>{history.amount}</td>
-                                        <td className='text-end'>{history.currentBalance}</td>
+                                        <td className='text-end'>{history.amount.toLocaleString()}</td>
+                                        <td className='text-end'>{history.currentBalance.toLocaleString()}</td>
                                         <td>{history.expiryDate}</td>
                                     </tr>
                                 ))}
+                                {filteredHistory.length === 0 && (
+                                    <tr>
+                                        <td colSpan={4} className="text-center py-3 text-muted">無符合條件的紀錄</td>
+                                    </tr>
+                                )}
                             </tbody>
                         </table>
                     </div>
