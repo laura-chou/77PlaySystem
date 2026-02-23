@@ -54,7 +54,6 @@ export default function CustomerEdit() {
             );
 
             const responseData = response.data.data;
-            console.log('responseData', responseData);
 
             // Ensure dates are properly formatted
             const today = new Date().toISOString().split('T')[0];
