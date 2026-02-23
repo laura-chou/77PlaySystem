@@ -9,6 +9,7 @@ export interface ICustomer {
     custId: string;
     custName: string;
     createDate: string;
+    extendedTimes: number;
     balance: number;
     balanceExpiryDate: string;
     history: ICustomerHistory[];

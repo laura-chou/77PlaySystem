@@ -33,6 +33,33 @@ describe('CustomerEdit Page Integration Test', () => {
     expect(screen.getByDisplayValue('1500')).toBeInTheDocument();
   });
 
+  it('應正確顯示並禁用達到上限的延展選項', async () => {
+    // Mock a customer with 3 extended times
+    server.use(
+      http.get(`${env.apiBaseUrl}customer/3`, () => {
+        return HttpResponse.json({
+          data: {
+            custId: '3',
+            custName: '三延人',
+            createDate: '2023-01-01',
+            extendedTimes: 3,
+            history: [{ spendDate: '2023-01-01', amount: 1500, currentBalance: 1500, expiryDate: '2023-04-01' }]
+          }
+        });
+      })
+    );
+
+    (useParams as jest.Mock).mockReturnValue({ id: '3' });
+    render(<CustomerEdit />);
+
+    await waitForElementToBeRemoved(() => screen.queryByText('載入中...'));
+
+    await userEvent.click(screen.getByText('編輯'));
+
+    const extendOption = screen.getByText(/延長到期日 \(已達上限 3 次\)/);
+    expect(extendOption).toBeDisabled();
+  });
+
   it('切換分頁應顯示歷史紀錄', async () => {
     const user = userEvent.setup();
     render(<CustomerEdit />);

@@ -66,22 +66,13 @@ export default function CustomerEdit() {
                 custId: customerId,
                 custName: responseData.custName,
                 createDate: createDate,
+                extendedTimes: responseData.extendedTimes || 0,
                 balance: responseData.history[0].currentBalance,
                 balanceExpiryDate: expiryDate,
                 history: responseData.history
             };
             setCustomer(customerData);
-
-            // Calculate extension count from history
-            // We assume extensions have amount 200 and are identified by some logic
-            // Since serviceName is not consistently used in the provided code,
-            // we'll look for entries where amount is 200 and it's likely an extension.
-            // However, a better way is if the backend returned this count.
-            // For now, let's look for '延長' in serviceName or follow the requirement.
-            const extensions = responseData.history.filter((h: any) =>
-                h.serviceName?.includes('延長') || h.action === 'extend'
-            );
-            setExtendCount(extensions.length);
+            setExtendCount(responseData.extendedTimes || 0);
 
             const newFormData = {
                 action: action,

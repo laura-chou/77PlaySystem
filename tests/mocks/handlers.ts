@@ -6,6 +6,7 @@ const mockCustomers = [
     custId: '1',
     custName: '王小明',
     createDate: '2023-01-01',
+    extendedTimes: 0,
     history: [
       {
         spendDate: '2023-01-01',
@@ -19,6 +20,7 @@ const mockCustomers = [
     custId: '2',
     custName: '李小華',
     createDate: '2023-02-01',
+    extendedTimes: 1,
     history: [
       {
         spendDate: '2023-02-01',
