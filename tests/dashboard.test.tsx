@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { server } from './mocks/server';
 import { http, HttpResponse } from 'msw';
 import { env } from '@/config/env';
+import { setToken, clearToken } from '@/lib/api';
 
 const mockRouter = {
   push: jest.fn(),
@@ -20,6 +21,11 @@ jest.mock('next/navigation', () => ({
 describe('Dashboard Page Integration Test', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    setToken('mocked_token');
+  });
+
+  afterEach(() => {
+    clearToken();
   });
 
   it('應顯示載入中狀態', () => {

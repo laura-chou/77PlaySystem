@@ -1,12 +1,11 @@
 'use client';
 
-import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import styles from '@/styles/modules/customer.module.scss';
 
-import { env } from '@/config/env';
+import api from '@/lib/api';
 import { INewCustomer } from '@/lib/models/customer';
 
 export default function CreateCustomer() {
@@ -47,10 +46,9 @@ export default function CreateCustomer() {
         try {
             const dataToSend = { ...newCustomer };
 
-            await axios.post(
-                `${env.apiBaseUrl}customer/create`,
-                dataToSend,
-                { withCredentials: true }
+            await api.post(
+                `customer/create`,
+                dataToSend
             );
 
             // Handle successful creation

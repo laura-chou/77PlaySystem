@@ -46,18 +46,20 @@ export const handlers = [
     const origin = request.headers.get('origin') || 'http://localhost';
     const headers = {
       'Access-Control-Allow-Origin': origin,
-      'Access-Control-Allow-Credentials': 'true',
     };
 
     if (account === 'testuser' && password === 'password123') {
       return HttpResponse.json(
-        { message: 'Login successful' },
         {
           status: 200,
-          headers: {
-            ...headers,
-            'Set-Cookie': 'token=mocked_token; Path=/; HttpOnly',
-          },
+          message: 'Login successful',
+          data: {
+            token: 'mocked_token'
+          }
+        },
+        {
+          status: 200,
+          headers
         }
       );
     } else {
@@ -77,7 +79,6 @@ export const handlers = [
         status: 200,
         headers: {
           'Access-Control-Allow-Origin': origin,
-          'Access-Control-Allow-Credentials': 'true',
         },
       }
     );
@@ -88,12 +89,12 @@ export const handlers = [
     const origin = request.headers.get('origin') || 'http://localhost';
     const headers = {
       'Access-Control-Allow-Origin': origin,
-      'Access-Control-Allow-Credentials': 'true',
     };
 
-    // Simulate 401 if needed (uncomment for specific tests if desired,
-    // but usually we want success here)
-    // return HttpResponse.json({ message: 'Unauthorized' }, { status: 401, headers });
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader || authHeader !== 'Bearer mocked_token') {
+      return HttpResponse.json({ message: 'Unauthorized' }, { status: 401, headers });
+    }
 
     return HttpResponse.json(
       { data: mockCustomers.map(c => ({
@@ -111,8 +112,12 @@ export const handlers = [
     const origin = request.headers.get('origin') || 'http://localhost';
     const headers = {
       'Access-Control-Allow-Origin': origin,
-      'Access-Control-Allow-Credentials': 'true',
     };
+
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader || authHeader !== 'Bearer mocked_token') {
+      return HttpResponse.json({ message: 'Unauthorized' }, { status: 401, headers });
+    }
 
     const customer = mockCustomers.find(c => c.custId === id);
 
@@ -128,8 +133,12 @@ export const handlers = [
     const origin = request.headers.get('origin') || 'http://localhost';
     const headers = {
       'Access-Control-Allow-Origin': origin,
-      'Access-Control-Allow-Credentials': 'true',
     };
+
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader || authHeader !== 'Bearer mocked_token') {
+      return HttpResponse.json({ message: 'Unauthorized' }, { status: 401, headers });
+    }
 
     return HttpResponse.json({ message: 'Customer created' }, { status: 201, headers });
   }),
@@ -139,8 +148,12 @@ export const handlers = [
     const origin = request.headers.get('origin') || 'http://localhost';
     const headers = {
       'Access-Control-Allow-Origin': origin,
-      'Access-Control-Allow-Credentials': 'true',
     };
+
+    const authHeader = request.headers.get('Authorization');
+    if (!authHeader || authHeader !== 'Bearer mocked_token') {
+      return HttpResponse.json({ message: 'Unauthorized' }, { status: 401, headers });
+    }
 
     return HttpResponse.json({ message: 'Customer updated' }, { status: 200, headers });
   }),

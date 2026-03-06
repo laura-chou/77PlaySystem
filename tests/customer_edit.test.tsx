@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { server } from './mocks/server';
 import { http, HttpResponse } from 'msw';
 import { env } from '@/config/env';
+import { setToken, clearToken } from '@/lib/api';
 
 const mockRouter = {
   push: jest.fn(),
@@ -19,6 +20,11 @@ describe('CustomerEdit Page Integration Test', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useParams as jest.Mock).mockReturnValue({ id: '1' });
+    setToken('mocked_token');
+  });
+
+  afterEach(() => {
+    clearToken();
   });
 
   it('應正確渲染客戶編輯頁面並載入資料', async () => {

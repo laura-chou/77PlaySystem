@@ -1,12 +1,11 @@
 'use client';
 
-import axios from 'axios';
 import { useRouter, useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import styles from '@/styles/modules/customer.module.scss';
 
-import { env } from '@/config/env';
+import api from '@/lib/api';
 import { ICustomer, ICustomerFormData, ActionEnum } from '@/lib/models/customer';
 
 
@@ -51,9 +50,8 @@ export default function CustomerEdit() {
     const fetchCustomer = async() => {
         try {
             setLoading(true);
-            const response = await axios.get(
-                `${env.apiBaseUrl}customer/${customerId}`,
-                { withCredentials: true }
+            const response = await api.get(
+                `customer/${customerId}`
             );
 
             const responseData = response.data.data;
@@ -84,7 +82,7 @@ export default function CustomerEdit() {
             setFormData(newFormData);
         } catch (error) {
             // If token is invalid, redirect to login
-            if (axios.isAxiosError(error) && error.response?.status === 401) {
+            if (api.isAxiosError(error) && error.response?.status === 401) {
                 alert('驗證失效，請重新登入');
                 router.push('/');
             }
@@ -123,10 +121,9 @@ export default function CustomerEdit() {
                 }
             }
 
-            await axios.patch(
-                `${env.apiBaseUrl}customer/update`,
-                dataToSend,
-                { withCredentials: true }
+            await api.patch(
+                `customer/update`,
+                dataToSend
             );
 
             // Fetch updated customer data after successful update
@@ -137,7 +134,7 @@ export default function CustomerEdit() {
         } catch (error) {
             console.error('Failed to update customer:', error);
             // Handle 401 error specifically
-            if (axios.isAxiosError(error) && error.response?.status === 401) {
+            if (api.isAxiosError(error) && error.response?.status === 401) {
                 alert('驗證失效，請重新登入');
                 router.push('/');
                 return;

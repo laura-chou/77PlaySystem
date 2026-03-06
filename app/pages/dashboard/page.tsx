@@ -1,12 +1,10 @@
 'use client';
 
-import axios from 'axios';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import styles from '@/styles/modules/dashboard.module.scss';
-
-import { env } from '../../config/env';
+import api, { clearToken } from '@/lib/api';
 
 interface User {
     custId: string;
@@ -27,9 +25,8 @@ export default function Dashboard() {
                 setLoading(true);
                 setError(null);
 
-                const response = await axios.get(
-                    `${env.apiBaseUrl}customer`,
-                    { withCredentials: true }
+                const response = await api.get(
+                    `customer`
                 );
 
                 if (response.data.data && Array.isArray(response.data.data)) {
@@ -39,7 +36,7 @@ export default function Dashboard() {
                     setUsers([]);
                 }
             } catch (error: any) {
-                if (error.response?.status === 401) {
+                if (api.isAxiosError(error) && error.response?.status === 401) {
                     alert('驗證失效，請重新登入');
                     router.push('/');
                 } else {
@@ -60,14 +57,14 @@ export default function Dashboard() {
 
     const logout = async () => {
         try {
-            await axios.post(
-                `${env.apiBaseUrl}user/logout`,
-                {},
-                { withCredentials: true }
+            await api.post(
+                `user/logout`,
+                {}
             );
         } catch (error) {
             console.error('logout error:', error);
         } finally {
+            clearToken();
             router.push('/');
         }
     }

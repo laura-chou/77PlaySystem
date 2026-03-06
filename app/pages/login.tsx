@@ -1,13 +1,12 @@
 'use client';
 
-import axios from 'axios';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
 
 import styles from '@/styles/modules/login.module.scss';
 
-import { env } from '@/config/env';
+import api, { setToken } from '@/lib/api';
 
 export default function Login() {
     const [account, setAccount] = useState('');
@@ -28,12 +27,18 @@ export default function Login() {
         setLoading(true);
         try {
             const request = { "account": account, "password": password };
-            await axios.post(
-                `${env.apiBaseUrl}user/login`,
-                request,
-                { withCredentials: true }
+            const response = await api.post(
+                `user/login`,
+                request
             );
-            router.push('/pages/dashboard');
+
+            if (response.status === 200 && response.data?.data?.token) {
+                setToken(response.data.data.token);
+                router.push('/pages/dashboard');
+            } else {
+                setLoading(false);
+                alert('帳號或密碼錯誤');
+            }
         } catch (error) {
             setLoading(false);
             alert('帳號或密碼錯誤');
