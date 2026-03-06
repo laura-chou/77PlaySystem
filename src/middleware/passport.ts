@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import { Request } from "express";
 import passport from "passport";
-import passportJWT, { Strategy as JwtStrategy } from "passport-jwt";
+import passportJWT, { Strategy as JwtStrategy, ExtractJwt } from "passport-jwt";
 import { Strategy as LocalStrategy } from "passport-local";
 
 import { RESPONSE_MESSAGE } from "../common/constants";
@@ -25,17 +25,11 @@ interface UserQuery {
   userRole?: UserRole;
 }
 
-const cookieExtractor = (req: Request): string | null => {
-  if (req && req.cookies) {
-    return req.cookies.token || null;
-  }
-  return null;
-};
 
 const createJwtStrategy = (requiredRole?: UserRole): JwtStrategy => 
   new JwtStrategy(
     {
-      jwtFromRequest: cookieExtractor,
+      jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       secretOrKey: process.env.JWT_SECRET!,
       passReqToCallback: true
@@ -53,8 +47,10 @@ const createJwtStrategy = (requiredRole?: UserRole): JwtStrategy =>
           return done(null, false, { message: RESPONSE_MESSAGE.USER_NOT_EXIST });
         }
 
+        const token = ExtractJwt.fromAuthHeaderAsBearerToken()(request);
+
         if (isNullOrEmpty(user.token)
-          || request.cookies.token !== user.token) {
+          || token !== user.token) {
           return done(null, false, { message: RESPONSE_MESSAGE.INVALID_TOKEN });
         }
 

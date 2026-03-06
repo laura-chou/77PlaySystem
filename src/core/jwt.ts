@@ -1,5 +1,6 @@
 import { Request } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
+import { ExtractJwt } from "passport-jwt";
 
 export const signToken = (payload: object): string => {
   return jwt.sign(
@@ -11,7 +12,9 @@ export const signToken = (payload: object): string => {
 };
 
 const decodeToken = <T = JwtPayload>(request: Request): T | null => {
-  const token = request.cookies.token as string;
+  const token = ExtractJwt.fromAuthHeaderAsBearerToken()(request);
+
+  if (!token) return null;
 
   try {
     return jwt.decode(token) as T;

@@ -1,0 +1,9 @@
+process.env.DBURL = "mongodb://localhost/test";
+process.env.JWT_SECRET = "testsecret";
+process.env.BCRYPT_SALT_ROUNDS = "10";
+process.env.COLLECTION_CUSTOMER = "customer";
+process.env.COLLECTION_USER = "user";
+process.env.COLLECTION_TRANSACTION = "transaction";
+process.env.COLLECTION_SERVICETYPE = "servicetype";
+process.env.WHITELIST = "localhost";
+process.env.PORT = "3000";

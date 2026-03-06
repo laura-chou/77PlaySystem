@@ -21,15 +21,8 @@ export const userLogin = setFunctionName(
         { token }
       );
 
-      response.cookie("token", token, {
-        httpOnly: true,
-        secure: isProductionEnv(),
-        sameSite: isProductionEnv() ? "none" : "lax",
-        maxAge: 60 * 60 * 1000
-      });
-
       setLog(LogLevel.INFO, LogMessage.SUCCESS, userLogin.name);
-      responseHandler.success(response);
+      responseHandler.success(response, { token });
     } catch (error) {
       baseController.errorHandler(response, error, userLogin.name);
     }
@@ -92,11 +85,6 @@ export const userLogout = setFunctionName(
           { $set: { token: "" } }
         );
       }
-      response.clearCookie("token", {
-        httpOnly: true,
-        secure: isProductionEnv(),
-        sameSite: isProductionEnv() ? "none" : "lax",
-      });
       setLog(LogLevel.INFO, LogMessage.SUCCESS, userLogout.name);
       responseHandler.success(response);
     } catch (error) {

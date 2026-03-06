@@ -5,7 +5,8 @@ const config: Config = {
   transform: {
     "^.+\\.tsx?$": ["ts-jest", {}],
   },
-  maxWorkers: 1
+  maxWorkers: 1,
+  setupFiles: ["<rootDir>/tests/setupEnv.ts"]
 };
 
 export default config;

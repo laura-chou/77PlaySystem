@@ -29,26 +29,28 @@ const defaultTokenOptions: Required<TokenOptions> = {
   isInvalid: false
 };
 
-const attachTokenCookie = (req: Request, options: TokenOptions): void => {
+const attachTokenHeader = (req: Request, options: TokenOptions): void => {
   if (!options.showToken) return;
 
   const payload = {
-    user: options.existUser ? MOCK_USER_ADMIN.token : "notExistUser",
+    user: options.existUser ? MOCK_USER_ADMIN._id : "notExistUser",
   };
 
   const signOptions: jwt.SignOptions = {};
   if (options.isExpired) signOptions.expiresIn = -1;
 
-  const generateToken = jwt.sign(
+  const token = jwt.sign(
     payload,
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     process.env.JWT_SECRET!,
     signOptions
   );
 
-  const token = options.mockToken ? MOCK_USER_ADMIN.token : generateToken;
+  if (options.mockToken && options.existUser && !options.isExpired && !options.isInvalid) {
+    MOCK_USER_ADMIN.token = token;
+  }
 
-  req.set("Cookie", [`token=${options.isInvalid ? "invalidtoken" : token}`]);
+  req.set("Authorization", `Bearer ${options.isInvalid ? "invalidtoken" : token}`);
 };
 
 export const mockUserFindOne = (data: object | null = MOCK_USER_ADMIN): void => {
@@ -111,7 +113,7 @@ export const createRequest = {
     const expectContentType = isExpectJson ? CONTENT_TYPE.JSON_WITH_CHARSET : CONTENT_TYPE.TEXT_WITH_CHARSET;
     const req = request(app).get(route);
 
-    attachTokenCookie(req, mergedTokenOptions);
+    attachTokenHeader(req, mergedTokenOptions);
 
     return req
       .expect("Content-Type", expectContentType)
@@ -134,7 +136,7 @@ export const createRequest = {
       .set("Content-Type", setContentType)
       .send(body);
 
-    attachTokenCookie(req, mergedTokenOptions);
+    attachTokenHeader(req, mergedTokenOptions);
 
     return req
       .expect("Content-Type", expectContentType)
@@ -157,7 +159,7 @@ export const createRequest = {
       .set("Content-Type", setContentType)
       .send(body);
 
-    attachTokenCookie(req, mergedTokenOptions);
+    attachTokenHeader(req, mergedTokenOptions);
 
     return req
       .expect("Content-Type", expectContentType)
@@ -174,7 +176,7 @@ export const createRequest = {
     const expectContentType = isExpectJson ? CONTENT_TYPE.JSON_WITH_CHARSET : CONTENT_TYPE.TEXT_WITH_CHARSET;
     const req = request(app).delete(route);
 
-    attachTokenCookie(req, mergedTokenOptions);
+    attachTokenHeader(req, mergedTokenOptions);
 
     return req
       .expect("Content-Type", expectContentType)

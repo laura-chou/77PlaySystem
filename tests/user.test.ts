@@ -31,12 +31,8 @@ describe("User API", () => {
           HTTP_STATUS.OK
         );
 
-        expect(response.headers["set-cookie"]).toEqual(
-          expect.arrayContaining([
-            expect.stringMatching(/^token=.*$/)
-          ])
-        );
-        expectResponse.success(response);
+        expect(response.headers["set-cookie"]).toBeUndefined();
+        expectResponse.success(response, { token: expect.any(String) });
       });
     });
 
@@ -163,7 +159,7 @@ describe("User API", () => {
     );
 
     describe("Success Cases", () => {
-      it("should clear cookie and logout user when userId exists", async() => {
+      it("should logout user and not clear cookie when userId exists", async() => {
         mockUserFindOne();
         spyOnGetUserIdFromToken();
 
@@ -173,8 +169,7 @@ describe("User API", () => {
           HTTP_STATUS.OK
         );
         
-        expect(response.headers["set-cookie"]).toBeDefined();
-        expect(response.headers["set-cookie"][0]).toContain("token=");
+        expect(response.headers["set-cookie"]).toBeUndefined();
         expectResponse.success(response);
       });
     });
