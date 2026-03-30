@@ -1,4 +1,4 @@
 # 77PlaySystem API
 
-### Apiary
-#### https://77playsystem.docs.apiary.io/
+### Swagger
+#### https://app.swaggerhub.com/apis-docs/private-412/77play-system-api
