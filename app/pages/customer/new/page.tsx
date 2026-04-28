@@ -17,7 +17,7 @@ export default function CreateCustomer() {
     const [newCustomer, setNewCustomer] = useState<INewCustomer>({
         custName: '',
         createDate: today,
-        amount: 1500
+        amount: 1200
     });
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {

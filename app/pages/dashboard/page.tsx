@@ -167,12 +167,20 @@ export default function Dashboard() {
                                     <td>{user.custName}</td>
                                     <td>{user.expiryDate}</td>
                                     <td>
-                                        <button
-                                            className="btn btn-sm btn-primary"
-                                            onClick={() => router.push(`/pages/customer/${user.custId}`)}
-                                        >
-                                            編輯
-                                        </button>
+                                        <div className="d-flex gap-2">
+                                            <button
+                                                className="btn btn-sm btn-primary"
+                                                onClick={() => router.push(`/pages/customer/${user.custId}`)}
+                                            >
+                                                編輯
+                                            </button>
+                                            <button
+                                                className="btn btn-sm btn-danger"
+                                                onClick={() => alert('刪除功能開發中')}
+                                            >
+                                                刪除
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 );

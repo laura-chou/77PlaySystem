@@ -76,8 +76,39 @@ describe('CustomerEdit Page Integration Test', () => {
 
     expect(screen.getByRole('table')).toBeInTheDocument();
     expect(screen.getByText('2023-01-01')).toBeInTheDocument();
-    // 1,500 在表格中出現兩次（金額與餘額）
-    expect(screen.getAllByText('1,500').length).toBeGreaterThanOrEqual(2);
+    // 1,500 現在僅在餘額欄位出現一次
+    expect(screen.getAllByText('1,500').length).toBeGreaterThanOrEqual(1);
+    // 檢查星星數量 (1500 / 80 = 18.75 -> 19)
+    expect(screen.getAllByText('19').length).toBeGreaterThanOrEqual(1);
+  });
+
+  it('檢查星星顯示格式', async () => {
+    const user = userEvent.setup();
+    server.use(
+      http.get(`${env.apiBaseUrl}customer/1`, () => {
+        return HttpResponse.json({
+          data: {
+            custId: '1',
+            custName: '王小明',
+            createDate: '2023-01-01',
+            extendedTimes: 0,
+            history: [
+              { spendDate: '2023-01-01', amount: 800, currentBalance: 800, expiryDate: '2023-04-01', serviceName: 'Charge' },
+              { spendDate: '2023-01-02', amount: 1600, currentBalance: 2400, expiryDate: '2023-07-01', serviceName: 'Refill' }
+            ]
+          }
+        });
+      })
+    );
+
+    render(<CustomerEdit />);
+    await waitForElementToBeRemoved(() => screen.queryByText('載入中...'));
+    await user.click(screen.getByText('歷史紀錄'));
+
+    // 消費 800 應顯示 -10 星
+    expect(screen.getByText('-10')).toBeInTheDocument();
+    // 充值 1600 應顯示 20 星 (正數)
+    expect(screen.getByText('20')).toBeInTheDocument();
   });
 
   it('進入編輯模式並修改姓名', async () => {

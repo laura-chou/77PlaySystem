@@ -386,23 +386,31 @@ export default function CustomerEdit() {
                             <thead>
                                 <tr className='table-success'>
                                     <th>日期</th>
-                                    <th>金額</th>
-                                    <th>餘額</th>
+                                    <th>消費星星</th>
+                                    <th>剩餘星星</th>
                                     <th>到期日</th>
+                                    <th>餘額</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredHistory.map((history, index) => (
+                                {filteredHistory.map((history, index) => {
+                                    const stars = Math.round(history.amount / 80);
+                                    const isRefill = ['refill', '充值', '初始', 'Initial'].some(s =>
+                                        history.serviceName?.toLowerCase().includes(s.toLowerCase())
+                                    );
+                                    return (
                                     <tr key={`${history.spendDate}-${index}`}>
                                         <td>{history.spendDate}</td>
-                                        <td className='text-end'>{history.amount.toLocaleString()}</td>
-                                        <td className='text-end'>{history.currentBalance.toLocaleString()}</td>
+                                        <td className='text-end'>{(!isRefill && stars > 0) ? `-${stars}` : stars}</td>
+                                        <td className='text-end'>{Math.round(history.currentBalance / 80)}</td>
                                         <td>{history.expiryDate}</td>
+                                        <td className='text-end'>{history.currentBalance.toLocaleString()}</td>
                                     </tr>
-                                ))}
+                                    );
+                                })}
                                 {filteredHistory.length === 0 && (
                                     <tr>
-                                        <td colSpan={4} className="text-center py-3 text-muted">無符合條件的紀錄</td>
+                                        <td colSpan={5} className="text-center py-3 text-muted">無符合條件的紀錄</td>
                                     </tr>
                                 )}
                             </tbody>
