@@ -254,4 +254,11 @@ export const expectResponse = {
       message: message
     });
   },
+
+  noContent: (response: Response): void => {
+    expect(response.body).toEqual({
+      status: 204,
+      message: RESPONSE_MESSAGE.SUCCESS
+    });
+  },
 };

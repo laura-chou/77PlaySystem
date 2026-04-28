@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 
+import { HTTP_STATUS } from "../common/constants";
 import { responseHandler } from "../common/response";
 import { getNowDate, getDateAfterMonths, isNullOrEmpty, setFunctionName } from "../common/utils";
 import { getCustomerListPipeline, getCustomerDetailPipeline } from "../core/db";
@@ -178,4 +179,40 @@ export const updateCustInfo = setFunctionName(
     }
   },
   "updateCustInfo"
+);
+
+export const deleteCustomer = setFunctionName(
+  async(request: Request, response: Response): Promise<void> => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
+    try {
+      const custId = request.params.custId as string;
+
+      if (!baseController.validateCustId(custId, response, deleteCustomer.name)) {
+        return;
+      }
+
+      const customer = await Customer.findById(custId).session(session);
+      if (!customer) {
+        setLog(LogLevel.ERROR, LogMessage.ERROR.NOTFOUND, deleteCustomer.name);
+        responseHandler.notFound(response);
+        await session.abortTransaction();
+        return;
+      }
+
+      await Customer.deleteOne({ _id: custId }).session(session);
+      await Transaction.deleteMany({ customerId: custId }).session(session);
+
+      await session.commitTransaction();
+      setLog(LogLevel.INFO, LogMessage.SUCCESS, deleteCustomer.name);
+      responseHandler.noContent(response);
+    } catch (error) {
+      await session.abortTransaction();
+      baseController.errorHandler(response, error, deleteCustomer.name);
+    } finally {
+      session.endSession();
+    }
+  },
+  "deleteCustomer"
 );

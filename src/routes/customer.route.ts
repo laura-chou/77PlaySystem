@@ -9,5 +9,6 @@ export const custRoutes = (): RouteConfig => {
     router.get("/:custId", authMiddleware("jwt-basic"), customerController.getCustomer);
     router.post("/create", authMiddleware("jwt-basic"), customerController.createCustomer);
     router.patch("/update", authMiddleware("jwt-basic"), customerController.updateCustInfo);
+    router.delete("/:custId", authMiddleware("jwt-basic"), customerController.deleteCustomer);
   });
 };

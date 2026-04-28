@@ -26,7 +26,9 @@ jest.mock("../src/models/customer.model", () => ({
   aggregate: jest.fn(),
   findOneAndUpdate: jest.fn(),
   findOne: jest.fn(),
-  create: jest.fn()
+  create: jest.fn(),
+  findById: jest.fn(),
+  deleteOne: jest.fn()
 }));
 
 jest.mock("../src/models/serviceType.model", () => ({
@@ -35,7 +37,8 @@ jest.mock("../src/models/serviceType.model", () => ({
 
 jest.mock("../src/models/transaction.model", () => ({
   create: jest.fn(),
-  findOne: jest.fn()
+  findOne: jest.fn(),
+  deleteMany: jest.fn()
 }));
 
 const mockCustAggregate = (data: Array<object>): void => {
@@ -52,6 +55,27 @@ const mockCustCreate = (): void => {
 
 const mockCustFindOneAndUpdate = (data: ICustomer | null = MOCK_CUSTOMER_INFO): void => {
   (Customer.findOneAndUpdate as jest.Mock).mockResolvedValueOnce(data);
+};
+
+const mockCustFindById = (data: object | null = MOCK_CUSTOMER_INFO): void => {
+  const mock = (Customer.findById as jest.Mock);
+  mock.mockReturnValue({
+    session: jest.fn().mockResolvedValue(data)
+  });
+};
+
+const mockCustDeleteOne = (): void => {
+  const mock = (Customer.deleteOne as jest.Mock);
+  mock.mockReturnValue({
+    session: jest.fn().mockResolvedValue({})
+  });
+};
+
+const mockTransactionDeleteMany = (): void => {
+  const mock = (Transaction.deleteMany as jest.Mock);
+  mock.mockReturnValue({
+    session: jest.fn().mockResolvedValue({})
+  });
 };
 
 const mockServiceTypeFindOne = (): void => {
@@ -266,6 +290,112 @@ describe("Customer API", () => {
               mockUserFindOne();
               mockServiceTypeFindOne();
               mockCustCreate();
+            },
+            includeAbortTransactionTest: true
+          }
+        ]
+      },
+      expectResponse
+    );
+  });
+
+  describe(`DELETE ${ROUTE.CUSTOMER}/:custId`, () => {
+    const customerRoute = `${ROUTE.CUSTOMER}/${customerId}`;
+
+    describeValidationCustIdTest(
+      `${ROUTE.CUSTOMER}/invalid-id`,
+      (route, status, tokenInfo) => createRequest.delete(route, status, tokenInfo),
+      expectResponse
+    );
+
+    describeAuthErrorTests(
+      customerRoute,
+      (route, status, tokenInfo) => createRequest.delete(route, status, tokenInfo),
+      expectResponse
+    );
+
+    describe("Success Cases", () => {
+      test("should delete customer successfully", async() => {
+        mockUserFindOne();
+        mockCustFindById();
+        mockCustDeleteOne();
+        mockTransactionDeleteMany();
+
+        const response = await createRequest.delete(
+          customerRoute,
+          HTTP_STATUS.OK
+        );
+
+        expectResponse.noContent(response);
+        expect(mockSession.startTransaction).toHaveBeenCalled();
+        expect(mockSession.commitTransaction).toHaveBeenCalled();
+        expect(mockSession.endSession).toHaveBeenCalled();
+      });
+    });
+
+    describe("Not Found Cases", () => {
+      test("should return 404 when customer does not exist", async() => {
+        mockUserFindOne();
+        mockCustFindById(null);
+
+        const response = await createRequest.delete(
+          customerRoute,
+          HTTP_STATUS.NOT_FOUND
+        );
+
+        expectResponse.notFound(response);
+        expect(mockSession.abortTransaction).toHaveBeenCalled();
+      });
+    });
+
+    describeServerErrorTests(
+      {
+        route: customerRoute,
+        requestFn: createRequest.delete,
+        dbErrorCases: [
+          {
+            name: "User.findOne",
+            mockFn: User.findOne as jest.Mock
+          },
+          {
+            name: "Customer.findById",
+            mockFn: Customer.findById as jest.Mock,
+            setupMocks: (): void => {
+              mockUserFindOne();
+            },
+            mockErrorFn: (mockFn): void => {
+              mockFn.mockReturnValue({
+                session: jest.fn().mockRejectedValue(new Error("DB Error"))
+              });
+            },
+            includeAbortTransactionTest: true
+          },
+          {
+            name: "Customer.deleteOne",
+            mockFn: Customer.deleteOne as jest.Mock,
+            setupMocks: (): void => {
+              mockUserFindOne();
+              mockCustFindById();
+            },
+            mockErrorFn: (mockFn): void => {
+              mockFn.mockReturnValue({
+                session: jest.fn().mockRejectedValue(new Error("DB Error"))
+              });
+            },
+            includeAbortTransactionTest: true
+          },
+          {
+            name: "Transaction.deleteMany",
+            mockFn: Transaction.deleteMany as jest.Mock,
+            setupMocks: (): void => {
+              mockUserFindOne();
+              mockCustFindById();
+              mockCustDeleteOne();
+            },
+            mockErrorFn: (mockFn): void => {
+              mockFn.mockReturnValue({
+                session: jest.fn().mockRejectedValue(new Error("DB Error"))
+              });
             },
             includeAbortTransactionTest: true
           }

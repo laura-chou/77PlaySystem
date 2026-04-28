@@ -52,6 +52,7 @@ interface ServerErrorConfig {
     name: string;
     mockFn: jest.Mock;
     setupMocks?: () => void;
+    mockErrorFn?: (mockFn: jest.Mock) => void;
     includeAbortTransactionTest?: boolean;
   }[];
 }
@@ -208,12 +209,16 @@ export const describeServerErrorTests = (
   describe("Server Error Cases", () => {
     test.each(config.dbErrorCases)(
       "should return 500 if $name throws error",
-      async({ mockFn, setupMocks, includeAbortTransactionTest }) => {
+      async({ mockFn, setupMocks, mockErrorFn, includeAbortTransactionTest }) => {
         if (setupMocks) {
           setupMocks();
         }
 
-        mockFn.mockRejectedValueOnce(new Error("DB Error"));
+        if (mockErrorFn) {
+          mockErrorFn(mockFn);
+        } else {
+          mockFn.mockRejectedValueOnce(new Error("DB Error"));
+        }
 
         const isModifyRequest = config.requestBody !== undefined;
 

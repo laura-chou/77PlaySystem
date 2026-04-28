@@ -38,6 +38,8 @@ const sendResponse = <T>(
     ...(errorType && { errorType }),
     ...(data !== undefined && { data })
   };
+
+
   res.status(status).json(response);
 };
 
@@ -119,5 +121,13 @@ export const responseHandler = {
       HTTP_STATUS.SERVER_ERROR, 
       RESPONSE_MESSAGE.SERVER_ERROR
     );
+  },
+
+  noContent(res: Response): void {
+    const response: ApiResponse<undefined> = {
+      status: 204,
+      message: RESPONSE_MESSAGE.SUCCESS
+    };
+    res.status(HTTP_STATUS.OK).json(response);
   }
 };
