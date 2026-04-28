@@ -255,10 +255,4 @@ export const expectResponse = {
     });
   },
 
-  noContent: (response: Response): void => {
-    expect(response.body).toEqual({
-      status: 204,
-      message: RESPONSE_MESSAGE.SUCCESS
-    });
-  },
 };

@@ -326,7 +326,7 @@ describe("Customer API", () => {
           HTTP_STATUS.OK
         );
 
-        expectResponse.noContent(response);
+        expectResponse.success(response);
         expect(mockSession.startTransaction).toHaveBeenCalled();
         expect(mockSession.commitTransaction).toHaveBeenCalled();
         expect(mockSession.endSession).toHaveBeenCalled();
@@ -480,13 +480,13 @@ describe("Customer API", () => {
         expectResponse.updated(response);
       });
 
-      test("should call getDateAfterMonths with 3 month when amount reaches 1500", async() => {
+      test("should call getDateAfterMonths with 3 month when amount reaches 1200", async() => {
         mockUserFindOne();
         mockTransactionFindOne("expiry");
 
         await createRequest.patch(
           customerRoute,
-          MOCK_UPDATE_REFILL,
+          { ...MOCK_UPDATE_REFILL, amount: 1200 },
           HTTP_STATUS.OK
         );
 

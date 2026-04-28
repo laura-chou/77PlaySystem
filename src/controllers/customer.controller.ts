@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import mongoose from "mongoose";
 
-import { HTTP_STATUS } from "../common/constants";
 import { responseHandler } from "../common/response";
 import { getNowDate, getDateAfterMonths, isNullOrEmpty, setFunctionName } from "../common/utils";
 import { getCustomerListPipeline, getCustomerDetailPipeline } from "../core/db";
@@ -206,7 +205,7 @@ export const deleteCustomer = setFunctionName(
 
       await session.commitTransaction();
       setLog(LogLevel.INFO, LogMessage.SUCCESS, deleteCustomer.name);
-      responseHandler.noContent(response);
+      responseHandler.success(response);
     } catch (error) {
       await session.abortTransaction();
       baseController.errorHandler(response, error, deleteCustomer.name);

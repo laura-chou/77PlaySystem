@@ -21,7 +21,7 @@ interface TransactionData {
 }
 
 const isExtendThreeMonths = (amount: number): boolean => {
-  return amount === 1500;
+  return amount === 1200;
 };
 
 const getLastTransaction = async(custId: string): Promise<ITransaction | null> => {
