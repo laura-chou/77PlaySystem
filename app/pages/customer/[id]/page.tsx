@@ -394,14 +394,23 @@ export default function CustomerEdit() {
                             </thead>
                             <tbody>
                                 {filteredHistory.map((history, index) => {
-                                    const stars = Math.round(history.amount / 80);
-                                    const isRefill = ['refill', '充值', '初始', 'Initial'].some(s =>
-                                        history.serviceName?.toLowerCase().includes(s.toLowerCase())
-                                    );
+                                    let stars: number;
+
+                                    if (history.currentBalance === history.amount) {
+                                        // 初始紀錄特殊邏輯
+                                        stars = 15;
+                                    } else {
+                                        // 一般星星計算：$80/星，四捨五入（負數 .5 往遠離 0 方向捨入）
+                                        const rawStars = history.amount / 80;
+                                        stars = Math.sign(rawStars) * Math.round(Math.abs(rawStars));
+                                    }
+
+                                    const displayStars = stars > 0 ? `+${stars}` : stars.toString();
+
                                     return (
                                     <tr key={`${history.spendDate}-${index}`}>
                                         <td>{history.spendDate}</td>
-                                        <td className='text-end'>{(!isRefill && stars > 0) ? `-${stars}` : stars}</td>
+                                        <td className='text-end'>{displayStars}</td>
                                         <td className='text-end'>{Math.round(history.currentBalance / 80)}</td>
                                         <td>{history.expiryDate}</td>
                                         <td className='text-end'>{history.currentBalance.toLocaleString()}</td>

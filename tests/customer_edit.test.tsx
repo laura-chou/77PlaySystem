@@ -93,8 +93,8 @@ describe('CustomerEdit Page Integration Test', () => {
             createDate: '2023-01-01',
             extendedTimes: 0,
             history: [
-              { spendDate: '2023-01-01', amount: 800, currentBalance: 800, expiryDate: '2023-04-01', serviceName: 'Charge' },
-              { spendDate: '2023-01-02', amount: 1600, currentBalance: 2400, expiryDate: '2023-07-01', serviceName: 'Refill' }
+              { spendDate: '2023-01-01', amount: -200, currentBalance: 1300, expiryDate: '2023-04-01', serviceName: 'Charge' },
+              { spendDate: '2023-01-02', amount: 1500, currentBalance: 1500, expiryDate: '2023-07-01', serviceName: 'Initial' }
             ]
           }
         });
@@ -105,10 +105,10 @@ describe('CustomerEdit Page Integration Test', () => {
     await waitForElementToBeRemoved(() => screen.queryByText('載入中...'));
     await user.click(screen.getByText('歷史紀錄'));
 
-    // 消費 800 應顯示 -10 星
-    expect(screen.getByText('-10')).toBeInTheDocument();
-    // 充值 1600 應顯示 20 星 (正數)
-    expect(screen.getByText('20')).toBeInTheDocument();
+    // 消費 -200 應顯示 -3 星 (round(-200/80) = -3)
+    expect(screen.getByText('-3')).toBeInTheDocument();
+    // 初始 1500 且 currentBalance === amount 應顯示 +15 星
+    expect(screen.getByText('+15')).toBeInTheDocument();
   });
 
   it('進入編輯模式並修改姓名', async () => {
