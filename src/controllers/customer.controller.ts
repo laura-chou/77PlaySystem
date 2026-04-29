@@ -200,8 +200,8 @@ export const deleteCustomer = setFunctionName(
         return;
       }
 
-      await Customer.deleteOne({ _id: custId }).session(session);
       await Transaction.deleteMany({ customerId: custId }).session(session);
+      await Customer.deleteOne({ _id: custId }).session(session);
 
       await session.commitTransaction();
       setLog(LogLevel.INFO, LogMessage.SUCCESS, deleteCustomer.name);
