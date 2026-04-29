@@ -19,41 +19,61 @@ export default function Dashboard() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
 
-    useEffect(() => {
-        const fetchUsers = async() => {
-            try {
-                setLoading(true);
-                setError(null);
+    const fetchUsers = async() => {
+        try {
+            setLoading(true);
+            setError(null);
 
-                const response = await api.get(
-                    `customer`
-                );
+            const response = await api.get(
+                `customer`
+            );
 
-                if (response.data.data && Array.isArray(response.data.data)) {
-                    setUsers(response.data.data);
-                }
-                else {
-                    setUsers([]);
-                }
-            } catch (error: any) {
-                if (api.isAxiosError(error) && error.response?.status === 401) {
-                    alert('驗證失效，請重新登入');
-                    router.push('/');
-                } else {
-                    setError(error.message || 'Failed to fetch users');
-                    setUsers([]);
-                }
-            } finally {
-                setLoading(false);
+            if (response.data.data && Array.isArray(response.data.data)) {
+                setUsers(response.data.data);
             }
-        };
+            else {
+                setUsers([]);
+            }
+        } catch (error: any) {
+            if (api.isAxiosError(error) && error.response?.status === 401) {
+                alert('驗證失效，請重新登入');
+                router.push('/');
+            } else {
+                setError(error.message || 'Failed to fetch users');
+                setUsers([]);
+            }
+        } finally {
+            setLoading(false);
+        }
+    };
 
+    useEffect(() => {
         fetchUsers();
     }, [router]);
 
     const filteredUsers = (users || []).filter(user =>
         user.custName.toLowerCase().includes(searchTerm.toLowerCase())
     );
+
+    const handleDelete = async (custId: string, custName: string) => {
+        if (!window.confirm(`確定要刪除客戶「${custName}」嗎？`)) {
+            return;
+        }
+
+        try {
+            await api.delete(`customer/${custId}`);
+            alert('客戶已刪除');
+            fetchUsers();
+        } catch (error: any) {
+            console.error('Delete error:', error);
+            if (api.isAxiosError(error) && error.response?.status === 401) {
+                alert('驗證失效，請重新登入');
+                router.push('/');
+            } else {
+                alert('刪除失敗，請稍後再試');
+            }
+        }
+    };
 
     const logout = async () => {
         try {
@@ -147,11 +167,11 @@ export default function Dashboard() {
             ) : (
                 <div className="table-responsive">
                     <table className={`table table-hover table-bordered ${styles.table}`}>
-                        <thead className="table-success">
+                        <thead className="table-success text-center">
                             <tr>
                                 <th>LINE ID</th>
                                 <th>期限</th>
-                                <th>編輯</th>
+                                <th>操作</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -165,9 +185,9 @@ export default function Dashboard() {
                                 return (
                                 <tr key={user.custId} className={isExpired ? styles.expired : ''}>
                                     <td>{user.custName}</td>
-                                    <td>{user.expiryDate}</td>
+                                    <td className="text-center">{user.expiryDate}</td>
                                     <td>
-                                        <div className="d-flex gap-2">
+                                        <div className="d-flex gap-2 justify-content-center">
                                             <button
                                                 className="btn btn-sm btn-primary"
                                                 onClick={() => router.push(`/pages/customer/${user.custId}`)}
@@ -176,7 +196,7 @@ export default function Dashboard() {
                                             </button>
                                             <button
                                                 className="btn btn-sm btn-danger"
-                                                onClick={() => alert('刪除功能開發中')}
+                                                onClick={() => handleDelete(user.custId, user.custName)}
                                             >
                                                 刪除
                                             </button>

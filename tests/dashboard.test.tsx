@@ -138,4 +138,27 @@ describe('Dashboard Page Integration Test', () => {
     const row = screen.getByText('過期人').closest('tr');
     expect(row).toHaveClass('expired');
   });
+
+  it('刪除功能應能正常運作並重新載入列表', async () => {
+    const user = userEvent.setup();
+    window.confirm = jest.fn(() => true);
+
+    server.use(
+      http.delete(`${env.apiBaseUrl}customer/1`, () => {
+        return HttpResponse.json({ message: 'Success' }, { status: 200 });
+      })
+    );
+
+    render(<Dashboard />);
+
+    await waitForElementToBeRemoved(() => screen.queryAllByText('載入中...'));
+
+    const deleteButtons = screen.getAllByRole('button', { name: '刪除' });
+    await user.click(deleteButtons[0]);
+
+    expect(window.confirm).toHaveBeenCalled();
+    await waitFor(() => {
+      expect(window.alert).toHaveBeenCalledWith('客戶已刪除');
+    });
+  });
 });
