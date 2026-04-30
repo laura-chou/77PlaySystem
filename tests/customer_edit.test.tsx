@@ -39,7 +39,7 @@ describe('CustomerEdit Page Integration Test', () => {
     expect(screen.getByDisplayValue('1500')).toBeInTheDocument();
   });
 
-  it('應正確顯示並禁用達到上限的延展選項', async () => {
+  it('應正確顯示並禁用達到上限或尚未到期的延展選項', async () => {
     // Mock a customer with 3 extended times
     server.use(
       http.get(`${env.apiBaseUrl}customer/3`, () => {
@@ -56,14 +56,34 @@ describe('CustomerEdit Page Integration Test', () => {
     );
 
     (useParams as jest.Mock).mockReturnValue({ id: '3' });
-    render(<CustomerEdit />);
-
+    const { unmount } = render(<CustomerEdit />);
     await waitForElementToBeRemoved(() => screen.queryByText('載入中...'));
-
     await userEvent.click(screen.getByText('編輯'));
+    const extendOptionMax = screen.getByText(/延長到期日 \(已達上限 3 次\)/);
+    expect(extendOptionMax).toBeDisabled();
+    unmount();
 
-    const extendOption = screen.getByText(/延長到期日 \(已達上限 3 次\)/);
-    expect(extendOption).toBeDisabled();
+    // Mock a customer who is NOT expired
+    const farExpiryDate = '2099-12-31';
+    server.use(
+      http.get(`${env.apiBaseUrl}customer/4`, () => {
+        return HttpResponse.json({
+          data: {
+            custId: '4',
+            custName: '未到期人',
+            createDate: '2023-01-01',
+            extendedTimes: 1,
+            history: [{ spendDate: '2023-01-01', amount: 1500, currentBalance: 1500, expiryDate: farExpiryDate }]
+          }
+        });
+      })
+    );
+    (useParams as jest.Mock).mockReturnValue({ id: '4' });
+    render(<CustomerEdit />);
+    await waitForElementToBeRemoved(() => screen.queryByText('載入中...'));
+    await userEvent.click(screen.getByText('編輯'));
+    const extendOptionNotExpired = screen.getByText(/尚未到期，2099\/12\/31 後可選，目前 1 次/);
+    expect(extendOptionNotExpired).toBeDisabled();
   });
 
   it('切換分頁應顯示歷史紀錄', async () => {
@@ -161,9 +181,9 @@ describe('CustomerEdit Page Integration Test', () => {
     await user.selectOptions(actionSelect, 'charge');
 
     // 輸入金額
-    const amountInput = screen.getByPlaceholderText('請輸入金額 (100的倍數)');
+    const amountInput = screen.getByPlaceholderText('請輸入金額 (80的倍數)');
     await user.clear(amountInput);
-    await user.type(amountInput, '300');
+    await user.type(amountInput, '160');
 
     await user.click(screen.getByText('儲存'));
 

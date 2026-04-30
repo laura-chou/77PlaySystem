@@ -276,7 +276,7 @@ export default function CustomerEdit() {
 
                                             if (selectedAction === ActionEnum.REFILL) setBalanceAmount(1500);
                                             else if (selectedAction === ActionEnum.EXTEND) setBalanceAmount(200);
-                                            else if (selectedAction === ActionEnum.CHARGE) setBalanceAmount(200);
+                                            else if (selectedAction === ActionEnum.CHARGE) setBalanceAmount(80);
 
                                             setFormData(prev => ({
                                                 ...prev,
@@ -288,9 +288,25 @@ export default function CustomerEdit() {
                                         <option value="name">改客戶 LINE</option>
                                         <option value="charge">消費</option>
                                         <option value="refill">充值</option>
-                                        <option value="extend" disabled={extendCount >= 3}>
-                                            延長到期日 {extendCount >= 3 ? '(已達上限 3 次)' : `(目前 ${extendCount} 次)`}
-                                        </option>
+                                        {(() => {
+                                            const today = new Date();
+                                            today.setHours(0, 0, 0, 0);
+                                            const expiryDate = new Date(customer.balanceExpiryDate);
+                                            expiryDate.setHours(0, 0, 0, 0);
+                                            const isExpired = expiryDate < today;
+                                            const canExtend = isExpired && extendCount < 3;
+                                            const dateStr = customer.balanceExpiryDate.replace(/-/g, '/');
+
+                                            return (
+                                                <option value="extend" disabled={!canExtend}>
+                                                    延長到期日 {
+                                                        extendCount >= 3 ? '(已達上限 3 次)' :
+                                                        !isExpired ? `(尚未到期，${dateStr} 後可選，目前 ${extendCount} 次)` :
+                                                        `(目前 ${extendCount} 次)`
+                                                    }
+                                                </option>
+                                            );
+                                        })()}
                                     </select>
                                 </div>
 
@@ -303,8 +319,11 @@ export default function CustomerEdit() {
                                         onChange={(e) => {
                                             const value = parseFloat(e.target.value) || 0;
                                             if (action === 'extend') {
-                                                // For extend, allow any positive number (days)
                                                 setBalanceAmount(Math.max(0, value));
+                                            } else if (action === 'charge') {
+                                                // For charge, round to nearest 80
+                                                const roundedValue = Math.round(value / 80) * 80;
+                                                setBalanceAmount(roundedValue);
                                             } else {
                                                 // For other actions, round to nearest 100
                                                 const roundedValue = Math.round(value / 100) * 100;
@@ -312,15 +331,14 @@ export default function CustomerEdit() {
                                             }
                                         }}
                                         onKeyDown={(e) => {
-                                            // Allow only numbers, backspace, delete, arrow keys, and enter
                                             if (!/[0-9]/.test(e.key) &&
                                                 !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter', 'Tab'].includes(e.key)) {
                                                 e.preventDefault();
                                             }
                                         }}
-                                        step={100}
-                                        min="100"
-                                        placeholder={'請輸入金額 (100的倍數)'}
+                                        step={action === 'charge' ? 80 : 100}
+                                        min={action === 'charge' ? 80 : 100}
+                                        placeholder={action === 'charge' ? '請輸入金額 (80的倍數)' : '請輸入金額 (100的倍數)'}
                                         disabled={action === 'name' || action === 'extend'}
                                     />
                                 </div>
