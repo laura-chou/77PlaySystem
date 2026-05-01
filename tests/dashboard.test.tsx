@@ -28,9 +28,10 @@ describe('Dashboard Page Integration Test', () => {
     clearToken();
   });
 
-  it('應顯示載入中狀態', () => {
+  it('應顯示載入中狀態', async () => {
     render(<Dashboard />);
     expect(screen.getAllByText('載入中...')[0]).toBeInTheDocument();
+    await waitForElementToBeRemoved(() => screen.queryAllByText('載入中...'));
   });
 
   it('應正確渲染客戶列表', async () => {

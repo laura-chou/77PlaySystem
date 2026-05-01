@@ -152,6 +152,24 @@ describe('CustomerEdit Page Integration Test', () => {
 
     // 1600 -> 1600/80 = 20 -> +20 星 (只有初始有15上限)
     expect(screen.getByText('+20')).toBeInTheDocument();
+
+    // 檢查「剩餘星星」欄位 (Math.round(currentBalance / 80))
+    // 1300 / 80 = 16.25 -> 16
+    expect(screen.getByText('16')).toBeInTheDocument();
+    // 1500 / 80 = 18.75 -> 19
+    expect(screen.getByText('19')).toBeInTheDocument();
+    // 1580 / 80 = 19.75 -> 20
+    // 1620 / 80 = 20.25 -> 20
+    // 所以「剩餘星星」欄位有兩個 20
+    // 1600 / 80 = 20 -> +20
+    // 所以畫面上總共有三個 "20"
+    expect(screen.getAllByText('20').length).toBe(3);
+    // 1700 / 80 = 21.25 -> 21
+    expect(screen.getByText('21')).toBeInTheDocument();
+    // 1740 / 80 = 21.75 -> 22
+    expect(screen.getByText('22')).toBeInTheDocument();
+    // 3180 / 80 = 39.75 -> 40
+    expect(screen.getByText('40')).toBeInTheDocument();
   });
 
   it('進入編輯模式並修改姓名', async () => {
