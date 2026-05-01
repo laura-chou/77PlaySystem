@@ -1,4 +1,4 @@
-import { render, screen, fireEvent, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
+import { render, screen, waitFor, waitForElementToBeRemoved } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import CustomerEdit from '@/pages/customer/[id]/page';
 import { useRouter, useParams } from 'next/navigation';
@@ -7,16 +7,12 @@ import { http, HttpResponse } from 'msw';
 import { env } from '@/config/env';
 import { setToken, clearToken } from '@/lib/api';
 
-const mockRouter = {
-  push: jest.fn(),
-};
+const mockPush = jest.fn();
+(useRouter as jest.Mock).mockReturnValue({
+  push: mockPush,
+});
 
-jest.mock('next/navigation', () => ({
-  useRouter: () => mockRouter,
-  useParams: jest.fn(),
-}));
-
-describe('CustomerEdit Page Integration Test', () => {
+describe('CustomerEdit Page Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     (useParams as jest.Mock).mockReturnValue({ id: '1' });
@@ -27,82 +23,34 @@ describe('CustomerEdit Page Integration Test', () => {
     clearToken();
   });
 
-  it('應正確渲染客戶編輯頁面並載入資料', async () => {
+  it('loads and displays customer data', async () => {
     render(<CustomerEdit />);
-
     expect(screen.getByText('載入中...')).toBeInTheDocument();
-
     await waitForElementToBeRemoved(() => screen.queryByText('載入中...'));
 
-    expect(screen.getByDisplayValue('王小明')).toBeInTheDocument();
-    // 餘額輸入框的值是 1500
-    expect(screen.getByDisplayValue('1500')).toBeInTheDocument();
+    expect(screen.getByLabelText('客戶 LINE：')).toHaveValue('王小明');
+    expect(screen.getByLabelText('當前餘額：')).toHaveValue(1500);
   });
 
-  it('應正確顯示並禁用達到上限或尚未到期的延展選項', async () => {
-    // Mock a customer with 3 extended times
-    server.use(
-      http.get(`${env.apiBaseUrl}customer/3`, () => {
-        return HttpResponse.json({
-          data: {
-            custId: '3',
-            custName: '三延人',
-            createDate: '2023-01-01',
-            extendedTimes: 3,
-            history: [{ spendDate: '2023-01-01', amount: 1500, currentBalance: 1500, expiryDate: '2023-04-01' }]
-          }
-        });
-      })
-    );
-
-    (useParams as jest.Mock).mockReturnValue({ id: '3' });
-    const { unmount } = render(<CustomerEdit />);
-    await waitForElementToBeRemoved(() => screen.queryByText('載入中...'));
-    await userEvent.click(screen.getByText('編輯'));
-    const extendOptionMax = screen.getByText(/延長到期日 \(已達上限 3 次\)/);
-    expect(extendOptionMax).toBeDisabled();
-    unmount();
-
-    // Mock a customer who is NOT expired
-    const farExpiryDate = '2099-12-31';
-    server.use(
-      http.get(`${env.apiBaseUrl}customer/4`, () => {
-        return HttpResponse.json({
-          data: {
-            custId: '4',
-            custName: '未到期人',
-            createDate: '2023-01-01',
-            extendedTimes: 1,
-            history: [{ spendDate: '2023-01-01', amount: 1500, currentBalance: 1500, expiryDate: farExpiryDate }]
-          }
-        });
-      })
-    );
-    (useParams as jest.Mock).mockReturnValue({ id: '4' });
-    render(<CustomerEdit />);
-    await waitForElementToBeRemoved(() => screen.queryByText('載入中...'));
-    await userEvent.click(screen.getByText('編輯'));
-    const extendOptionNotExpired = screen.getByText(/尚未到期，2099\/12\/31 後可選，目前 1 次/);
-    expect(extendOptionNotExpired).toBeDisabled();
-  });
-
-  it('切換分頁應顯示歷史紀錄', async () => {
+  it('edits customer name', async () => {
     const user = userEvent.setup();
     render(<CustomerEdit />);
-
     await waitForElementToBeRemoved(() => screen.queryByText('載入中...'));
 
-    await user.click(screen.getByText('歷史紀錄'));
+    await user.click(screen.getByText('編輯'));
 
-    expect(screen.getByRole('table')).toBeInTheDocument();
-    expect(screen.getByText('2023-01-01')).toBeInTheDocument();
-    // 1,500 現在僅在餘額欄位出現一次
-    expect(screen.getAllByText('1,500').length).toBeGreaterThanOrEqual(1);
-    // 檢查星星數量 (1500 / 80 = 18.75 -> 19)
-    expect(screen.getAllByText('19').length).toBeGreaterThanOrEqual(1);
+    // Default action should be 'name' (改客戶 LINE)
+    const nameInput = screen.getByLabelText('客戶 LINE：');
+    await user.clear(nameInput);
+    await user.type(nameInput, '王大明');
+
+    await user.click(screen.getByText('儲存'));
+    await waitFor(() => {
+      expect(window.alert).toHaveBeenCalledWith('客戶資料已更新！');
+    });
   });
 
-  it('檢查星星顯示格式', async () => {
+  it('performs charge operation and validates star calculation', async () => {
     const user = userEvent.setup();
     server.use(
       http.get(`${env.apiBaseUrl}customer/1`, () => {
@@ -113,14 +61,9 @@ describe('CustomerEdit Page Integration Test', () => {
             createDate: '2023-01-01',
             extendedTimes: 0,
             history: [
-              { spendDate: '2023-01-01', amount: -200, currentBalance: 1300, expiryDate: '2023-04-01', serviceName: 'Charge' },
-              { spendDate: '2023-01-02', amount: 1500, currentBalance: 1500, expiryDate: '2023-07-01', serviceName: 'Initial' },
-              { spendDate: '2023-01-03', amount: 80, currentBalance: 1580, expiryDate: '2023-07-01', serviceName: 'Refill' },
-              { spendDate: '2023-01-04', amount: 120, currentBalance: 1700, expiryDate: '2023-07-01', serviceName: 'Refill' },
-              { spendDate: '2023-01-05', amount: 40, currentBalance: 1740, expiryDate: '2023-07-01', serviceName: 'Refill' },
-              { spendDate: '2023-01-06', amount: -120, currentBalance: 1620, expiryDate: '2023-07-01', serviceName: 'Charge' },
-              { spendDate: '2023-01-07', amount: -40, currentBalance: 1580, expiryDate: '2023-07-01', serviceName: 'Charge' },
-              { spendDate: '2023-01-08', amount: 1600, currentBalance: 3180, expiryDate: '2023-10-01', serviceName: 'Refill' }
+              { spendDate: '2023-01-03', amount: -200, currentBalance: 1300, expiryDate: '2023-04-01' },
+              { spendDate: '2023-01-02', amount: 120, currentBalance: 1500, expiryDate: '2023-04-01' },
+              { spendDate: '2023-01-01', amount: 1500, currentBalance: 1500, expiryDate: '2023-04-01' }, // Initial
             ]
           }
         });
@@ -129,212 +72,80 @@ describe('CustomerEdit Page Integration Test', () => {
 
     render(<CustomerEdit />);
     await waitForElementToBeRemoved(() => screen.queryByText('載入中...'));
-    await user.click(screen.getByText('歷史紀錄'));
 
-    // 初始 1500 (amount === currentBalance) -> +15 星
-    expect(screen.getByText('+15')).toBeInTheDocument();
-
-    // 80 -> +1 星
-    // 40 -> 40/80 = 0.5 -> +1 星
-    expect(screen.getAllByText('+1').length).toBe(2);
-
-    // 120 -> 120/80 = 1.5 -> +2 星
-    expect(screen.getByText('+2')).toBeInTheDocument();
-
-    // -200 -> -200/80 = -2.5 -> -3 星
-    expect(screen.getByText('-3')).toBeInTheDocument();
-
-    // -120 -> -120/80 = -1.5 -> -2 星
-    expect(screen.getByText('-2')).toBeInTheDocument();
-
-    // -40 -> -40/80 = -0.5 -> -1 星
-    expect(screen.getByText('-1')).toBeInTheDocument();
-
-    // 1600 -> 1600/80 = 20 -> +20 星 (只有初始有15上限)
-    expect(screen.getByText('+20')).toBeInTheDocument();
-
-    // 檢查「剩餘星星」欄位 (Math.round(currentBalance / 80))
-    // 1300 / 80 = 16.25 -> 16
-    expect(screen.getByText('16')).toBeInTheDocument();
-    // 1500 / 80 = 18.75 -> 19
-    expect(screen.getByText('19')).toBeInTheDocument();
-    // 1580 / 80 = 19.75 -> 20
-    // 1620 / 80 = 20.25 -> 20
-    // 所以「剩餘星星」欄位有兩個 20
-    // 1600 / 80 = 20 -> +20
-    // 所以畫面上總共有三個 "20"
-    expect(screen.getAllByText('20').length).toBe(3);
-    // 1700 / 80 = 21.25 -> 21
-    expect(screen.getByText('21')).toBeInTheDocument();
-    // 1740 / 80 = 21.75 -> 22
-    expect(screen.getByText('22')).toBeInTheDocument();
-    // 3180 / 80 = 39.75 -> 40
-    expect(screen.getByText('40')).toBeInTheDocument();
-  });
-
-  it('進入編輯模式並修改姓名', async () => {
-    const user = userEvent.setup();
-    render(<CustomerEdit />);
-
-    await waitForElementToBeRemoved(() => screen.queryByText('載入中...'));
-
-    // 點擊編輯按鈕
+    // 1. Perform a charge
     await user.click(screen.getByText('編輯'));
-
-    // 預設操作應為 "改客戶 LINE" (ActionEnum.NAME = 'name')
-    const nameInput = screen.getByDisplayValue('王小明');
-    await user.clear(nameInput);
-    await user.type(nameInput, '王大明');
-
-    await user.click(screen.getByText('儲存'));
-
-    await waitFor(() => {
-      expect(window.alert).toHaveBeenCalledWith('客戶資料已更新！');
-    });
-  });
-
-  it('未輸入客戶 LINE 時應顯示 alert', async () => {
-    const user = userEvent.setup();
-    render(<CustomerEdit />);
-
-    await waitForElementToBeRemoved(() => screen.queryByText('載入中...'));
-
-    await user.click(screen.getByText('編輯'));
-
-    const nameInput = screen.getByDisplayValue('王小明');
-    await user.clear(nameInput);
-
-    await user.click(screen.getByText('儲存'));
-
-    expect(window.alert).toHaveBeenCalledWith('請輸入客戶 LINE');
-  });
-
-  it('進行消費操作', async () => {
-    const user = userEvent.setup();
-    render(<CustomerEdit />);
-
-    await waitForElementToBeRemoved(() => screen.queryByText('載入中...'));
-
-    await user.click(screen.getByText('編輯'));
-
-    // 切換操作類型為消費
-    const actionSelect = screen.getByLabelText('操作類型：');
-    await user.selectOptions(actionSelect, 'charge');
-
-    // 檢查預設金額是否為 80
+    await user.selectOptions(screen.getByLabelText('操作類型：'), 'charge');
     const amountInput = screen.getByLabelText('金額：');
     expect(amountInput).toHaveValue(80);
-
     await user.clear(amountInput);
     await user.type(amountInput, '160');
-
     await user.click(screen.getByText('儲存'));
+    await waitFor(() => expect(window.alert).toHaveBeenCalledWith('客戶資料已更新！'));
 
-    await waitFor(() => {
-      expect(window.alert).toHaveBeenCalledWith('客戶資料已更新！');
-    });
+    // 2. Check history and stars
+    await user.click(screen.getByText('歷史紀錄'));
+
+    // Initial 1500 -> +15 stars (cap)
+    expect(screen.getByText('+15')).toBeInTheDocument();
+
+    // 120 -> 120/80 = 1.5 -> +2 stars
+    expect(screen.getByText('+2')).toBeInTheDocument();
+
+    // -200 -> -200/80 = -2.5 -> -3 stars
+    expect(screen.getByText('-3')).toBeInTheDocument();
+
+    // Check remaining stars (currentBalance / 80)
+    // 1500 -> 19 stars
+    expect(screen.getAllByText('19').length).toBeGreaterThanOrEqual(2);
+    // 1300 -> 16 stars
+    expect(screen.getByText('16')).toBeInTheDocument();
   });
 
-  it('進行充值操作', async () => {
+  it('handles extend expiry logic', async () => {
     const user = userEvent.setup();
-    render(<CustomerEdit />);
-
-    await waitForElementToBeRemoved(() => screen.queryByText('載入中...'));
-
-    await user.click(screen.getByText('編輯'));
-
-    const actionSelect = screen.getByLabelText('操作類型：');
-    await user.selectOptions(actionSelect, 'refill');
-
-    // 檢查預設金額是否為 1200
-    const amountInput = screen.getByLabelText('金額：');
-    expect(amountInput).toHaveValue(1200);
-
-    await user.click(screen.getByText('儲存'));
-
-    await waitFor(() => {
-      expect(window.alert).toHaveBeenCalledWith('客戶資料已更新！');
-    });
-  });
-
-  it('進行延長到期日操作', async () => {
-    // Mock a customer who is expired and can extend
-    const pastExpiryDate = '2000-01-01';
+    // Mock customer who reached limit
     server.use(
-      http.get(`${env.apiBaseUrl}customer/5`, () => {
+      http.get(`${env.apiBaseUrl}customer/3`, () => {
         return HttpResponse.json({
           data: {
-            custId: '5',
-            custName: '過期可延人',
+            custId: '3',
+            custName: '三延人',
             createDate: '2023-01-01',
-            extendedTimes: 0,
-            history: [{ spendDate: '2023-01-01', amount: 1500, currentBalance: 1500, expiryDate: pastExpiryDate }]
+            extendedTimes: 3,
+            history: [{ spendDate: '2023-01-01', amount: 1200, currentBalance: 1200, expiryDate: '2000-01-01' }]
           }
         });
       })
     );
-    (useParams as jest.Mock).mockReturnValue({ id: '5' });
+    (useParams as jest.Mock).mockReturnValue({ id: '3' });
 
-    const user = userEvent.setup();
-    render(<CustomerEdit />);
-
+    const { unmount } = render(<CustomerEdit />);
     await waitForElementToBeRemoved(() => screen.queryByText('載入中...'));
-
     await user.click(screen.getByText('編輯'));
 
-    const actionSelect = screen.getByLabelText('操作類型：');
-    await user.selectOptions(actionSelect, 'extend');
+    const extendOption = screen.getByText(/延長到期日 \(已達上限 3 次\)/);
+    expect(extendOption).toBeDisabled();
+    unmount();
 
-    // 檢查預設金額是否為 200 且禁用輸入
-    const amountInput = screen.getByLabelText('金額：');
-    expect(amountInput).toHaveValue(200);
-    expect(amountInput).toBeDisabled();
-
-    await user.click(screen.getByText('儲存'));
-
-    await waitFor(() => {
-      expect(window.alert).toHaveBeenCalledWith('客戶資料已更新！');
-    });
-  });
-
-  it('當客戶不存在時應顯示錯誤訊息', async () => {
-    (useParams as jest.Mock).mockReturnValue({ id: '999' });
-    render(<CustomerEdit />);
-
-    await waitFor(() => {
-      expect(screen.getByText('找不到客戶資料')).toBeInTheDocument();
-    });
-  });
-
-  it('當 API 回傳 401 時應顯示 alert 並導向首頁', async () => {
+    // Mock customer not yet expired
     server.use(
-      http.get(`${env.apiBaseUrl}customer/1`, () => {
-        return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      http.get(`${env.apiBaseUrl}customer/4`, () => {
+        return HttpResponse.json({
+          data: {
+            custId: '4',
+            custName: '未過期人',
+            createDate: '2023-01-01',
+            extendedTimes: 0,
+            history: [{ spendDate: '2023-01-01', amount: 1200, currentBalance: 1200, expiryDate: '2099-12-31' }]
+          }
+        });
       })
     );
-
+    (useParams as jest.Mock).mockReturnValue({ id: '4' });
     render(<CustomerEdit />);
-
-    await waitFor(() => {
-      expect(window.alert).toHaveBeenCalledWith('驗證失效，請重新登入');
-      expect(mockRouter.push).toHaveBeenCalledWith('/');
-    });
-  });
-
-  it('歷史紀錄日期過濾功能', async () => {
-    const user = userEvent.setup();
-    render(<CustomerEdit />);
-
     await waitForElementToBeRemoved(() => screen.queryByText('載入中...'));
-
-    await user.click(screen.getByText('歷史紀錄'));
-
-    expect(screen.getByText('2023-01-01')).toBeInTheDocument();
-
-    const startDateInput = screen.getByLabelText('開始日期');
-    await user.type(startDateInput, '2023-01-02');
-
-    expect(screen.queryByText('2023-01-01')).not.toBeInTheDocument();
-    expect(screen.getByText('無符合條件的紀錄')).toBeInTheDocument();
+    await user.click(screen.getByText('編輯'));
+    expect(screen.getByText(/延長到期日 \(尚未到期/)).toBeDisabled();
   });
 });

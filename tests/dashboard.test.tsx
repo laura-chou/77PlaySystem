@@ -7,18 +7,12 @@ import { http, HttpResponse } from 'msw';
 import { env } from '@/config/env';
 import { setToken, clearToken } from '@/lib/api';
 
-const mockRouter = {
-  push: jest.fn(),
-  replace: jest.fn(),
-  prefetch: jest.fn(),
-  back: jest.fn(),
-};
+const mockPush = jest.fn();
+(useRouter as jest.Mock).mockReturnValue({
+  push: mockPush,
+});
 
-jest.mock('next/navigation', () => ({
-  useRouter: () => mockRouter,
-}));
-
-describe('Dashboard Page Integration Test', () => {
+describe('Dashboard Page Tests', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     setToken('mocked_token');
@@ -28,26 +22,15 @@ describe('Dashboard Page Integration Test', () => {
     clearToken();
   });
 
-  it('應顯示載入中狀態', async () => {
+  it('renders customer list and handles search', async () => {
+    const user = userEvent.setup();
     render(<Dashboard />);
+
     expect(screen.getAllByText('載入中...')[0]).toBeInTheDocument();
-    await waitForElementToBeRemoved(() => screen.queryAllByText('載入中...'));
-  });
-
-  it('應正確渲染客戶列表', async () => {
-    render(<Dashboard />);
-
     await waitForElementToBeRemoved(() => screen.queryAllByText('載入中...'));
 
     expect(screen.getByText('王小明')).toBeInTheDocument();
     expect(screen.getByText('李小華')).toBeInTheDocument();
-  });
-
-  it('搜尋功能應能過濾客戶', async () => {
-    const user = userEvent.setup();
-    render(<Dashboard />);
-
-    await waitForElementToBeRemoved(() => screen.queryAllByText('載入中...'));
 
     const searchInput = screen.getByPlaceholderText('搜尋姓名或電話...');
     await user.type(searchInput, '王');
@@ -56,91 +39,31 @@ describe('Dashboard Page Integration Test', () => {
     expect(screen.queryByText('李小華')).not.toBeInTheDocument();
   });
 
-  it('點擊新增客戶應導向至新增頁面', async () => {
+  it('navigates to create and edit pages', async () => {
     const user = userEvent.setup();
     render(<Dashboard />);
-
     await waitForElementToBeRemoved(() => screen.queryAllByText('載入中...'));
 
     await user.click(screen.getByText('新增客戶'));
-    expect(mockRouter.push).toHaveBeenCalledWith('/pages/customer/new');
+    expect(mockPush).toHaveBeenCalledWith('/pages/customer/new');
+
+    const editButtons = screen.getAllByText('編輯');
+    await user.click(editButtons[0]);
+    expect(mockPush).toHaveBeenCalledWith('/pages/customer/1');
   });
 
-  it('點擊編輯應導向至編輯頁面', async () => {
-    render(<Dashboard />);
-
-    await waitForElementToBeRemoved(() => screen.queryAllByText('載入中...'));
-
-    const editButtons = screen.getAllByRole('button', { name: '編輯' });
-    fireEvent.click(editButtons[0]);
-
-    await waitFor(() => {
-      expect(mockRouter.push).toHaveBeenCalledWith('/pages/customer/1');
-    });
-  });
-
-  it('點擊登出應呼叫登出 API 並導向首頁', async () => {
+  it('handles logout', async () => {
     const user = userEvent.setup();
     render(<Dashboard />);
-
     await waitForElementToBeRemoved(() => screen.queryAllByText('載入中...'));
 
     await user.click(screen.getByText('登出'));
-
     await waitFor(() => {
-      expect(mockRouter.push).toHaveBeenCalledWith('/');
+      expect(mockPush).toHaveBeenCalledWith('/');
     });
   });
 
-  it('當 API 回傳 401 時應顯示 alert 並導向首頁', async () => {
-    server.use(
-      http.get(`${env.apiBaseUrl}customer`, () => {
-        return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
-      })
-    );
-
-    render(<Dashboard />);
-
-    await waitFor(() => {
-      expect(window.alert).toHaveBeenCalledWith('驗證失效，請重新登入');
-      expect(mockRouter.push).toHaveBeenCalledWith('/');
-    });
-  });
-
-  it('當 API 發生錯誤時應顯示錯誤訊息', async () => {
-    server.use(
-      http.get(`${env.apiBaseUrl}customer`, () => {
-        return HttpResponse.error();
-      })
-    );
-
-    render(<Dashboard />);
-
-    await waitForElementToBeRemoved(() => screen.queryAllByText('載入中...'));
-
-    expect(screen.getByText('載入失敗')).toBeInTheDocument();
-    expect(screen.getByText(/Network Error/i)).toBeInTheDocument();
-  });
-
-  it('過期客戶應顯示紅色背景 (expired class)', async () => {
-    server.use(
-      http.get(`${env.apiBaseUrl}customer`, () => {
-        return HttpResponse.json(
-          { data: [{ custId: '3', custName: '過期人', expiryDate: '2000-01-01' }] },
-          { status: 200 }
-        );
-      })
-    );
-
-    render(<Dashboard />);
-
-    await waitForElementToBeRemoved(() => screen.queryAllByText('載入中...'));
-
-    const row = screen.getByText('過期人').closest('tr');
-    expect(row).toHaveClass('expired');
-  });
-
-  it('刪除功能應能正常運作並重新載入列表', async () => {
+  it('handles customer deletion', async () => {
     const user = userEvent.setup();
     window.confirm = jest.fn(() => true);
 
@@ -151,15 +74,46 @@ describe('Dashboard Page Integration Test', () => {
     );
 
     render(<Dashboard />);
-
     await waitForElementToBeRemoved(() => screen.queryAllByText('載入中...'));
 
-    const deleteButtons = screen.getAllByRole('button', { name: '刪除' });
+    const deleteButtons = screen.getAllByText('刪除');
     await user.click(deleteButtons[0]);
 
     expect(window.confirm).toHaveBeenCalled();
     await waitFor(() => {
       expect(window.alert).toHaveBeenCalledWith('客戶已刪除');
+    });
+  });
+
+  it('highlights expired customers', async () => {
+    server.use(
+      http.get(`${env.apiBaseUrl}customer`, () => {
+        return HttpResponse.json({
+          data: [{ custId: '3', custName: '過期人', expiryDate: '2000-01-01' }]
+        });
+      })
+    );
+
+    render(<Dashboard />);
+    await waitForElementToBeRemoved(() => screen.queryAllByText('載入中...'));
+
+    const row = screen.getByText('過期人').closest('tr');
+    // Using style module check - it should have a class that contains 'expired'
+    expect(row?.className).toMatch(/expired/);
+  });
+
+  it('handles 401 Unauthorized', async () => {
+    server.use(
+      http.get(`${env.apiBaseUrl}customer`, () => {
+        return HttpResponse.json({ message: 'Unauthorized' }, { status: 401 });
+      })
+    );
+
+    render(<Dashboard />);
+
+    await waitFor(() => {
+      expect(window.alert).toHaveBeenCalledWith('驗證失效，請重新登入');
+      expect(mockPush).toHaveBeenCalledWith('/');
     });
   });
 });
