@@ -18,8 +18,8 @@ describe('LoginPage Integration Test', () => {
     render(<Login />);
 
     expect(screen.getByText('77Play 會員系統')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('帳號')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('密碼')).toBeInTheDocument();
+    expect(screen.getByLabelText('帳號')).toBeInTheDocument();
+    expect(screen.getByLabelText('密碼')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: '登入' })).toBeInTheDocument();
   });
 
@@ -32,7 +32,7 @@ describe('LoginPage Integration Test', () => {
     expect(window.alert).toHaveBeenCalledWith('請輸入帳號');
 
     // 輸入帳號但未輸入密碼
-    const accountInput = screen.getByPlaceholderText('帳號');
+    const accountInput = screen.getByLabelText('帳號');
     await userEvent.type(accountInput, 'testuser');
     fireEvent.click(loginButton);
     expect(window.alert).toHaveBeenCalledWith('請輸入密碼');
@@ -42,8 +42,8 @@ describe('LoginPage Integration Test', () => {
     render(<Login />);
     const user = userEvent.setup();
 
-    await user.type(screen.getByPlaceholderText('帳號'), 'testuser');
-    await user.type(screen.getByPlaceholderText('密碼'), 'password123');
+    await user.type(screen.getByLabelText('帳號'), 'testuser');
+    await user.type(screen.getByLabelText('密碼'), 'password123');
 
     await user.click(screen.getByRole('button', { name: '登入' }));
 
@@ -60,8 +60,8 @@ describe('LoginPage Integration Test', () => {
     render(<Login />);
     const user = userEvent.setup();
 
-    await user.type(screen.getByPlaceholderText('帳號'), 'wronguser');
-    await user.type(screen.getByPlaceholderText('密碼'), 'wrongpass');
+    await user.type(screen.getByLabelText('帳號'), 'wronguser');
+    await user.type(screen.getByLabelText('密碼'), 'wrongpass');
 
     await user.click(screen.getByRole('button', { name: '登入' }));
 

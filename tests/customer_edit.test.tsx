@@ -221,10 +221,74 @@ describe('CustomerEdit Page Integration Test', () => {
     const actionSelect = screen.getByLabelText('操作類型：');
     await user.selectOptions(actionSelect, 'charge');
 
-    // 輸入金額
+    // 檢查預設金額是否為 80
     const amountInput = screen.getByLabelText('金額：');
+    expect(amountInput).toHaveValue(80);
+
     await user.clear(amountInput);
     await user.type(amountInput, '160');
+
+    await user.click(screen.getByText('儲存'));
+
+    await waitFor(() => {
+      expect(window.alert).toHaveBeenCalledWith('客戶資料已更新！');
+    });
+  });
+
+  it('進行充值操作', async () => {
+    const user = userEvent.setup();
+    render(<CustomerEdit />);
+
+    await waitForElementToBeRemoved(() => screen.queryByText('載入中...'));
+
+    await user.click(screen.getByText('編輯'));
+
+    const actionSelect = screen.getByLabelText('操作類型：');
+    await user.selectOptions(actionSelect, 'refill');
+
+    // 檢查預設金額是否為 1200
+    const amountInput = screen.getByLabelText('金額：');
+    expect(amountInput).toHaveValue(1200);
+
+    await user.click(screen.getByText('儲存'));
+
+    await waitFor(() => {
+      expect(window.alert).toHaveBeenCalledWith('客戶資料已更新！');
+    });
+  });
+
+  it('進行延長到期日操作', async () => {
+    // Mock a customer who is expired and can extend
+    const pastExpiryDate = '2000-01-01';
+    server.use(
+      http.get(`${env.apiBaseUrl}customer/5`, () => {
+        return HttpResponse.json({
+          data: {
+            custId: '5',
+            custName: '過期可延人',
+            createDate: '2023-01-01',
+            extendedTimes: 0,
+            history: [{ spendDate: '2023-01-01', amount: 1500, currentBalance: 1500, expiryDate: pastExpiryDate }]
+          }
+        });
+      })
+    );
+    (useParams as jest.Mock).mockReturnValue({ id: '5' });
+
+    const user = userEvent.setup();
+    render(<CustomerEdit />);
+
+    await waitForElementToBeRemoved(() => screen.queryByText('載入中...'));
+
+    await user.click(screen.getByText('編輯'));
+
+    const actionSelect = screen.getByLabelText('操作類型：');
+    await user.selectOptions(actionSelect, 'extend');
+
+    // 檢查預設金額是否為 200 且禁用輸入
+    const amountInput = screen.getByLabelText('金額：');
+    expect(amountInput).toHaveValue(200);
+    expect(amountInput).toBeDisabled();
 
     await user.click(screen.getByText('儲存'));
 

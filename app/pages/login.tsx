@@ -59,20 +59,28 @@ export default function Login() {
                 <h1 className={styles.title}>77Play 會員系統</h1>
 
                 <form className={styles.loginForm} onSubmit={handleLogin}>
-                    <input
-                        className="form-control"
-                        type="text"
-                        placeholder="帳號"
-                        value={account}
-                        onChange={(e) => setAccount(e.target.value)}
-                    />
-                    <input
-                        className="form-control"
-                        type="password"
-                        placeholder="密碼"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
+                    <div className="mb-2">
+                        <label htmlFor="account" className="visually-hidden">帳號</label>
+                        <input
+                            id="account"
+                            className="form-control"
+                            type="text"
+                            placeholder="帳號"
+                            value={account}
+                            onChange={(e) => setAccount(e.target.value)}
+                        />
+                    </div>
+                    <div className="mb-3">
+                        <label htmlFor="password" className="visually-hidden">密碼</label>
+                        <input
+                            id="password"
+                            className="form-control"
+                            type="password"
+                            placeholder="密碼"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                        />
+                    </div>
                     <button type="submit" disabled={loading}>
                         {loading && (
                         <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" ></span>
