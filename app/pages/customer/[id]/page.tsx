@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useRouter, useParams } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
@@ -7,7 +8,7 @@ import styles from '@/styles/modules/customer.module.scss';
 
 import api from '@/lib/api';
 import { ICustomer, ICustomerFormData, ActionEnum } from '@/lib/models/customer';
-
+import star from '@/assets/star.png';
 
 export default function CustomerEdit() {
     const router = useRouter();
@@ -274,7 +275,7 @@ export default function CustomerEdit() {
                                             const defaultAmount = 0;
                                             setAction(selectedAction as ActionEnum);
 
-                                            if (selectedAction === ActionEnum.REFILL) setBalanceAmount(1500);
+                                            if (selectedAction === ActionEnum.REFILL) setBalanceAmount(1200);
                                             else if (selectedAction === ActionEnum.EXTEND) setBalanceAmount(200);
                                             else if (selectedAction === ActionEnum.CHARGE) setBalanceAmount(80);
 
@@ -317,28 +318,11 @@ export default function CustomerEdit() {
                                         className="form-control"
                                         value={action === 'name' ? 0 : balanceAmount}
                                         onChange={(e) => {
-                                            const value = parseFloat(e.target.value) || 0;
-                                            if (action === 'extend') {
-                                                setBalanceAmount(Math.max(0, value));
-                                            } else if (action === 'charge') {
-                                                // For charge, round to nearest 80
-                                                const roundedValue = Math.round(value / 80) * 80;
-                                                setBalanceAmount(roundedValue);
-                                            } else {
-                                                // For other actions, round to nearest 100
-                                                const roundedValue = Math.round(value / 100) * 100;
-                                                setBalanceAmount(roundedValue);
+                                            const value = e.target.value;
+                                            if (/^\d*$/.test(value)) {
+                                                setBalanceAmount(parseInt(value));
                                             }
                                         }}
-                                        onKeyDown={(e) => {
-                                            if (!/[0-9]/.test(e.key) &&
-                                                !['Backspace', 'Delete', 'ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown', 'Enter', 'Tab'].includes(e.key)) {
-                                                e.preventDefault();
-                                            }
-                                        }}
-                                        step={action === 'charge' ? 80 : 100}
-                                        min={action === 'charge' ? 80 : 100}
-                                        placeholder={action === 'charge' ? '請輸入金額 (80的倍數)' : '請輸入金額 (100的倍數)'}
                                         disabled={action === 'name' || action === 'extend'}
                                     />
                                 </div>
@@ -380,7 +364,7 @@ export default function CustomerEdit() {
                     <div className="tab-pane fade" id="nav-history">
                         <div className="row mt-3 mb-2 px-1">
                             <div className="col-6">
-                                <label htmlFor="historyStartDate" className="form-label small">開始日期</label>
+                                <label htmlFor="historyStartDate" className="form-label small fw-bold">開始日期</label>
                                 <input
                                     id="historyStartDate"
                                     type="date"
@@ -390,7 +374,7 @@ export default function CustomerEdit() {
                                 />
                             </div>
                             <div className="col-6">
-                                <label htmlFor="historyEndDate" className="form-label small">結束日期</label>
+                                <label htmlFor="historyEndDate" className="form-label small fw-bold">結束日期</label>
                                 <input
                                     id="historyEndDate"
                                     type="date"
@@ -400,48 +384,62 @@ export default function CustomerEdit() {
                                 />
                             </div>
                         </div>
-                        <table className={`table table-bordered text-center mb-0`}>
-                            <thead>
-                                <tr className='table-success'>
-                                    <th>日期</th>
-                                    <th>消費星星</th>
-                                    <th>剩餘星星</th>
-                                    <th>到期日</th>
-                                    <th>餘額</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filteredHistory.map((history, index) => {
-                                    let stars: number;
+                        <div className='table-responsive'>
+                            <table className='table table-bordered text-center mb-0' style={{ whiteSpace: 'nowrap' }}>
+                                <thead>
+                                    <tr className='table-success'>
+                                        <th style={{width: '100px'}}>日期</th>
+                                        <th style={{width: '80px'}}>
+                                            <div className='d-flex justify-content-center align-items-center'>
+                                                消費
+                                                <Image src={star} className={`${styles.star}`} alt="star" />
+                                            </div>
 
-                                    if (history.currentBalance === history.amount) {
-                                        // 初始紀錄特殊邏輯
-                                        stars = 15;
-                                    } else {
-                                        // 一般星星計算：$80/星，四捨五入（負數 .5 往遠離 0 方向捨入）
-                                        const rawStars = history.amount / 80;
-                                        stars = Math.sign(rawStars) * Math.round(Math.abs(rawStars));
-                                    }
-
-                                    const displayStars = stars > 0 ? `+${stars}` : stars.toString();
-
-                                    return (
-                                    <tr key={`${history.spendDate}-${index}`}>
-                                        <td>{history.spendDate}</td>
-                                        <td className='text-end'>{displayStars}</td>
-                                        <td className='text-end'>{Math.round(history.currentBalance / 80)}</td>
-                                        <td>{history.expiryDate}</td>
-                                        <td className='text-end'>{history.currentBalance.toLocaleString()}</td>
+                                        </th>
+                                        <th style={{width: '80px'}}>
+                                            <div className='d-flex justify-content-center align-items-center'>
+                                                剩餘
+                                                <Image src={star} className={`${styles.star}`} alt="star" />
+                                            </div>
+                                        </th>
+                                        <th style={{width: '100px'}}>到期日</th>
+                                        <th style={{width: '80px'}}>餘額</th>
                                     </tr>
-                                    );
-                                })}
-                                {filteredHistory.length === 0 && (
-                                    <tr>
-                                        <td colSpan={5} className="text-center py-3 text-muted">無符合條件的紀錄</td>
-                                    </tr>
-                                )}
-                            </tbody>
-                        </table>
+                                </thead>
+                                <tbody>
+                                    {filteredHistory.map((history, index) => {
+                                        let stars: number;
+
+                                        if (history.currentBalance === history.amount) {
+                                            // 初始紀錄特殊邏輯
+                                            stars = 15;
+                                        } else {
+                                            // 一般星星計算：$80/星，四捨五入（負數 .5 往遠離 0 方向捨入）
+                                            const rawStars = history.amount / 80;
+                                            stars = Math.sign(rawStars) * Math.round(Math.abs(rawStars));
+                                        }
+
+                                        const displayStars = stars > 0 ? `+${stars}` : stars.toString();
+
+                                        return (
+                                        <tr key={`${history.spendDate}-${index}`}>
+                                            <td>{history.spendDate}</td>
+                                            <td className='text-end'>{displayStars}</td>
+                                            <td className='text-end'>{Math.round(history.currentBalance / 80)}</td>
+                                            <td>{history.expiryDate}</td>
+                                            <td className='text-end'>{history.currentBalance.toLocaleString()}</td>
+                                        </tr>
+                                        );
+                                    })}
+                                    {filteredHistory.length === 0 && (
+                                        <tr>
+                                            <td colSpan={5} className="text-center py-3 text-muted">無符合條件的紀錄</td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+
                     </div>
                 </div>
             </div>

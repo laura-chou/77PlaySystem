@@ -17,3 +17,15 @@
     align-items: center;
     justify-content: center;
 }
+
+.star {
+    margin-left: 3px;
+    width: 15px;
+    height: 15px;
+}
+
+@media (max-width: 500px) {
+    .customerDetail {
+        width: 370px;
+    }
+}
