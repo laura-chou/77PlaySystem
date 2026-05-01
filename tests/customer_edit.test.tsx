@@ -114,7 +114,13 @@ describe('CustomerEdit Page Integration Test', () => {
             extendedTimes: 0,
             history: [
               { spendDate: '2023-01-01', amount: -200, currentBalance: 1300, expiryDate: '2023-04-01', serviceName: 'Charge' },
-              { spendDate: '2023-01-02', amount: 1500, currentBalance: 1500, expiryDate: '2023-07-01', serviceName: 'Initial' }
+              { spendDate: '2023-01-02', amount: 1500, currentBalance: 1500, expiryDate: '2023-07-01', serviceName: 'Initial' },
+              { spendDate: '2023-01-03', amount: 80, currentBalance: 1580, expiryDate: '2023-07-01', serviceName: 'Refill' },
+              { spendDate: '2023-01-04', amount: 120, currentBalance: 1700, expiryDate: '2023-07-01', serviceName: 'Refill' },
+              { spendDate: '2023-01-05', amount: 40, currentBalance: 1740, expiryDate: '2023-07-01', serviceName: 'Refill' },
+              { spendDate: '2023-01-06', amount: -120, currentBalance: 1620, expiryDate: '2023-07-01', serviceName: 'Charge' },
+              { spendDate: '2023-01-07', amount: -40, currentBalance: 1580, expiryDate: '2023-07-01', serviceName: 'Charge' },
+              { spendDate: '2023-01-08', amount: 1600, currentBalance: 3180, expiryDate: '2023-10-01', serviceName: 'Refill' }
             ]
           }
         });
@@ -125,10 +131,27 @@ describe('CustomerEdit Page Integration Test', () => {
     await waitForElementToBeRemoved(() => screen.queryByText('載入中...'));
     await user.click(screen.getByText('歷史紀錄'));
 
-    // 消費 -200 應顯示 -3 星 (round(-200/80) = -3)
-    expect(screen.getByText('-3')).toBeInTheDocument();
-    // 初始 1500 且 currentBalance === amount 應顯示 +15 星
+    // 初始 1500 (amount === currentBalance) -> +15 星
     expect(screen.getByText('+15')).toBeInTheDocument();
+
+    // 80 -> +1 星
+    // 40 -> 40/80 = 0.5 -> +1 星
+    expect(screen.getAllByText('+1').length).toBe(2);
+
+    // 120 -> 120/80 = 1.5 -> +2 星
+    expect(screen.getByText('+2')).toBeInTheDocument();
+
+    // -200 -> -200/80 = -2.5 -> -3 星
+    expect(screen.getByText('-3')).toBeInTheDocument();
+
+    // -120 -> -120/80 = -1.5 -> -2 星
+    expect(screen.getByText('-2')).toBeInTheDocument();
+
+    // -40 -> -40/80 = -0.5 -> -1 星
+    expect(screen.getByText('-1')).toBeInTheDocument();
+
+    // 1600 -> 1600/80 = 20 -> +20 星 (只有初始有15上限)
+    expect(screen.getByText('+20')).toBeInTheDocument();
   });
 
   it('進入編輯模式並修改姓名', async () => {
@@ -177,11 +200,11 @@ describe('CustomerEdit Page Integration Test', () => {
     await user.click(screen.getByText('編輯'));
 
     // 切換操作類型為消費
-    const actionSelect = screen.getByRole('combobox');
+    const actionSelect = screen.getByLabelText('操作類型：');
     await user.selectOptions(actionSelect, 'charge');
 
     // 輸入金額
-    const amountInput = screen.getByPlaceholderText('請輸入金額 (80的倍數)');
+    const amountInput = screen.getByLabelText('金額：');
     await user.clear(amountInput);
     await user.type(amountInput, '160');
 

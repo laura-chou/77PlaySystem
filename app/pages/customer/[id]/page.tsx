@@ -218,8 +218,9 @@ export default function CustomerEdit() {
                 <div className="tab-content" id="nav-tabContent">
                     <div className="tab-pane fade show active" id="nav-customer" >
                         <div className="mt-2 mb-2">
-                            <label className="col-form-label px-1">客戶 LINE：</label>
+                            <label htmlFor="custName" className="col-form-label px-1">客戶 LINE：</label>
                             <input
+                                id="custName"
                                 type="text"
                                 className="form-control"
                                 name="custName"
@@ -230,8 +231,9 @@ export default function CustomerEdit() {
                         </div>
 
                         <div className="mb-2">
-                            <label className="col-form-label px-1">加入日期：</label>
+                            <label htmlFor="createDate" className="col-form-label px-1">加入日期：</label>
                             <input
+                                id="createDate"
                                 type="date"
                                 className="form-control"
                                 name="createDate"
@@ -241,8 +243,9 @@ export default function CustomerEdit() {
                         </div>
 
                         <div className="mb-2">
-                            <label className="col-form-label px-1">當前餘額：</label>
+                            <label htmlFor="currentBalance" className="col-form-label px-1">當前餘額：</label>
                             <input
+                                id="currentBalance"
                                 type="number"
                                 className="form-control"
                                 name="amount"
@@ -252,8 +255,9 @@ export default function CustomerEdit() {
                         </div>
 
                         <div className="mb-4">
-                            <label className="col-form-label px-1">餘額到期日：</label>
+                            <label htmlFor="expiryDate" className="col-form-label px-1">餘額到期日：</label>
                             <input
+                                id="expiryDate"
                                 type="date"
                                 className="form-control"
                                 name="expiryDate"
@@ -266,8 +270,9 @@ export default function CustomerEdit() {
                             <>
                                 <div><hr /></div>
                                 <div className="mb-2">
-                                    <label className="col-form-label px-1">操作類型：</label>
+                                    <label htmlFor="actionSelect" className="col-form-label px-1">操作類型：</label>
                                     <select
+                                        id="actionSelect"
                                         className="form-select"
                                         value={action}
                                         onChange={(e) => {
@@ -312,15 +317,16 @@ export default function CustomerEdit() {
                                 </div>
 
                                 <div className="mb-4">
-                                    <label className="col-form-label px-1">金額：</label>
+                                    <label htmlFor="edit-amount" className="col-form-label px-1">金額：</label>
                                     <input
+                                        id="edit-amount"
                                         type="number"
                                         className="form-control"
-                                        value={action === 'name' ? 0 : balanceAmount}
+                                        value={action === 'name' ? 0 : balanceAmount || ''}
                                         onChange={(e) => {
                                             const value = e.target.value;
                                             if (/^\d*$/.test(value)) {
-                                                setBalanceAmount(parseInt(value));
+                                                setBalanceAmount(value === '' ? 0 : parseInt(value));
                                             }
                                         }}
                                         disabled={action === 'name' || action === 'extend'}
